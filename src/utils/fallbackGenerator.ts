@@ -15,7 +15,7 @@ export interface PlanGenerationInput {
 export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPlan {
   const id = 'event-' + Date.now();
   const currency = input.currency || '$';
-  const totalBudget = Math.max(100, Number(input.totalBudget) || 5000);
+  const totalBudget = Math.max(0, Number(input.totalBudget) || 0);
   const guestCount = Math.max(1, Number(input.guestCount) || 50);
 
   // Derive palette based on vibe

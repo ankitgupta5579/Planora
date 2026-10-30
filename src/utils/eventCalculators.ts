@@ -52,15 +52,60 @@ export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number)
   };
 }
 
-export function rebalanceBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
-  const currentTotal = items.reduce((sum, item) => sum + (Number(item.allocatedAmount) || 0), 0);
-  if (currentTotal === 0 || totalBudget <= 0) return items;
+export function normalizeBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
+  const targetBudget = Math.max(0, Math.round(totalBudget));
+  if (!items || items.length === 0) {
+    if (targetBudget === 0) return [];
+    return [
+      {
+        id: 'b-1',
+        category: 'contingency',
+        title: 'Emergency & General Contingency',
+        allocatedAmount: targetBudget,
+        actualAmount: 0,
+        isPaid: false,
+        notes: 'Initial allocation',
+      },
+    ];
+  }
 
-  const ratio = totalBudget / currentTotal;
-  return items.map((item) => ({
-    ...item,
-    allocatedAmount: Math.round((Number(item.allocatedAmount) || 0) * ratio),
-  }));
+  const currentTotal = items.reduce((sum, item) => sum + Math.max(0, Number(item.allocatedAmount) || 0), 0);
+
+  if (currentTotal === 0) {
+    const count = items.length;
+    const baseShare = Math.floor(targetBudget / count);
+    let running = 0;
+    return items.map((item, idx) => {
+      const isLast = idx === count - 1;
+      const allocated = isLast ? Math.max(0, targetBudget - running) : baseShare;
+      running += allocated;
+      return {
+        ...item,
+        allocatedAmount: allocated,
+      };
+    });
+  }
+
+  const ratio = targetBudget / currentTotal;
+  let runningAllocated = 0;
+
+  return items.map((item, idx) => {
+    const isLast = idx === items.length - 1;
+    const rawAllocated = Math.max(0, Number(item.allocatedAmount) || 0);
+    const allocated = isLast
+      ? Math.max(0, targetBudget - runningAllocated)
+      : Math.round(rawAllocated * ratio);
+
+    runningAllocated += allocated;
+    return {
+      ...item,
+      allocatedAmount: allocated,
+    };
+  });
+}
+
+export function rebalanceBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
+  return normalizeBudgetItems(items, totalBudget);
 }
 
 export function calculateTimelineProgress(items: TimelineItem[]): {
