@@ -49,18 +49,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
-          <div className="hidden xs:block">
+          <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm sm:text-base tracking-tight text-white">
-                Celebration AI
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30 hidden sm:inline-block">
-                Planner
+              <span className="font-bold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
+                Event Planner AI
               </span>
             </div>
-            <p className="text-xs text-slate-300 hidden md:block">
-              Weddings • Birthdays • Festivals
-            </p>
           </div>
         </div>
 
@@ -124,10 +118,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenAiChat}
             className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-500/20 transition cursor-pointer"
-            title="Open AI Event Planner Assistant"
-            aria-label="Open AI Event Planner Assistant"
+            title="Open AI Event Planner Assistant (Press to chat)"
+            aria-label="Open AI Event Planner Assistant (Press to chat)"
           >
-            <MessageSquare className="w-3.5 h-3.5" />
+            <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
             <span className="hidden xs:inline">Ask AI</span>
           </button>
         </div>

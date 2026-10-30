@@ -118,17 +118,19 @@ test('calculateGuestStats accurately tabulates headcount with plus-ones and diet
     { id: 'g2', name: 'Bob', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegan', group: 'family' },
     { id: 'g3', name: 'Charlie', rsvpStatus: 'declined', plusOnes: 2, dietaryRestrictions: 'Gluten-Free', group: 'colleagues' },
     { id: 'g4', name: 'Dana', rsvpStatus: 'pending', plusOnes: 0, dietaryRestrictions: 'vegetarian', group: 'friends' },
+    { id: 'g5', name: 'Evan', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'None', group: 'friends' },
   ];
   const stats = calculateGuestStats(guests);
 
-  assert.equal(stats.totalInvited, 4);
-  assert.equal(stats.totalAttending, 2);
+  assert.equal(stats.totalInvited, 5);
+  assert.equal(stats.totalAttending, 3);
   assert.equal(stats.totalDeclined, 1);
   assert.equal(stats.totalPending, 1);
-  // Headcount: Alice(1+1) + Bob(1+0) = 3
-  assert.equal(stats.totalHeadcount, 3);
+  // Headcount: Alice(1+1) + Bob(1+0) + Evan(1+0) = 4
+  assert.equal(stats.totalHeadcount, 4);
   assert.equal(stats.dietaryCounts['vegetarian'], 2);
   assert.equal(stats.dietaryCounts['vegan'], 1);
+  assert.equal(stats.dietaryCounts['none'], undefined);
 });
 
 test('calculateDaysRemaining returns correct difference', () => {

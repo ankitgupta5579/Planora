@@ -184,12 +184,26 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Remaining Cash</div>
-          <div className={`text-2xl font-bold ${metrics.remainingCash < 0 ? 'text-rose-400' : 'text-slate-100'}`}>
-            {plan.currency}{metrics.remainingCash.toLocaleString()}
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Budget Variance</div>
+          <div className="text-xl sm:text-2xl font-bold">
+            {metrics.totalSpent < plan.totalBudget ? (
+              <span className="text-emerald-400 flex items-center gap-1.5">
+                <Check className="w-5 h-5" aria-hidden="true" />
+                Under by {plan.currency}{(plan.totalBudget - metrics.totalSpent).toLocaleString()}
+              </span>
+            ) : metrics.totalSpent > plan.totalBudget ? (
+              <span className="text-rose-400 flex items-center gap-1.5">
+                <AlertCircle className="w-5 h-5" aria-hidden="true" />
+                Over by {plan.currency}{(metrics.totalSpent - plan.totalBudget).toLocaleString()}
+              </span>
+            ) : (
+              <span className="text-slate-100">
+                On target ({plan.currency}0 variance)
+              </span>
+            )}
           </div>
-          <div className="text-xs text-slate-400 mt-1">
-            {metrics.remainingCash >= 0 ? 'Within budget buffer' : '⚠️ Over total limit!'}
+          <div className="text-xs text-slate-300 mt-1">
+            {plan.currency}{metrics.remainingCash.toLocaleString()} remaining cash buffer
           </div>
         </div>
       </div>
@@ -346,9 +360,19 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                     </td>
 
                     <td className="py-3 px-4 text-right font-medium">
-                      <span className={isOver ? 'text-rose-400 font-bold' : 'text-emerald-400'}>
-                        {isOver ? '-' : '+'}{plan.currency}{Math.abs(variance).toLocaleString()}
-                      </span>
+                      {item.actualAmount < item.allocatedAmount ? (
+                        <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                          Under by {plan.currency}{(item.allocatedAmount - item.actualAmount).toLocaleString()}
+                        </span>
+                      ) : item.actualAmount > item.allocatedAmount ? (
+                        <span className="text-rose-400 font-bold inline-flex items-center gap-1">
+                          Over by {plan.currency}{(item.actualAmount - item.allocatedAmount).toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 font-medium">
+                          On target ({plan.currency}0)
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3 px-4 text-center">

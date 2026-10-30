@@ -192,7 +192,9 @@ export function calculateGuestStats(guests: GuestItem[]): {
 
     if (guest.dietaryRestrictions && guest.dietaryRestrictions.trim() !== '') {
       const diet = guest.dietaryRestrictions.trim().toLowerCase();
-      dietaryCounts[diet] = (dietaryCounts[diet] || 0) + 1;
+      if (diet !== 'none' && diet !== 'no' && diet !== 'n/a' && diet !== 'standard' && diet !== 'nil') {
+        dietaryCounts[diet] = (dietaryCounts[diet] || 0) + 1;
+      }
     }
   }
 

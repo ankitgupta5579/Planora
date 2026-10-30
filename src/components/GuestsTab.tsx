@@ -40,6 +40,13 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
 
   const groups: GuestItem['group'][] = ['family', 'friends', 'colleagues', 'vip', 'general'];
 
+  const handleInlineTableChange = (guestId: string, newTable: string) => {
+    const updated = plan.guests.map((g) =>
+      g.id === guestId ? { ...g, tableNumber: newTable } : g
+    );
+    onUpdatePlan({ ...plan, guests: updated, updatedAt: new Date().toISOString() });
+  };
+
   const handleDeleteGuest = (id: string) => {
     const updated = plan.guests.filter((g) => g.id !== id);
     onUpdatePlan({ ...plan, guests: updated, updatedAt: new Date().toISOString() });
@@ -161,24 +168,35 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
       </div>
 
       {/* Dietary Needs Banner */}
-      {Object.keys(stats.dietaryCounts).length > 0 && (
-        <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider">
-            <UtensilsCrossed className="w-3.5 h-3.5 text-pink-400" />
-            <span>Special Dietary Requirements for Catering</span>
+      {(() => {
+        const validDietaryEntries = Object.entries(stats.dietaryCounts).filter(
+          ([diet]) => diet.toLowerCase() !== 'none' && diet.toLowerCase() !== 'no' && diet.toLowerCase() !== 'standard'
+        );
+        return (
+          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-pink-400" />
+              <span>Special Dietary Requirements for Catering</span>
+            </div>
+            {validDietaryEntries.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {validDietaryEntries.map(([diet, count]) => (
+                  <span
+                    key={diet}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 capitalize"
+                  >
+                    {diet}: <strong className="text-pink-400">{count}</strong>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">
+                No special dietary requirements recorded.
+              </p>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(stats.dietaryCounts).map(([diet, count]) => (
-              <span
-                key={diet}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 capitalize"
-              >
-                {diet}: <strong className="text-pink-400">{count}</strong>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Control Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -320,8 +338,18 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
                       )}
                     </td>
 
-                    <td className="py-3 px-4 text-slate-200">
-                      {guest.tableNumber || <span className="text-slate-400">Unassigned</span>}
+                    <td className="py-2.5 px-4">
+                      <label htmlFor={`guest-table-${guest.id}`} className="sr-only">
+                        Table or seat for {guest.name}
+                      </label>
+                      <input
+                        id={`guest-table-${guest.id}`}
+                        type="text"
+                        placeholder="Table / Seat"
+                        value={guest.tableNumber || ''}
+                        onChange={(e) => handleInlineTableChange(guest.id, e.target.value)}
+                        className="w-28 px-2 py-1 text-xs rounded-lg bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                      />
                     </td>
 
                     <td className="py-3 px-4 text-center">

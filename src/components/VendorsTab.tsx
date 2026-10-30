@@ -57,6 +57,21 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
     { id: 'declined', label: 'Declined' },
   ];
 
+  const getStatusBadge = (status: VendorItem['status']) => {
+    switch (status) {
+      case 'contract_signed':
+        return { label: 'Contract Signed', className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'booked':
+        return { label: 'Booked', className: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' };
+      case 'contacted':
+        return { label: 'Contacted', className: 'bg-amber-500/20 text-amber-300 border-amber-500/40' };
+      case 'declined':
+        return { label: 'Declined', className: 'bg-rose-500/20 text-rose-300 border-rose-500/40' };
+      default:
+        return { label: 'Researching', className: 'bg-slate-700/60 text-slate-200 border-slate-600' };
+    }
+  };
+
   const handleToggleChecklistItem = (vendorId: string, itemIdx: number) => {
     const updated = plan.vendors.map((v) => {
       if (v.id !== vendorId) return v;
@@ -300,9 +315,19 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <span className="px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-slate-800 text-indigo-200 border border-slate-700">
-                      {vendor.category}
-                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-slate-800 text-indigo-200 border border-slate-700">
+                        {vendor.category}
+                      </span>
+                      {(() => {
+                        const badge = getStatusBadge(vendor.status);
+                        return (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${badge.className}`}>
+                            {badge.label}
+                          </span>
+                        );
+                      })()}
+                    </div>
                     <h3 className="text-base font-bold text-white mt-1.5">{vendor.name}</h3>
                     {vendor.contactName && (
                       <p className="text-xs text-slate-300 font-medium">
