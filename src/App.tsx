@@ -245,7 +245,7 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-400">
         <p className="font-medium text-slate-300">
-          Celebration & Event Planner • Powered by Google Gemini 3.8 Flash
+          Celebration & Event Planner
         </p>
         <p className="mt-1 text-slate-400">
           Organize Weddings, Birthdays, Community Events with AI Budgets, Timelines & Vendors.

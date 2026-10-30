@@ -192,7 +192,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                 {generationStepMessage}
               </p>
               <p className="text-xs text-slate-400">
-                Powered by Gemini 3.8 Flash with structured schemas
+                Powered by Gemini with structured schemas
               </p>
             </div>
           </div>
