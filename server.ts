@@ -27,6 +27,7 @@ import {
   ideasResponseSchema,
 } from './src/server/prompts';
 import { generateHeuristicIdeas } from './src/utils/ideaGenerator';
+import { generateOfflineChatReply } from './src/utils/chatFallback';
 import {
   DEPRECATED_MODELS,
   FALLBACK_MODELS,
@@ -280,24 +281,12 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
   return handleAiRoute(
     'chat',
     res,
-    (reason) => {
-      if (reason === 'no-api-key') {
-        return {
-          reply: `For your ${eventContext?.type || 'event'} with ${eventContext?.guestCount || 50} guests, here are key planner recommendations:
-1. Priority Check: Verify vendor contract clauses regarding cancellations and weather backups.
-2. Cost Savings: Look into repurposing ceremony florals to the reception dinner tables.
-3. Flow & Logistics: Always budget a 15-minute buffer between major speeches and dining transitions.`,
-          suggestions: [
-            'How can I save 15% on catering without compromising quality?',
-            'Draft questions to ask before signing a venue contract',
-            'Suggest 3 icebreaker games suitable for our guests',
-          ],
-          message: 'AI service temporarily unavailable; loaded offline fallback response.',
-        };
-      }
+    () => {
+      // Keyword-aware offline answer so the assistant still responds to the question asked.
+      const offline = generateOfflineChatReply(message, eventContext);
       return {
-        reply: `Based on your celebration parameters, remember to confirm arrival windows with all key vendors 48 hours prior to the event.`,
-        suggestions: ['How can I cut budget costs?', 'What questions should I ask my caterer?'],
+        reply: offline.reply,
+        suggestions: offline.suggestions,
         message: 'AI service temporarily unavailable; loaded offline fallback response.',
       };
     },

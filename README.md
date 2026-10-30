@@ -115,11 +115,12 @@ npm run build
 
 ## Testing
 
-The project maintains an automated test suite of 126 tests executed via Node's native test runner (`npm test`). Tests cover:
+The project maintains an automated test suite of 133 tests executed via Node's native test runner (`npm test`). Tests cover:
 
 - **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
 - **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation with deposit-paid balance-due semantics, uncommitted cash calculation with vendor balances, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
 - **Planner Insights Engine (`src/utils/plannerInsights.test.ts`)**: Deterministic rules covering cash commitment buffer (<10% & <=45 days), passed RSVP deadlines with pending guests, caterer allergy safety warnings, budget pace warnings, over-allocation vs under-allocation, early contingency drawdowns, RSVP pace lags, unbooked vendor warnings with proper singular/plural grammar, day-of run of show checks, post-event balances, severity sorting, and insight capping.
+- **Keyword-Aware Offline Chat Fallback (`src/utils/chatFallback.test.ts`)**: Deterministic topic classification across weather, catering, venue contracts, icebreakers, timeline, budget, vendors, guests, decor, and entertainment; contextual event data interpolation and relevant follow-up suggestions in offline mode.
 - **Client-Side CSV Guest Parser (`src/utils/csvGuestParser.test.ts`)**: RFC 4180 parsing with embedded commas, quotes, and escaped quotes, case-insensitive header mapping, group and RSVP normalization, duplicate detection against existing guest lists, and error isolation.
 - **Input Validation & Sanitization (`src/server/validate.test.ts`)**: Whitelist constraints, string length limits, numeric range bounds, and whitelisted event types for plan generation, ideas generation, chat queries, speech generation, and vendor inquiries.
 - **Anti-Prompt-Injection Escaping (`src/server/promptEscape.test.ts`)**: Validates HTML/XML tag escaping (`esc()`) across all prompt builders, verifying user inputs cannot break out of tagged prompt delimiters.
