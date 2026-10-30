@@ -11,6 +11,7 @@ import { GuestsTab } from './GuestsTab';
 import { TimelineTab } from './TimelineTab';
 import { VendorsTab } from './VendorsTab';
 import { IdeasTab } from './IdeasTab';
+import { ResetConfirmDialog } from './ResetConfirmDialog';
 
 // Setup JSDOM environment if not already defined
 if (!globalThis.window) {
@@ -197,6 +198,61 @@ test('behavior: IdeasTab renders 3 returned ideas as 3 distinct cards', () => {
     assert.ok(text.includes('Live guitarist performing'));
     assert.ok(text.includes('Fresh honeycomb dripping'));
     assert.ok(text.includes('Stamped biodegradable kraft'));
+  } finally {
+    cleanupComponent();
+  }
+});
+
+test('behavior: ResetConfirmDialog handles cancel vs confirm', () => {
+  let confirmed = false;
+  let closed = false;
+
+  const rendered = renderComponent(
+    <ResetConfirmDialog
+      isOpen={true}
+      onClose={() => {
+        closed = true;
+      }}
+      onConfirm={() => {
+        confirmed = true;
+      }}
+    />
+  );
+
+  try {
+    const dialog = rendered.querySelector('[role="alertdialog"]');
+    assert.ok(dialog, 'Must render role="alertdialog"');
+    assert.equal(dialog?.getAttribute('aria-modal'), 'true');
+    assert.equal(dialog?.getAttribute('aria-labelledby'), 'reset-dialog-title');
+    assert.equal(dialog?.getAttribute('aria-describedby'), 'reset-dialog-description');
+
+    const desc = rendered.querySelector('#reset-dialog-description');
+    assert.ok(
+      desc?.textContent?.includes('This will erase all saved events in this browser and restore the sample events.'),
+      'Must contain exact warning description'
+    );
+
+    // Test Cancel button
+    const buttons = Array.from(rendered.querySelectorAll('button'));
+    const cancelBtn = buttons.find((b) => b.textContent?.trim() === 'Cancel');
+    assert.ok(cancelBtn, 'Cancel button must exist');
+
+    act(() => {
+      cancelBtn!.click();
+    });
+    assert.equal(closed, true, 'Clicking Cancel should trigger onClose');
+    assert.equal(confirmed, false, 'Clicking Cancel must NOT trigger onConfirm');
+
+    // Reset flags and test Confirm button
+    closed = false;
+    confirmed = false;
+    const confirmBtn = buttons.find((b) => b.textContent?.includes('Reset All Events'));
+    assert.ok(confirmBtn, 'Confirm button must exist');
+
+    act(() => {
+      confirmBtn!.click();
+    });
+    assert.equal(confirmed, true, 'Clicking Confirm must trigger onConfirm');
   } finally {
     cleanupComponent();
   }

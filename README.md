@@ -115,7 +115,7 @@ npm run build
 
 ## Testing
 
-The project maintains an automated test suite of 124 tests executed via Node's native test runner (`npm test`). Tests cover:
+The project maintains an automated test suite of 126 tests executed via Node's native test runner (`npm test`). Tests cover:
 
 - **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
 - **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation with deposit-paid balance-due semantics, uncommitted cash calculation with vendor balances, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.

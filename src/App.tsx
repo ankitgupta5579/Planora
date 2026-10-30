@@ -18,6 +18,7 @@ import { EventWizardModal } from './components/EventWizardModal';
 import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 import { SpeechInviteModal } from './components/SpeechInviteModal';
 import { ExportModal } from './components/ExportModal';
+import { ResetConfirmDialog } from './components/ResetConfirmDialog';
 import { 
   LayoutDashboard, 
   DollarSign, 
@@ -40,6 +41,7 @@ export default function App() {
   const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   const [isSpeechModalOpen, setIsSpeechModalOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   const tabListRef = useRef<HTMLDivElement>(null);
 
@@ -263,8 +265,8 @@ export default function App() {
         <div className="mt-3">
           <button
             type="button"
-            onClick={handleResetSampleData}
-            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 rounded-md border border-slate-700/60 transition cursor-pointer"
+            onClick={() => setIsResetConfirmOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 rounded-md border border-slate-700/60 transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             title="Reset demo data to fresh defaults"
           >
             <RotateCcw className="w-3 h-3" />
@@ -296,6 +298,15 @@ export default function App() {
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
         plan={activeEvent}
+      />
+
+      <ResetConfirmDialog
+        isOpen={isResetConfirmOpen}
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={() => {
+          handleResetSampleData();
+          setIsResetConfirmOpen(false);
+        }}
       />
     </div>
   );

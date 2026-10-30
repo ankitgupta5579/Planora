@@ -194,19 +194,15 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Unspent budget</div>
-          <div className="text-xl sm:text-2xl font-bold">
-            {metrics.remainingCash > 0 ? (
-              <span className="text-slate-100 flex items-center gap-1.5">
+          <div className="text-2xl font-bold">
+            {metrics.remainingCash >= 0 ? (
+              <span className="text-slate-100">
                 {plan.currency}{metrics.remainingCash.toLocaleString()}
               </span>
-            ) : metrics.remainingCash < 0 ? (
+            ) : (
               <span className="text-rose-400 flex items-center gap-1.5">
                 <AlertCircle className="w-5 h-5" aria-hidden="true" />
                 Over limit by {plan.currency}{Math.abs(metrics.remainingCash).toLocaleString()}
-              </span>
-            ) : (
-              <span className="text-slate-100">
-                {plan.currency}0
               </span>
             )}
           </div>
@@ -217,19 +213,19 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Uncommitted cash</div>
-          <div className="text-xl sm:text-2xl font-bold">
+          <div className="text-2xl font-bold">
             {uncommittedCash > 0 ? (
-              <span className="text-emerald-400 flex items-center gap-1.5">
-                Uncommitted {plan.currency}{uncommittedCash.toLocaleString()}
+              <span className="text-emerald-400">
+                {plan.currency}{uncommittedCash.toLocaleString()}
               </span>
             ) : uncommittedCash < 0 ? (
               <span className="text-rose-400 flex items-center gap-1.5">
                 <AlertCircle className="w-5 h-5" aria-hidden="true" />
-                Overcommitted by {plan.currency}{Math.abs(uncommittedCash).toLocaleString()}
+                -{plan.currency}{Math.abs(uncommittedCash).toLocaleString()}
               </span>
             ) : (
               <span className="text-slate-100">
-                Uncommitted {plan.currency}0
+                {plan.currency}0
               </span>
             )}
           </div>
