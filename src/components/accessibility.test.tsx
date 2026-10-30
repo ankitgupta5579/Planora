@@ -16,6 +16,7 @@ import { EventWizardModal } from './EventWizardModal';
 import { AiAssistantDrawer } from './AiAssistantDrawer';
 import { ExportModal } from './ExportModal';
 import { SpeechInviteModal } from './SpeechInviteModal';
+import { PlannerInsights } from './PlannerInsights';
 
 // Setup JSDOM environment
 const dom = new JSDOM(
@@ -295,6 +296,28 @@ test('a11y dialog: SpeechInviteModal has role="dialog", moves focus inside, clos
     assert.equal(closed, true, 'Escape key must trigger modal close');
 
     await checkAxe(container, 'SpeechInviteModal');
+  } finally {
+    cleanup();
+  }
+});
+
+test('a11y component: PlannerInsights has accessible heading, list, and zero axe violations', async () => {
+  const { container, cleanup } = await renderComponent(
+    <PlannerInsights
+      plan={samplePlan}
+      onNavigateTab={() => {}}
+      today={new Date(2026, 9, 31)}
+    />
+  );
+
+  try {
+    const section = container.querySelector('section[aria-labelledby="planner-insights-heading"]');
+    assert.ok(section, 'Section must have aria-labelledby="planner-insights-heading"');
+    const heading = container.querySelector('#planner-insights-heading');
+    assert.ok(heading, 'Heading with matching ID must exist');
+    const list = container.querySelector('ul[role="list"]');
+    assert.ok(list, 'List must exist');
+    await checkAxe(container, 'PlannerInsights');
   } finally {
     cleanup();
   }

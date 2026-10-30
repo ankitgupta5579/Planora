@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { EventPlan } from '../types/event';
+import { PlannerInsights } from './PlannerInsights';
 import { 
   calculateBudgetMetrics, 
   calculateTimelineProgress, 
@@ -263,6 +264,9 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Planner Insights Card */}
+      <PlannerInsights plan={plan} onNavigateTab={onNavigateTab} />
 
       {/* Two Column Layout: Theme & Palette / Upcoming Priorities */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
