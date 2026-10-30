@@ -428,7 +428,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                   <select
                     id="expense-category-select"
                     value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value as any)}
+                    onChange={(e) => setFormCategory(e.target.value as BudgetItem['category'])}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {categories.map((c) => (

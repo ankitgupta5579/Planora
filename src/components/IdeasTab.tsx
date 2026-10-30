@@ -340,7 +340,7 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
                 <select
                   id="idea-category-select"
                   value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value as any)}
+                  onChange={(e) => setFormCategory(e.target.value as PersonalizedIdea['category'])}
                   className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {categories.map((c) => (

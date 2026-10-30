@@ -1,4 +1,4 @@
-import { GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, GenerateContentParameters } from '@google/genai';
 import { withTimeout, isTimeoutError } from '../utils/withTimeout';
 
 export const DEPRECATED_MODELS = [
@@ -34,15 +34,35 @@ export function resolveGeminiModel(): string {
 
 export const GEMINI_MODEL = resolveGeminiModel();
 export const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30000;
-export const CHAT_THINKING_LEVEL = (ThinkingLevel && ThinkingLevel.MINIMAL) ? ThinkingLevel.MINIMAL : 'minimal';
+export const CHAT_THINKING_LEVEL: ThinkingLevel = ThinkingLevel.MINIMAL;
 
 export type GeminiErrorClassification = 'bad-thinking' | 'model-unavailable' | 'other';
+
+export interface GenerateContentResponseLike {
+  text?: string | null;
+}
+
+export type GeminiClientLike = {
+  models: {
+    generateContent: (params: GenerateContentParameters) => Promise<GenerateContentResponseLike>;
+  };
+};
+
+function getErrorInfo(err: unknown): { status?: number | string; message: string } {
+  if (err && typeof err === 'object') {
+    const rec = err as Record<string, unknown>;
+    const status = (rec.status ?? rec.statusCode ?? rec.code) as number | string | undefined;
+    const message = typeof rec.message === 'string' ? rec.message : String(err);
+    return { status, message };
+  }
+  return { message: String(err) };
+}
 
 /**
  * Strips sensitive API keys from error messages before logging or throwing.
  */
-export function sanitizeGeminiErrorMessage(err: any): string {
-  let message = String(err?.message || err || 'Unknown error');
+export function sanitizeGeminiErrorMessage(err: unknown): string {
+  let message = getErrorInfo(err).message;
   message = message.replace(/(key=)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
   message = message.replace(/(API[ _-]?key[:=]\s*)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
   return message;
@@ -51,14 +71,15 @@ export function sanitizeGeminiErrorMessage(err: any): string {
 /**
  * Sanitized server-side error logging for Gemini calls.
  */
-export function logGeminiError(context: string, err: any) {
+export function logGeminiError(context: string, err: unknown) {
   if (isTimeoutError(err)) {
     console.error(`[Gemini Error] ${context} timed out after ${GEMINI_TIMEOUT_MS}ms`);
     return;
   }
-  const status = err?.status || err?.statusCode || err?.code || 'UNKNOWN_STATUS';
+  const { status } = getErrorInfo(err);
+  const statusDisplay = status ?? 'UNKNOWN_STATUS';
   const message = sanitizeGeminiErrorMessage(err);
-  console.error(`[Gemini Error] ${context} failed (status: ${status}): ${message}`);
+  console.error(`[Gemini Error] ${context} failed (status: ${statusDisplay}): ${message}`);
 }
 
 /**
@@ -67,10 +88,9 @@ export function logGeminiError(context: string, err: any) {
  * - 'model-unavailable': HTTP 404, 503, 429, or quota/unavailable/deprecated indicators
  * - 'other': any other error (timeouts, validation, etc.)
  */
-export function classifyGeminiError(err: any): GeminiErrorClassification {
-  const status = err?.status ?? err?.statusCode ?? err?.code;
+export function classifyGeminiError(err: unknown): GeminiErrorClassification {
+  const { status, message } = getErrorInfo(err);
   const statusStr = String(status ?? '');
-  const message = String(err?.message || err || '');
 
   const is400 = status === 400 || statusStr === '400' || /400\b/.test(message);
   const mentionsThinking = /thinking/i.test(message);
@@ -96,15 +116,15 @@ export function classifyGeminiError(err: any): GeminiErrorClassification {
  * If all fallback models fail, throws the last error.
  */
 export async function tryFallbackModels(
-  ai: { models: { generateContent: (params: any) => Promise<any> } },
-  params: any,
+  ai: GeminiClientLike,
+  params: GenerateContentParameters,
   timeoutMs: number = GEMINI_TIMEOUT_MS
-): Promise<any> {
+): Promise<GenerateContentResponseLike> {
   const failedModel = params.model;
   const candidates = FALLBACK_MODELS.filter((m) => m !== failedModel);
-  const { thinkingConfig, ...configWithoutThinking } = params.config || {};
+  const { thinkingConfig, ...configWithoutThinking } = (params.config || {}) as Record<string, unknown>;
 
-  let lastError: any = null;
+  let lastError: unknown = null;
   for (const altModel of candidates) {
     try {
       console.warn(`[Gemini Warning] Model ${failedModel} unavailable, retrying with fallback model ${altModel}...`);
@@ -112,14 +132,14 @@ export async function tryFallbackModels(
         ai.models.generateContent({
           ...params,
           model: altModel,
-          config: configWithoutThinking,
+          config: configWithoutThinking as GenerateContentParameters['config'],
         }),
         timeoutMs
       );
-    } catch (candidateErr: any) {
+    } catch (candidateErr: unknown) {
       lastError = candidateErr;
-      const cStatus = candidateErr?.status ?? candidateErr?.statusCode ?? candidateErr?.code;
-      console.warn(`[Gemini Warning] Fallback candidate ${altModel} failed with status ${cStatus}`);
+      const { status: cStatus } = getErrorInfo(candidateErr);
+      console.warn(`[Gemini Warning] Fallback candidate ${altModel} failed with status ${cStatus ?? 'UNKNOWN'}`);
     }
   }
 
@@ -134,13 +154,13 @@ export async function tryFallbackModels(
  * 4. Throws the final error if all options are exhausted.
  */
 export async function generateContentWithRetry(
-  ai: { models: { generateContent: (params: any) => Promise<any> } },
-  params: any,
+  ai: GeminiClientLike,
+  params: GenerateContentParameters,
   timeoutMs: number = GEMINI_TIMEOUT_MS
-): Promise<any> {
+): Promise<GenerateContentResponseLike> {
   try {
     return await withTimeout(ai.models.generateContent(params), timeoutMs);
-  } catch (err: any) {
+  } catch (err: unknown) {
     const errorType = classifyGeminiError(err);
 
     if (errorType === 'bad-thinking' && params?.config?.thinkingConfig) {
@@ -148,18 +168,18 @@ export async function generateContentWithRetry(
       console.warn(
         `[Gemini Warning] Model rejected thinkingConfig (HTTP 400), retrying once without thinkingConfig: ${cleanMsg}`
       );
-      const { thinkingConfig, ...configWithoutThinking } = params.config;
+      const { thinkingConfig, ...configWithoutThinking } = (params.config || {}) as Record<string, unknown>;
       try {
         return await withTimeout(
           ai.models.generateContent({
             ...params,
-            config: configWithoutThinking,
+            config: configWithoutThinking as GenerateContentParameters['config'],
           }),
           timeoutMs
         );
-      } catch (retryErr: any) {
+      } catch (retryErr: unknown) {
         if (classifyGeminiError(retryErr) === 'model-unavailable') {
-          return await tryFallbackModels(ai, { ...params, config: configWithoutThinking }, timeoutMs);
+          return await tryFallbackModels(ai, { ...params, config: configWithoutThinking as GenerateContentParameters['config'] }, timeoutMs);
         }
         throw retryErr;
       }
@@ -174,13 +194,13 @@ export async function generateContentWithRetry(
 }
 
 // Client helper & singleton management
-let customGeminiClient: { ai: any; apiKey?: string } | null = null;
+let customGeminiClient: { ai: GeminiClientLike; apiKey?: string } | null = null;
 
-export function setCustomGeminiClient(client: { ai: any; apiKey?: string } | null) {
+export function setCustomGeminiClient(client: { ai: GeminiClientLike; apiKey?: string } | null) {
   customGeminiClient = client;
 }
 
-export function getGeminiClient(): { ai: GoogleGenAI | null; apiKey?: string } {
+export function getGeminiClient(): { ai: GoogleGenAI | GeminiClientLike | null; apiKey?: string } {
   if (customGeminiClient) return customGeminiClient;
   const key = process.env.GEMINI_API_KEY;
   if (!key) return { ai: null, apiKey: undefined };

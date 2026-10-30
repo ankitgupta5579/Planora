@@ -318,7 +318,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                     <select
                       id={`vendor-status-${vendor.id}`}
                       value={vendor.status}
-                      onChange={(e) => handleUpdateStatus(vendor.id, e.target.value as any)}
+                      onChange={(e) => handleUpdateStatus(vendor.id, e.target.value as VendorItem['status'])}
                       className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                     >
                       {statuses.map((s) => (
@@ -585,7 +585,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   <select
                     id="vendor-status-modal-select"
                     value={formStatus}
-                    onChange={(e) => setFormStatus(e.target.value as any)}
+                    onChange={(e) => setFormStatus(e.target.value as VendorItem['status'])}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {statuses.map((s) => (

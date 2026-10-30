@@ -38,12 +38,27 @@ export interface ValidatedPlanInput {
   specialRequests?: string;
 }
 
-export function validatePlanInput(body: any): ValidationResult<ValidatedPlanInput> {
+export interface EventSummaryContext {
+  title?: string;
+  type?: string;
+  vibe?: string;
+  date?: string;
+  location?: string;
+  guestCount?: number;
+  totalBudget?: number;
+  currency?: string;
+  totalAllocated?: number;
+  totalSpent?: number;
+  [key: string]: unknown;
+}
+
+export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlanInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
 
-  const { title, type, vibe, date, location, guestCount, totalBudget, currency, specialRequests } = body;
+  const b = body as Record<string, unknown>;
+  const { title, type, vibe, date, location, guestCount, totalBudget, currency, specialRequests } = b;
 
   if (typeof title !== 'string' || title.trim().length === 0) {
     return { valid: false, error: 'Event title is required' };
@@ -119,26 +134,16 @@ export function validatePlanInput(body: any): ValidationResult<ValidatedPlanInpu
 
 export interface ValidatedChatInput {
   message: string;
-  eventContext?: {
-    title?: string;
-    type?: string;
-    vibe?: string;
-    date?: string;
-    location?: string;
-    guestCount?: number;
-    totalBudget?: number;
-    currency?: string;
-    totalAllocated?: number;
-    totalSpent?: number;
-  };
+  eventContext?: EventSummaryContext;
 }
 
-export function validateChatInput(body: any): ValidationResult<ValidatedChatInput> {
+export function validateChatInput(body: unknown): ValidationResult<ValidatedChatInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
 
-  const { message, eventContext } = body;
+  const b = body as Record<string, unknown>;
+  const { message, eventContext } = b;
 
   if (typeof message !== 'string' || message.trim().length === 0) {
     return { valid: false, error: 'Message is required' };
@@ -149,17 +154,18 @@ export function validateChatInput(body: any): ValidationResult<ValidatedChatInpu
 
   let safeContext: ValidatedChatInput['eventContext'] = undefined;
   if (eventContext && typeof eventContext === 'object') {
+    const ec = eventContext as Record<string, unknown>;
     safeContext = {
-      title: typeof eventContext.title === 'string' ? eventContext.title.slice(0, 100) : undefined,
-      type: typeof eventContext.type === 'string' ? eventContext.type.slice(0, 50) : undefined,
-      vibe: typeof eventContext.vibe === 'string' ? eventContext.vibe.slice(0, 50) : undefined,
-      date: typeof eventContext.date === 'string' ? eventContext.date.slice(0, 50) : undefined,
-      location: typeof eventContext.location === 'string' ? eventContext.location.slice(0, 200) : undefined,
-      guestCount: typeof eventContext.guestCount === 'number' ? Math.max(0, eventContext.guestCount) : undefined,
-      totalBudget: typeof eventContext.totalBudget === 'number' ? Math.max(0, eventContext.totalBudget) : undefined,
-      currency: typeof eventContext.currency === 'string' ? eventContext.currency.slice(0, 5) : '$',
-      totalAllocated: typeof eventContext.totalAllocated === 'number' ? Math.max(0, eventContext.totalAllocated) : undefined,
-      totalSpent: typeof eventContext.totalSpent === 'number' ? Math.max(0, eventContext.totalSpent) : undefined,
+      title: typeof ec.title === 'string' ? ec.title.slice(0, 100) : undefined,
+      type: typeof ec.type === 'string' ? ec.type.slice(0, 50) : undefined,
+      vibe: typeof ec.vibe === 'string' ? ec.vibe.slice(0, 50) : undefined,
+      date: typeof ec.date === 'string' ? ec.date.slice(0, 50) : undefined,
+      location: typeof ec.location === 'string' ? ec.location.slice(0, 200) : undefined,
+      guestCount: typeof ec.guestCount === 'number' ? Math.max(0, ec.guestCount) : undefined,
+      totalBudget: typeof ec.totalBudget === 'number' ? Math.max(0, ec.totalBudget) : undefined,
+      currency: typeof ec.currency === 'string' ? ec.currency.slice(0, 5) : '$',
+      totalAllocated: typeof ec.totalAllocated === 'number' ? Math.max(0, ec.totalAllocated) : undefined,
+      totalSpent: typeof ec.totalSpent === 'number' ? Math.max(0, ec.totalSpent) : undefined,
     };
   }
 
@@ -177,15 +183,16 @@ export interface ValidatedInviteSpeechInput {
   tone: string;
   recipient: string;
   customDetails?: string;
-  event?: any;
+  event?: EventSummaryContext;
 }
 
-export function validateInviteSpeechInput(body: any): ValidationResult<ValidatedInviteSpeechInput> {
+export function validateInviteSpeechInput(body: unknown): ValidationResult<ValidatedInviteSpeechInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
 
-  const { requestType, tone, recipient, customDetails, event } = body;
+  const b = body as Record<string, unknown>;
+  const { requestType, tone, recipient, customDetails, event } = b;
 
   if (requestType !== 'invitation' && requestType !== 'speech') {
     return { valid: false, error: 'requestType must be either "invitation" or "speech"' };
@@ -212,7 +219,7 @@ export function validateInviteSpeechInput(body: any): ValidationResult<Validated
       tone: safeTone,
       recipient: safeRecipient,
       customDetails: safeCustom,
-      event: event && typeof event === 'object' ? event : {},
+      event: event && typeof event === 'object' ? (event as EventSummaryContext) : {},
     },
   };
 }
@@ -225,23 +232,25 @@ export interface ValidatedVendorInquiryInput {
     quoteAmount?: number;
     email?: string;
   };
-  event: any;
+  event: EventSummaryContext;
 }
 
-export function validateVendorInquiryInput(body: any): ValidationResult<ValidatedVendorInquiryInput> {
+export function validateVendorInquiryInput(body: unknown): ValidationResult<ValidatedVendorInquiryInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
 
-  const { vendor, event } = body;
+  const b = body as Record<string, unknown>;
+  const { vendor, event } = b;
   if (!vendor || typeof vendor !== 'object') {
     return { valid: false, error: 'vendor object is required' };
   }
 
-  if (typeof vendor.name !== 'string' || vendor.name.trim().length === 0) {
+  const v = vendor as Record<string, unknown>;
+  if (typeof v.name !== 'string' || v.name.trim().length === 0) {
     return { valid: false, error: 'Vendor name is required' };
   }
-  if (vendor.name.trim().length > 100) {
+  if (v.name.trim().length > 100) {
     return { valid: false, error: 'Vendor name must not exceed 100 characters' };
   }
 
@@ -249,13 +258,13 @@ export function validateVendorInquiryInput(body: any): ValidationResult<Validate
     valid: true,
     data: {
       vendor: {
-        name: vendor.name.trim(),
-        category: typeof vendor.category === 'string' ? vendor.category.trim().slice(0, 100) : 'Vendor',
-        contactName: typeof vendor.contactName === 'string' ? vendor.contactName.trim().slice(0, 100) : undefined,
-        quoteAmount: typeof vendor.quoteAmount === 'number' ? Math.max(0, vendor.quoteAmount) : undefined,
-        email: typeof vendor.email === 'string' ? vendor.email.trim().slice(0, 100) : undefined,
+        name: v.name.trim(),
+        category: typeof v.category === 'string' ? v.category.trim().slice(0, 100) : 'Vendor',
+        contactName: typeof v.contactName === 'string' ? v.contactName.trim().slice(0, 100) : undefined,
+        quoteAmount: typeof v.quoteAmount === 'number' ? Math.max(0, v.quoteAmount) : undefined,
+        email: typeof v.email === 'string' ? v.email.trim().slice(0, 100) : undefined,
       },
-      event: event && typeof event === 'object' ? event : {},
+      event: event && typeof event === 'object' ? (event as EventSummaryContext) : {},
     },
   };
 }

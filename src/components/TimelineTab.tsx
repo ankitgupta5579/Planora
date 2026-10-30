@@ -344,7 +344,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
                   <select
                     id="milestone-phase-select"
                     value={formPhase}
-                    onChange={(e) => setFormPhase(e.target.value as any)}
+                    onChange={(e) => setFormPhase(e.target.value as TimelineItem['phase'])}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {phases.map((p) => (

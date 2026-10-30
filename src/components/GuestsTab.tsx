@@ -415,7 +415,7 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
                   <select
                     id="guest-group-select"
                     value={formGroup}
-                    onChange={(e) => setFormGroup(e.target.value as any)}
+                    onChange={(e) => setFormGroup(e.target.value as GuestItem['group'])}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {groups.map((g) => (
@@ -433,7 +433,7 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
                   <select
                     id="guest-rsvp-select"
                     value={formRsvp}
-                    onChange={(e) => setFormRsvp(e.target.value as any)}
+                    onChange={(e) => setFormRsvp(e.target.value as GuestItem['rsvpStatus'])}
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="pending">Pending</option>
