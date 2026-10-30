@@ -39,12 +39,12 @@ Event coordination requires synchronizing budgets, milestones, vendors, and comm
 ---
 
 ## How It Works
-- **Overview Dashboard**: Displays event countdowns, budget utilization meters, milestone progress bars, RSVP counts, and a color palette story.
-- **Budget Tracker**: Tracks categorized line items, payment statuses, variance, and includes a one-click auto-rebalance tool.
+- **Overview Dashboard & Planner Insights**: Displays local-midnight event countdowns, proactive deterministic recommendations (budget pacing, contingency drawdown, unbooked vendor alerts, RSVP lags), mission control metric cards, and a color palette story.
+- **Budget Tracker**: Tracks categorized line items, payment statuses, explicit variance labels ("Under by $X", "Over by $X", "On target"), and includes a one-click auto-rebalance tool.
 - **Timeline & Schedule**: Organizes milestones across five phases (Early Planning, Mid Planning, Final Month, Week Of, and Day-Of Schedule) with status toggling and assignee tags.
-- **Vendor Directory**: Tracks vendor quotes, deposits, outstanding balances, custom action checklists, and generates tailored inquiry email drafts.
-- **Ideas & Moodboard**: Categorizes creative concepts across Theme & Decor, Food & Beverages, Entertainment, Guest Experience, and Eco-Friendly Tips.
-- **Guests & RSVPs**: Manages guest lists, plus-ones, meal requirements, and dietary restrictions (vegetarian, vegan, gluten-free).
+- **Vendor Directory**: Tracks vendor quotes, deposits, outstanding balances, custom action checklists, human-cased status badges, and generates tailored inquiry email drafts.
+- **Ideas & Moodboard**: AI-powered structured multi-card idea generator returning 3 distinct cards with category badges, tag pills, and accessible Show more / Show less expansion toggles.
+- **Guests & RSVPs**: Manages guest lists, plus-ones, meal requirements, inline seat/table assignment, and accessible CSV bulk import with live parse previews and duplicate detection.
 - **AI Planning Consultant**: Context-aware slide-over assistant drawer providing tailored planning suggestions and advice. Shows no fallback notice during live responses, and displays clear offline indicators on fallbacks.
 - **Invites & Speeches Studio**: Generates customizable invitation text and speeches across multiple tones.
 - **Export Studio**: Exports event plans as JSON, formatted Markdown, or printable summaries.
@@ -115,10 +115,15 @@ npm run build
 
 ## Testing
 
-The project maintains an automated test suite executed via Node's native test runner (`npm test`). Tests cover:
+The project maintains an automated test suite of 108 tests executed via Node's native test runner (`npm test`). Tests cover:
 
-- **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation, timeline phase progress, guest count tallies with plus-ones and dietary restrictions, date countdown arithmetic, and proportional budget rebalancing.
-- **Input Validation & Sanitization (`src/server/validate.test.ts`)**: Whitelist constraints, string length limits, numeric range bounds, and whitelisted event types for plan generation, chat queries, speech generation, and vendor inquiries.
+- **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
+- **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
+- **Planner Insights Engine (`src/utils/plannerInsights.test.ts`)**: Deterministic rules covering budget pace warnings, over-allocation vs under-allocation, early contingency drawdowns, RSVP pace lags, unbooked vendor warnings, day-of run of show checks, post-event balances, severity sorting, and insight capping.
+- **Client-Side CSV Guest Parser (`src/utils/csvGuestParser.test.ts`)**: RFC 4180 parsing with embedded commas, quotes, and escaped quotes, case-insensitive header mapping, group and RSVP normalization, duplicate detection against existing guest lists, and error isolation.
+- **Input Validation & Sanitization (`src/server/validate.test.ts`)**: Whitelist constraints, string length limits, numeric range bounds, and whitelisted event types for plan generation, ideas generation, chat queries, speech generation, and vendor inquiries.
+- **Anti-Prompt-Injection Escaping (`src/server/promptEscape.test.ts`)**: Validates HTML/XML tag escaping (`esc()`) across all prompt builders, verifying user inputs cannot break out of tagged prompt delimiters.
+- **Structured Idea Generation (`src/utils/ideaGenerator.test.ts`)**: Deterministic multi-card idea heuristics returning 3 bespoke cards per event type and vibe with human titles.
 - **Offline Heuristic Fallback Generator (`src/utils/fallbackGenerator.test.ts`)**: Deterministic, complete plan generation across all 5 supported event types and all 9 aesthetic vibes (45 combinations), guaranteeing exact budget item sums and edge-value handling.
 - **Promise Timeout Helper (`src/utils/withTimeout.test.ts`)**: Resolves when promises finish in time, rejects with `TimeoutError` when durations are exceeded, handles underlying rejections, and honors defaults.
 - **Gemini Client Resiliency (`src/server/geminiClient.test.ts`)**: Mocked tests covering primary model success, timeouts, HTTP 400 thinking retry without `thinkingConfig`, HTTP 404 model deprecation with second fallback recovery, HTTP 503 high-demand recovery, HTTP 429 quota recovery, failed model skipping, thinkingConfig stripping on fallbacks, exhausted fallback errors, and error message credential sanitization.
@@ -126,8 +131,8 @@ The project maintains an automated test suite executed via Node's native test ru
 - **Fallback Reason Mapping (`src/utils/fallbackMessages.test.ts`)**: Mapping fallback reasons (`timeout`, `no-api-key`, `error`) to user-facing messages, asserting no notice is prepended when `isFallback: false`, and verifying fallback notices when `isFallback: true`.
 - **Client-Side Storage Resilience (`src/utils/storage.test.ts`)**: Corrupted, malformed, or empty `localStorage` fallback to sample events, and round-tripping through `saveAllEvents` and `loadSavedEvents`.
 - **Server API & Fallback Paths (`src/server/serverFallback.test.ts`)**: Ephemeral server instance testing all AI endpoints without an API key (HTTP 200 with `isFallback: true` and `fallbackReason: 'no-api-key'`), input rejection (HTTP 400), payload limits (HTTP 413), retry without thinkingConfig, and AI-success path mapping with server-side budget normalization.
-- **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, and VendorsTab.
-- **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests) and all 4 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite) in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
+- **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, VendorsTab, and multi-card IdeasTab.
+- **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), standalone PlannerInsights, and all 5 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite, CSV Import) in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
 
 ### Test Execution Commands
 ```bash
