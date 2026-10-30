@@ -57,18 +57,18 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
     { id: 'declined', label: 'Declined' },
   ];
 
-  const getStatusBadge = (status: VendorItem['status']) => {
+  const getStatusSelectStyle = (status: VendorItem['status']) => {
     switch (status) {
       case 'contract_signed':
-        return { label: 'Contract Signed', className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+        return 'bg-emerald-950/50 text-emerald-300 border-emerald-500/50';
       case 'booked':
-        return { label: 'Booked', className: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' };
+        return 'bg-indigo-950/50 text-indigo-300 border-indigo-500/50';
       case 'contacted':
-        return { label: 'Contacted', className: 'bg-amber-500/20 text-amber-300 border-amber-500/40' };
+        return 'bg-amber-950/50 text-amber-300 border-amber-500/50';
       case 'declined':
-        return { label: 'Declined', className: 'bg-rose-500/20 text-rose-300 border-rose-500/40' };
+        return 'bg-rose-950/50 text-rose-300 border-rose-500/50';
       default:
-        return { label: 'Researching', className: 'bg-slate-700/60 text-slate-200 border-slate-600' };
+        return 'bg-slate-800 text-slate-300 border-slate-700';
     }
   };
 
@@ -246,7 +246,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
-            Booked & Confirmed
+            Booked or signed
           </div>
           <div className="text-2xl font-bold text-indigo-400">
             {financials.bookedCount} / {financials.totalCount}
@@ -315,19 +315,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-slate-800 text-indigo-200 border border-slate-700">
-                        {vendor.category}
-                      </span>
-                      {(() => {
-                        const badge = getStatusBadge(vendor.status);
-                        return (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${badge.className}`}>
-                            {badge.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
+                    <span className="px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-slate-800 text-indigo-200 border border-slate-700">
+                      {vendor.category}
+                    </span>
                     <h3 className="text-base font-bold text-white mt-1.5">{vendor.name}</h3>
                     {vendor.contactName && (
                       <p className="text-xs text-slate-300 font-medium">
@@ -338,16 +328,18 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
 
                   <div>
                     <label htmlFor={`vendor-status-${vendor.id}`} className="sr-only">
-                      Update status for {vendor.name}
+                      Status for {vendor.name}
                     </label>
                     <select
                       id={`vendor-status-${vendor.id}`}
                       value={vendor.status}
                       onChange={(e) => handleUpdateStatus(vendor.id, e.target.value as VendorItem['status'])}
-                      className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-lg border focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition ${getStatusSelectStyle(
+                        vendor.status
+                      )}`}
                     >
                       {statuses.map((s) => (
-                        <option key={s.id} value={s.id}>
+                        <option key={s.id} value={s.id} className="bg-slate-900 text-slate-100">
                           {s.label}
                         </option>
                       ))}

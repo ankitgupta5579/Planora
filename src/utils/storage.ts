@@ -2,12 +2,20 @@ import { EventPlan } from '../types/event';
 import { SAMPLE_EVENTS } from './sampleData';
 import { formatLocalDate } from './dates';
 
-const STORAGE_KEY_EVENTS = 'celebration_events_v1';
-const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v1';
+const STORAGE_VERSION = 'v4';
+const STORAGE_KEY_VERSION = 'celebration_storage_version';
+const STORAGE_KEY_EVENTS = 'celebration_events_v4';
+const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v4';
 
 export function loadSavedEvents(): EventPlan[] {
   if (typeof window === 'undefined') return SAMPLE_EVENTS;
   try {
+    const version = localStorage.getItem(STORAGE_KEY_VERSION);
+    if (version !== STORAGE_VERSION) {
+      localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
+      localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(SAMPLE_EVENTS));
+      return SAMPLE_EVENTS;
+    }
     const raw = localStorage.getItem(STORAGE_KEY_EVENTS);
     if (!raw) {
       // Seed with sample events
@@ -25,9 +33,19 @@ export function loadSavedEvents(): EventPlan[] {
   }
 }
 
+export function resetToSampleEvents(): EventPlan[] {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
+    localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(SAMPLE_EVENTS));
+    localStorage.removeItem(STORAGE_KEY_ACTIVE_ID);
+  }
+  return SAMPLE_EVENTS;
+}
+
 export function saveAllEvents(events: EventPlan[]): void {
   if (typeof window === 'undefined') return;
   try {
+    localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
     localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
   } catch (err) {
     console.error('Failed to save events to localStorage:', err);

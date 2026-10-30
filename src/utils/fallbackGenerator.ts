@@ -286,16 +286,16 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
   const ideas: PersonalizedIdea[] = [
     {
       id: 'idea-1',
-      title: `Curated ${input.vibe.toUpperCase()} Photo-Op Vignette`,
+      title: 'Ambient Photo-Op Backdrop & Vignette',
       category: 'theme_decor',
       description: `Create an eye-catching photo corner featuring ambient backlighting, customized event signage, and props matching the ${input.vibe} aesthetic.`,
       tags: ['Instagrammable', 'Decor', 'Memories'],
     },
     {
       id: 'idea-2',
-      title: 'Signature Event Beverage / Mocktail Station',
+      title: 'Signature Event Beverage & Mocktail Station',
       category: 'food_beverage',
-      description: `Feature a custom-named specialty drink (e.g., "${input.title.slice(0, 15)} Sparkler") infused with fresh botanicals and citrus.`,
+      description: 'Feature a custom-named specialty drink infused with fresh botanicals, citrus extracts, and commemorative glassware.',
       tags: ['Signature Drink', 'Hospitality', 'Creative'],
     },
     {

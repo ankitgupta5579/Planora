@@ -184,26 +184,25 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Budget Variance</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Remaining buffer</div>
           <div className="text-xl sm:text-2xl font-bold">
-            {metrics.totalSpent < plan.totalBudget ? (
+            {metrics.remainingCash > 0 ? (
               <span className="text-emerald-400 flex items-center gap-1.5">
-                <Check className="w-5 h-5" aria-hidden="true" />
-                Under by {plan.currency}{(plan.totalBudget - metrics.totalSpent).toLocaleString()}
+                {plan.currency}{metrics.remainingCash.toLocaleString()} available
               </span>
-            ) : metrics.totalSpent > plan.totalBudget ? (
+            ) : metrics.remainingCash < 0 ? (
               <span className="text-rose-400 flex items-center gap-1.5">
                 <AlertCircle className="w-5 h-5" aria-hidden="true" />
-                Over by {plan.currency}{(metrics.totalSpent - plan.totalBudget).toLocaleString()}
+                Over limit by {plan.currency}{Math.abs(metrics.remainingCash).toLocaleString()}
               </span>
             ) : (
               <span className="text-slate-100">
-                On target ({plan.currency}0 variance)
+                {plan.currency}0 buffer (exact)
               </span>
             )}
           </div>
           <div className="text-xs text-slate-300 mt-1">
-            {plan.currency}{metrics.remainingCash.toLocaleString()} remaining cash buffer
+            {metrics.remainingCash >= 0 ? 'Unspent allocation buffer' : '⚠️ Exceeds total budget cap'}
           </div>
         </div>
       </div>
@@ -325,16 +324,22 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                     <td className="py-3 px-4">
                       <button
                         onClick={() => handleTogglePaid(item)}
-                        aria-label={`Toggle payment status for ${item.title}. Currently ${item.isPaid ? 'Paid' : 'Pending'}`}
+                        aria-label={`Toggle payment status for ${item.title}. Currently ${
+                          item.isPaid ? 'Paid' : item.actualAmount > 0 ? 'Deposit Paid' : 'Unpaid'
+                        }`}
                         className="flex items-center gap-1.5 cursor-pointer text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded"
                       >
                         {item.isPaid ? (
                           <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium text-xs flex items-center gap-1">
                             <Check className="w-3 h-3" /> Paid
                           </span>
+                        ) : item.actualAmount > 0 ? (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium text-xs flex items-center gap-1">
+                            Deposit Paid
+                          </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-slate-700 text-slate-200 font-medium text-xs hover:text-white">
-                            Pending
+                          <span className="px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 font-medium text-xs hover:text-white">
+                            Unpaid
                           </span>
                         )}
                       </button>

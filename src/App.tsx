@@ -4,7 +4,8 @@ import {
   loadSavedEvents, 
   saveAllEvents, 
   getActiveEventId, 
-  setActiveEventId 
+  setActiveEventId,
+  resetToSampleEvents
 } from './utils/storage';
 import { Navbar } from './components/Navbar';
 import { EventOverviewTab } from './components/EventOverviewTab';
@@ -23,7 +24,8 @@ import {
   Clock, 
   Building2, 
   Sparkles, 
-  Users 
+  Users,
+  RotateCcw
 } from 'lucide-react';
 
 type TabKey = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests';
@@ -69,6 +71,14 @@ export default function App() {
     setActiveEventId(newPlan.id);
     saveAllEvents(updatedList);
     setActiveTab('overview');
+  };
+
+  const handleResetSampleData = () => {
+    const fresh = resetToSampleEvents();
+    setEvents(fresh);
+    if (fresh.length > 0) {
+      setActiveId(fresh[0].id);
+    }
   };
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = activeEvent ? [
@@ -250,6 +260,17 @@ export default function App() {
         <p className="mt-1 text-slate-400">
           Organize Weddings, Birthdays, Community Events with AI Budgets, Timelines & Vendors.
         </p>
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={handleResetSampleData}
+            className="inline-flex items-center gap-1.5 px-3 py-1 text-xs text-slate-400 hover:text-slate-200 bg-slate-800/60 hover:bg-slate-800 rounded-md border border-slate-700/60 transition cursor-pointer"
+            title="Reset demo data to fresh defaults"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Reset Demo Data</span>
+          </button>
+        </div>
       </footer>
 
       {/* Modals & Drawers */}

@@ -160,15 +160,31 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
 
   // 3d. Guest Response Rate Check
   if (event.guestCount > 0 && daysRemaining <= GUEST_RESPONSE_WARNING_DAYS_AHEAD) {
-    const confirmedPct = Math.round((guestStats.totalHeadcount / event.guestCount) * 100);
-    if (confirmedPct < GUEST_RESPONSE_MIN_HEADCOUNT_PCT) {
-      insights.push({
-        id: 'insight-guest-response-lag',
-        severity: 'warning',
-        title: 'Low Confirmed RSVP Headcount',
-        message: `Only ${guestStats.totalHeadcount} of ${event.guestCount} target attendees (${confirmedPct}%) are confirmed with ${daysRemaining} days remaining.`,
-        action: { label: 'Follow Up RSVPs', tab: 'guests' },
-      });
+    if (event.type === 'community') {
+      // Community festivals rely on open public attendance and volunteer staff rather than 1:1 guest RSVPs
+      const volunteerStaff = (event.guests || []).filter(
+        (g) => g.group === 'colleagues' || g.group === 'vip' || g.rsvpStatus === 'attending'
+      ).length;
+      if (volunteerStaff < 8 && daysRemaining <= 30) {
+        insights.push({
+          id: 'insight-community-volunteers',
+          severity: 'warning',
+          title: 'Volunteer Roster Mobilization',
+          message: `Only ${volunteerStaff} volunteer marshals / committee leads registered for this public festival (${event.guestCount} expected attendees). Mobilize volunteers for course safety.`,
+          action: { label: 'Review Volunteers', tab: 'guests' },
+        });
+      }
+    } else {
+      const confirmedPct = Math.round((guestStats.totalHeadcount / event.guestCount) * 100);
+      if (confirmedPct < GUEST_RESPONSE_MIN_HEADCOUNT_PCT) {
+        insights.push({
+          id: 'insight-guest-response-lag',
+          severity: 'warning',
+          title: 'Low Confirmed RSVP Headcount',
+          message: `Only ${guestStats.totalHeadcount} of ${event.guestCount} target attendees (${confirmedPct}%) are confirmed with ${daysRemaining} days remaining.`,
+          action: { label: 'Follow Up RSVPs', tab: 'guests' },
+        });
+      }
     }
   }
 

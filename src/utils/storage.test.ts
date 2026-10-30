@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadSavedEvents, saveAllEvents, getActiveEventId, setActiveEventId } from './storage';
+import { loadSavedEvents, saveAllEvents, getActiveEventId, setActiveEventId, resetToSampleEvents } from './storage';
 import { SAMPLE_EVENTS } from './sampleData';
 import { EventPlan } from '../types/event';
 
@@ -34,7 +34,8 @@ test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage is 
 
 test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage contains corrupt JSON', () => {
   const mock = new MockLocalStorage();
-  mock.setItem('celebration_events_v1', '{invalid-json');
+  mock.setItem('celebration_storage_version', 'v4');
+  mock.setItem('celebration_events_v4', '{invalid-json');
   (globalThis as any).window = globalThis;
   (globalThis as any).localStorage = mock;
 
@@ -45,12 +46,26 @@ test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage con
 
 test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage contains an empty array', () => {
   const mock = new MockLocalStorage();
-  mock.setItem('celebration_events_v1', '[]');
+  mock.setItem('celebration_storage_version', 'v4');
+  mock.setItem('celebration_events_v4', '[]');
   (globalThis as any).window = globalThis;
   (globalThis as any).localStorage = mock;
 
   const events = loadSavedEvents();
   assert.equal(events.length, SAMPLE_EVENTS.length);
+});
+
+test('storage: automatically migrates old storage version to v4 with fresh SAMPLE_EVENTS', () => {
+  const mock = new MockLocalStorage();
+  mock.setItem('celebration_storage_version', 'v1');
+  mock.setItem('celebration_events_v1', JSON.stringify([{ id: 'old-stale-event' }]));
+  (globalThis as any).window = globalThis;
+  (globalThis as any).localStorage = mock;
+
+  const events = loadSavedEvents();
+  assert.equal(events.length, SAMPLE_EVENTS.length);
+  assert.equal(events[0].id, SAMPLE_EVENTS[0].id);
+  assert.equal(mock.getItem('celebration_storage_version'), 'v4');
 });
 
 test('storage: saved events round-trip cleanly through saveAllEvents and loadSavedEvents', () => {
@@ -85,4 +100,18 @@ test('storage: active event ID round-trips and validates existence against event
   // If saved ID does not exist in events list, falls back to first event
   setActiveEventId('non-existent-id');
   assert.equal(getActiveEventId(events), events[0].id);
+});
+
+test('storage: resetToSampleEvents restores default samples and clears active id', () => {
+  const mock = new MockLocalStorage();
+  (globalThis as any).window = globalThis;
+  (globalThis as any).localStorage = mock;
+
+  mock.setItem('celebration_active_event_id_v4', 'sample-custom');
+  mock.setItem('celebration_events_v4', JSON.stringify([]));
+
+  const reset = resetToSampleEvents();
+  assert.equal(reset.length, SAMPLE_EVENTS.length);
+  assert.equal(mock.getItem('celebration_active_event_id_v4'), null);
+  assert.equal(mock.getItem('celebration_storage_version'), 'v4');
 });

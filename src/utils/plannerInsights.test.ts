@@ -240,6 +240,34 @@ test('plannerInsights: detects low RSVP response rate when days <= 45', () => {
   assert.strictEqual(guestInsight.action?.tab, 'guests');
 });
 
+test('plannerInsights: handles community event with volunteer mobilization rather than 1:1 RSVP lag', () => {
+  const plan = createBasePlan({
+    type: 'community',
+    date: '2026-11-20',
+    guestCount: 650,
+    guests: [
+      {
+        id: 'g-1',
+        name: 'Mayor',
+        email: 'mayor@city.gov',
+        group: 'vip',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'none',
+      },
+    ],
+  });
+  const today = new Date(2026, 10, 1);
+  const insights = generatePlannerInsights(plan, today);
+
+  const rsvpLag = insights.find((i) => i.id === 'insight-guest-response-lag');
+  assert.strictEqual(rsvpLag, undefined, 'Should not show rigid 1:1 RSVP lag for open community festivals');
+
+  const volInsight = insights.find((i) => i.id === 'insight-community-volunteers');
+  assert.ok(volInsight, 'Should suggest volunteer roster mobilization instead');
+  assert.strictEqual(volInsight.severity, 'warning');
+});
+
 test('plannerInsights: detects unbooked vendors when days <= 30', () => {
   const plan = createBasePlan({
     date: '2026-11-15',
