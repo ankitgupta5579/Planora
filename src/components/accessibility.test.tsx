@@ -17,6 +17,7 @@ import { AiAssistantDrawer } from './AiAssistantDrawer';
 import { ExportModal } from './ExportModal';
 import { SpeechInviteModal } from './SpeechInviteModal';
 import { PlannerInsights } from './PlannerInsights';
+import { CsvImportModal } from './CsvImportModal';
 
 // Setup JSDOM environment
 const dom = new JSDOM(
@@ -318,6 +319,39 @@ test('a11y component: PlannerInsights has accessible heading, list, and zero axe
     const list = container.querySelector('ul[role="list"]');
     assert.ok(list, 'List must exist');
     await checkAxe(container, 'PlannerInsights');
+  } finally {
+    cleanup();
+  }
+});
+
+test('a11y dialog: CsvImportModal has role="dialog", moves focus inside, closes on Escape, and has zero axe violations', async () => {
+  let closed = false;
+  const { container, cleanup } = await renderComponent(
+    <CsvImportModal
+      isOpen={true}
+      onClose={() => {
+        closed = true;
+      }}
+      existingGuests={samplePlan.guests}
+      onImport={() => {}}
+    />
+  );
+
+  try {
+    const dialog = container.querySelector('[role="dialog"]');
+    assert.equal(Boolean(dialog), true, 'Modal must have role="dialog"');
+
+    await new Promise((r) => setTimeout(r, 60));
+    assert.equal(
+      dialog?.contains(dom.window.document.activeElement),
+      true,
+      'Focus must move inside the modal upon opening'
+    );
+
+    dom.window.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' }));
+    assert.equal(closed, true, 'Escape key must trigger modal close');
+
+    await checkAxe(container, 'CsvImportModal');
   } finally {
     cleanup();
   }

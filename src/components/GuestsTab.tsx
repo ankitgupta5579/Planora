@@ -11,8 +11,10 @@ import {
   Trash2, 
   Search, 
   UtensilsCrossed, 
-  X 
+  X,
+  Upload 
 } from 'lucide-react';
+import { CsvImportModal } from './CsvImportModal';
 
 interface GuestsTabProps {
   plan: EventPlan;
@@ -24,6 +26,7 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [groupFilter, setGroupFilter] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCsvModal, setShowCsvModal] = useState(false);
   const [editGuest, setEditGuest] = useState<GuestItem | null>(null);
 
   // Form state
@@ -45,6 +48,14 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
       g.id === guestId ? { ...g, tableNumber: newTable } : g
     );
     onUpdatePlan({ ...plan, guests: updated, updatedAt: new Date().toISOString() });
+  };
+
+  const handleImportCsv = (newGuests: GuestItem[]) => {
+    onUpdatePlan({
+      ...plan,
+      guests: [...plan.guests, ...newGuests],
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   const handleDeleteGuest = (id: string) => {
@@ -251,14 +262,25 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
           </div>
         </div>
 
-        <button
-          onClick={openAddModal}
-          aria-label="Add guest to list"
-          className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Guest</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCsvModal(true)}
+            aria-label="Import guests from CSV file"
+            className="px-3 py-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          >
+            <Upload className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Import CSV</span>
+          </button>
+
+          <button
+            onClick={openAddModal}
+            aria-label="Add guest to list"
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-1.5 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Guest</span>
+          </button>
+        </div>
       </div>
 
       {/* Guest Table */}
@@ -535,6 +557,14 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
           </div>
         </div>
       )}
+
+      {/* CSV Import Modal */}
+      <CsvImportModal
+        isOpen={showCsvModal}
+        onClose={() => setShowCsvModal(false)}
+        existingGuests={plan.guests}
+        onImport={handleImportCsv}
+      />
     </div>
   );
 };
