@@ -35,6 +35,7 @@ import {
   setCustomGeminiClient,
   getGeminiClient,
 } from './src/server/geminiClient';
+import { parseChatReply } from './src/server/parseChatReply';
 
 // Re-export core Gemini helpers for backward compatibility with tests
 export {
@@ -265,20 +266,10 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
       GEMINI_TIMEOUT_MS
     );
 
-    let parsed: any = {};
-    try {
-      parsed = JSON.parse(chatResponse.text || '{}');
-    } catch {
-      const replyMatch = chatResponse.text?.match(/"reply"\s*:\s*"([\s\S]*?)(?:"\s*,\s*"suggestions"|"$)/);
-      if (replyMatch) {
-        parsed = { reply: replyMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"'), suggestions: [] };
-      } else {
-        throw new Error('Failed to parse chat response JSON');
-      }
-    }
+    const { reply, suggestions } = parseChatReply(chatResponse.text);
     return res.json({
-      reply: parsed.reply || 'Here are my recommendations for your celebration.',
-      suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+      reply,
+      suggestions,
       isFallback: false,
     });
   } catch (err: any) {
