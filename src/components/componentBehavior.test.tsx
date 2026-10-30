@@ -10,6 +10,7 @@ import { BudgetTab } from './BudgetTab';
 import { GuestsTab } from './GuestsTab';
 import { TimelineTab } from './TimelineTab';
 import { VendorsTab } from './VendorsTab';
+import { IdeasTab } from './IdeasTab';
 
 // Setup JSDOM environment if not already defined
 if (!globalThis.window) {
@@ -145,6 +146,57 @@ test('behavior: VendorsTab renders vendor cards and quotes', () => {
     const text = rendered.textContent || '';
     assert.ok(text.includes('Vendor Management') || text.includes('Vendors'), 'Should display vendors heading');
     assert.ok(text.includes(event.vendors[0].name), 'Should display first vendor name');
+  } finally {
+    cleanupComponent();
+  }
+});
+
+
+test('behavior: IdeasTab renders 3 returned ideas as 3 distinct cards', () => {
+  const event = {
+    ...SAMPLE_EVENTS[0],
+    ideas: [
+      {
+        id: 'idea-1',
+        title: 'Acoustic Sunset Prelude',
+        category: 'entertainment' as const,
+        description: 'Live guitarist performing indie acoustic covers as the sun sets over the ocean.',
+        tags: ['Music', 'Sunset'],
+      },
+      {
+        id: 'idea-2',
+        title: 'Local Honeycomb Grazing Table',
+        category: 'food_beverage' as const,
+        description: 'Fresh honeycomb dripping over artisan goat cheese and crusty sourdough loaves.',
+        tags: ['Gourmet', 'Honey'],
+      },
+      {
+        id: 'idea-3',
+        title: 'Wildflower Seed Packet Favors',
+        category: 'sustainable_tip' as const,
+        description: 'Stamped biodegradable kraft envelopes filled with pollinator-friendly seeds.',
+        tags: ['Eco', 'Favors'],
+      },
+    ],
+  };
+
+  const rendered = renderComponent(
+    <IdeasTab
+      plan={event}
+      onUpdatePlan={() => {}}
+      onOpenAiChat={() => {}}
+    />
+  );
+
+  try {
+    const text = rendered.textContent || '';
+    assert.ok(text.includes('Acoustic Sunset Prelude'), 'Must render card 1 title');
+    assert.ok(text.includes('Local Honeycomb Grazing Table'), 'Must render card 2 title');
+    assert.ok(text.includes('Wildflower Seed Packet Favors'), 'Must render card 3 title');
+    // Ensure all 3 descriptions are in the DOM
+    assert.ok(text.includes('Live guitarist performing'));
+    assert.ok(text.includes('Fresh honeycomb dripping'));
+    assert.ok(text.includes('Stamped biodegradable kraft'));
   } finally {
     cleanupComponent();
   }

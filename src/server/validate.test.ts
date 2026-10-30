@@ -5,6 +5,7 @@ import {
   validateChatInput,
   validateInviteSpeechInput,
   validateVendorInquiryInput,
+  validateIdeasInput,
 } from './validate';
 
 test('validatePlanInput: valid input passes cleanly', () => {
@@ -166,4 +167,48 @@ test('validateVendorInquiryInput: validates vendor name and caps', () => {
     event: {},
   });
   assert.equal(missing.valid, false);
+});
+
+
+test('validateIdeasInput: accepts valid event context and focus category', () => {
+  const valid = validateIdeasInput({
+    eventContext: {
+      title: 'Beach Luau',
+      type: 'birthday',
+      vibe: 'festive',
+      guestCount: 60,
+      totalBudget: 4000,
+    },
+    focusCategory: 'entertainment',
+    existingTitles: ['Fire Dancer Show', 'Ukulele Duo'],
+  });
+
+  assert.equal(valid.valid, true);
+  assert.equal(valid.data?.focusCategory, 'entertainment');
+  assert.equal(valid.data?.existingTitles?.length, 2);
+  assert.equal(valid.data?.eventContext?.title, 'Beach Luau');
+});
+
+test('validateIdeasInput: rejects invalid focus category', () => {
+  const invalid = validateIdeasInput({
+    focusCategory: 'invalid_category_name',
+  });
+  assert.equal(invalid.valid, false);
+  assert.match(invalid.error!, /focusCategory must be one of/i);
+});
+
+test('validateIdeasInput: caps existingTitles at 20 items and 100 characters each', () => {
+  const manyTitles = Array.from({ length: 30 }, (_, i) => `Title ${i} ` + 'X'.repeat(150));
+  const res = validateIdeasInput({
+    existingTitles: manyTitles,
+  });
+
+  assert.equal(res.valid, true);
+  assert.equal(res.data?.existingTitles?.length, 20);
+  assert.ok(res.data!.existingTitles![0].length <= 100);
+});
+
+test('validateIdeasInput: rejects non-object body', () => {
+  assert.equal(validateIdeasInput(null).valid, false);
+  assert.equal(validateIdeasInput('string').valid, false);
 });

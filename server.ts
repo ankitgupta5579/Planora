@@ -14,15 +14,19 @@ import {
   validateChatInput,
   validateInviteSpeechInput,
   validateVendorInquiryInput,
+  validateIdeasInput,
 } from './src/server/validate';
 import {
   buildPlanGenerationPrompt,
   buildChatPrompt,
   buildInviteSpeechPrompt,
   buildVendorInquiryPrompt,
+  buildIdeasPrompt,
   planResponseSchema,
   chatResponseSchema,
+  ideasResponseSchema,
 } from './src/server/prompts';
+import { generateHeuristicIdeas } from './src/utils/ideaGenerator';
 import {
   DEPRECATED_MODELS,
   FALLBACK_MODELS,
@@ -414,6 +418,83 @@ Event Planning Team`;
       );
 
       return { email: response.text || defaultEmail };
+    }
+  );
+});
+
+// -------------------------------------------------------------
+// POST /api/ai/generate-ideas
+// -------------------------------------------------------------
+app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
+  const validation = validateIdeasInput(req.body);
+  if (!validation.valid || !validation.data) {
+    return res.status(400).json({ error: validation.error || 'Invalid ideas request parameters' });
+  }
+
+  const input = validation.data;
+  const validCategories = ['theme_decor', 'food_beverage', 'entertainment', 'guest_experience', 'sustainable_tip'];
+
+  return handleAiRoute(
+    'generate-ideas',
+    res,
+    () => ({
+      ideas: generateHeuristicIdeas({
+        ...input.eventContext,
+        focusCategory: input.focusCategory,
+        existingTitles: input.existingTitles,
+      }),
+      message: 'AI service temporarily unavailable; loaded offline creative ideas.',
+    }),
+    async (ai) => {
+      const prompt = buildIdeasPrompt(input);
+
+      const response = await generateContentWithRetry(
+        ai,
+        {
+          model: GEMINI_MODEL,
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+            responseSchema: ideasResponseSchema,
+            maxOutputTokens: 1000,
+          },
+        },
+        GEMINI_TIMEOUT_MS
+      );
+
+      const parsed = JSON.parse(response.text || '{}') as {
+        ideas?: Array<{ title?: string; category?: string; description?: string; tags?: string[] }>;
+      };
+
+      const rawIdeas = Array.isArray(parsed.ideas) ? parsed.ideas : [];
+      const sanitizedIdeas: PersonalizedIdea[] = rawIdeas
+        .slice(0, 6)
+        .filter((item) => typeof item.title === 'string' && item.title.trim().length > 0)
+        .map((item, idx) => {
+          const cat = validCategories.includes(item.category || '')
+            ? (item.category as PersonalizedIdea['category'])
+            : 'guest_experience';
+          return {
+            id: `idea-ai-${Date.now()}-${idx + 1}`,
+            title: item.title!.trim().slice(0, 100),
+            category: cat,
+            description: (item.description || 'Creative touch tailored for your event.').trim().slice(0, 500),
+            tags: Array.isArray(item.tags)
+              ? item.tags.filter((t) => typeof t === 'string').map((t) => t.trim().slice(0, 30)).slice(0, 4)
+              : ['Creative', 'Personalized'],
+          };
+        });
+
+      const finalIdeas =
+        sanitizedIdeas.length > 0
+          ? sanitizedIdeas
+          : generateHeuristicIdeas({
+              ...input.eventContext,
+              focusCategory: input.focusCategory,
+              existingTitles: input.existingTitles,
+            });
+
+      return { ideas: finalIdeas };
     }
   );
 });

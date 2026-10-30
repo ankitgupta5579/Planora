@@ -268,3 +268,78 @@ export function validateVendorInquiryInput(body: unknown): ValidationResult<Vali
     },
   };
 }
+
+
+export const ALLOWED_IDEA_CATEGORIES = [
+  'theme_decor',
+  'food_beverage',
+  'entertainment',
+  'guest_experience',
+  'sustainable_tip',
+] as const;
+
+export type IdeaCategory = (typeof ALLOWED_IDEA_CATEGORIES)[number];
+
+export interface ValidatedIdeasInput {
+  eventContext?: EventSummaryContext;
+  focusCategory?: IdeaCategory;
+  existingTitles?: string[];
+}
+
+export function validateIdeasInput(body: unknown): ValidationResult<ValidatedIdeasInput> {
+  if (!body || typeof body !== 'object') {
+    return { valid: false, error: 'Request body must be a JSON object' };
+  }
+
+  const b = body as Record<string, unknown>;
+  const { eventContext, focusCategory, existingTitles } = b;
+
+  let safeFocus: IdeaCategory | undefined = undefined;
+  if (focusCategory !== undefined && focusCategory !== null) {
+    if (
+      typeof focusCategory !== 'string' ||
+      !ALLOWED_IDEA_CATEGORIES.includes(focusCategory.toLowerCase() as IdeaCategory)
+    ) {
+      return {
+        valid: false,
+        error: `focusCategory must be one of: ${ALLOWED_IDEA_CATEGORIES.join(', ')}`,
+      };
+    }
+    safeFocus = focusCategory.toLowerCase() as IdeaCategory;
+  }
+
+  let safeTitles: string[] | undefined = undefined;
+  if (existingTitles !== undefined && existingTitles !== null) {
+    if (!Array.isArray(existingTitles)) {
+      return { valid: false, error: 'existingTitles must be an array of strings' };
+    }
+    safeTitles = existingTitles
+      .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+      .slice(0, 20)
+      .map((t) => t.trim().slice(0, 100));
+  }
+
+  let safeContext: EventSummaryContext | undefined = undefined;
+  if (eventContext && typeof eventContext === 'object') {
+    const ec = eventContext as Record<string, unknown>;
+    safeContext = {
+      title: typeof ec.title === 'string' ? ec.title.slice(0, 100) : undefined,
+      type: typeof ec.type === 'string' ? ec.type.slice(0, 50) : undefined,
+      vibe: typeof ec.vibe === 'string' ? ec.vibe.slice(0, 50) : undefined,
+      date: typeof ec.date === 'string' ? ec.date.slice(0, 50) : undefined,
+      location: typeof ec.location === 'string' ? ec.location.slice(0, 200) : undefined,
+      guestCount: typeof ec.guestCount === 'number' ? Math.max(0, ec.guestCount) : undefined,
+      totalBudget: typeof ec.totalBudget === 'number' ? Math.max(0, ec.totalBudget) : undefined,
+      currency: typeof ec.currency === 'string' ? ec.currency.slice(0, 5) : '$',
+    };
+  }
+
+  return {
+    valid: true,
+    data: {
+      eventContext: safeContext,
+      focusCategory: safeFocus,
+      existingTitles: safeTitles,
+    },
+  };
+}

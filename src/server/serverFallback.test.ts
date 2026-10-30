@@ -388,3 +388,98 @@ test('server: /api/ai/generate-plan AI-success maps output and enforces exact bu
     server.close();
   }
 });
+
+
+test('server: /api/ai/generate-ideas returns offline fallback response with 3 ideas when no API key', async () => {
+  const { server, baseUrl } = await startTestServer();
+  try {
+    const res = await fetch(`${baseUrl}/api/ai/generate-ideas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventContext: {
+          title: 'Coastal Boho Gathering',
+          type: 'wedding',
+          vibe: 'bohemian',
+          guestCount: 90,
+          totalBudget: 18000,
+        },
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.isFallback, true);
+    assert.equal(data.fallbackReason, 'no-api-key');
+    assert.ok(Array.isArray(data.ideas));
+    assert.equal(data.ideas.length, 3);
+    assert.ok(data.ideas[0].title);
+    assert.ok(data.ideas[0].category);
+  } finally {
+    server.close();
+  }
+});
+
+test('server: /api/ai/generate-ideas AI-success maps, sanitizes, and coerces categories', async () => {
+  const mockAi = {
+    models: {
+      generateContent: async () => {
+        return {
+          text: JSON.stringify({
+            ideas: [
+              {
+                title: 'Starlight Acoustic Lounge',
+                category: 'entertainment',
+                description: 'A cozy corner with warm festoon lighting and acoustic guitar sets.',
+                tags: ['Live Music', 'Acoustic', 'Night'],
+              },
+              {
+                title: 'Wildflower Seed Bomb Favors',
+                category: 'invalid_category_test', // should be coerced to guest_experience
+                description: 'Clay and wildflower seed parcels for guests to plant at home.',
+                tags: ['Green', 'Flora'],
+              },
+              {
+                title: 'Local Honey & Cheese Pairing',
+                category: 'food_beverage',
+                description: 'Tasting boards with comb honey from regional apiaries.',
+                tags: ['Honey', 'Artisan', 'Pairing'],
+              },
+            ],
+          }),
+        };
+      },
+    },
+  };
+
+  setCustomGeminiClient({ ai: mockAi as any, apiKey: 'mock-key-ideas' });
+  const { server, baseUrl } = await startTestServer();
+
+  try {
+    const res = await fetch(`${baseUrl}/api/ai/generate-ideas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventContext: {
+          title: 'Starlight Soiree',
+          type: 'wedding',
+          vibe: 'romantic',
+        },
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.isFallback, false);
+    assert.ok(Array.isArray(data.ideas));
+    assert.equal(data.ideas.length, 3);
+    assert.equal(data.ideas[0].title, 'Starlight Acoustic Lounge');
+    assert.equal(data.ideas[0].category, 'entertainment');
+    // Coercion test: invalid category coerced to guest_experience
+    assert.equal(data.ideas[1].category, 'guest_experience');
+    assert.equal(data.ideas[2].title, 'Local Honey & Cheese Pairing');
+  } finally {
+    setCustomGeminiClient(null);
+    server.close();
+  }
+});

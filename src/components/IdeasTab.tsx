@@ -27,6 +27,9 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSparkingAi, setIsSparkingAi] = useState(false);
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
+  const [expandedIdeas, setExpandedIdeas] = useState<Record<string, boolean>>({});
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
+  const [aiStatusMessage, setAiStatusMessage] = useState<string>('');
 
   // Form state
   const [formCategory, setFormCategory] = useState<PersonalizedIdea['category']>('theme_decor');
@@ -81,43 +84,37 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
 
   const handleSparkMoreAiIdeas = async () => {
     setIsSparkingAi(true);
+    setFallbackNotice(null);
     try {
-      const res = await fetch('/api/ai/chat', {
+      const existingTitles = plan.ideas.map((i) => i.title);
+      const res = await fetch('/api/ai/generate-ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Generate 3 innovative, unforgettable creative ideas for this ${plan.type} with a ${plan.vibe} aesthetic and ${plan.guestCount} guests in ${plan.location}. Format with titles and descriptions.`,
           eventContext: plan,
+          focusCategory: selectedCategory === 'all' ? undefined : selectedCategory,
+          existingTitles,
         }),
       });
       const data = await res.json();
+      const newIdeas: PersonalizedIdea[] = Array.isArray(data.ideas) && data.ideas.length > 0
+        ? data.ideas
+        : [];
 
-      const newIdea: PersonalizedIdea = {
-        id: 'idea-ai-' + Date.now(),
-        title: `AI Curated: Bespoke ${plan.vibe.toUpperCase()} Experience`,
-        category: 'guest_experience',
-        description: data.reply ? data.reply.slice(0, 300) : 'Custom curated guest interaction based on your event theme.',
-        tags: ['AI Generated', plan.vibe, 'Inspiring'],
-      };
+      if (newIdeas.length > 0) {
+        onUpdatePlan({
+          ...plan,
+          ideas: [...newIdeas, ...plan.ideas],
+          updatedAt: new Date().toISOString(),
+        });
+        setAiStatusMessage(`Added ${newIdeas.length} fresh ideas!`);
+      }
 
-      onUpdatePlan({
-        ...plan,
-        ideas: [newIdea, ...plan.ideas],
-        updatedAt: new Date().toISOString(),
-      });
+      if (data.isFallback) {
+        setFallbackNotice('Showing offline suggestions: ' + (data.message || 'AI service unavailable.'));
+      }
     } catch {
-      const fallbackIdea: PersonalizedIdea = {
-        id: 'idea-ai-' + Date.now(),
-        title: `Interactive Polaroid & Audio Guestbook Corner`,
-        category: 'guest_experience',
-        description: `Set up a dedicated photo table with vintage instant cameras, metallic gel pens, and custom envelopes for handwritten notes.`,
-        tags: ['Keepsake', 'Photo', 'Creative'],
-      };
-      onUpdatePlan({
-        ...plan,
-        ideas: [fallbackIdea, ...plan.ideas],
-        updatedAt: new Date().toISOString(),
-      });
+      setFallbackNotice('Network error: unable to generate fresh ideas.');
     } finally {
       setIsSparkingAi(false);
     }
@@ -237,6 +234,23 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
         ))}
       </div>
 
+      {/* Offline Notice & Live Status */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {aiStatusMessage}
+      </div>
+      {fallbackNotice && (
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+          <span>{fallbackNotice}</span>
+          <button
+            onClick={() => setFallbackNotice(null)}
+            aria-label="Dismiss notice"
+            className="text-amber-400 hover:text-white p-0.5 rounded cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Ideas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIdeas.length === 0 ? (
@@ -246,6 +260,8 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
         ) : (
           filteredIdeas.map((idea) => {
             const catInfo = categories.find((c) => c.id === idea.category);
+            const isExpanded = Boolean(expandedIdeas[idea.id]);
+            const isLong = (idea.description || '').length > 130;
 
             return (
               <div
@@ -268,8 +284,26 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
                     </button>
                   </div>
 
-                  <h3 className="text-base font-bold text-white">{idea.title}</h3>
-                  <p className="text-xs text-slate-200 leading-relaxed">{idea.description}</p>
+                  <h3 className="text-base font-bold text-white break-words">{idea.title}</h3>
+                  <p
+                    className={`text-xs text-slate-200 leading-relaxed break-words ${
+                      isExpanded ? '' : 'line-clamp-3'
+                    }`}
+                  >
+                    {idea.description}
+                  </p>
+                  {isLong && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedIdeas((prev) => ({ ...prev, [idea.id]: !prev[idea.id] }))
+                      }
+                      aria-expanded={isExpanded}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 font-medium cursor-pointer mt-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 inline-block"
+                    >
+                      {isExpanded ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
                 </div>
 
                 {/* Tags */}
@@ -277,9 +311,9 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
                   {idea.tags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-200 font-medium flex items-center gap-1"
+                      className="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-200 font-medium flex items-center gap-1 break-words"
                     >
-                      <Tag className="w-2.5 h-2.5 text-indigo-400" />
+                      <Tag className="w-2.5 h-2.5 text-indigo-400 shrink-0" />
                       {tag}
                     </span>
                   ))}
