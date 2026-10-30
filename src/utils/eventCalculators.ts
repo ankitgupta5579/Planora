@@ -206,12 +206,4 @@ export function calculateGuestStats(guests: GuestItem[]): {
   };
 }
 
-export function calculateDaysRemaining(targetDate: string, fromDate = new Date()): number {
-  if (!targetDate) return 0;
-  const target = new Date(targetDate);
-  if (isNaN(target.getTime())) return 0;
-
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const diffTime = target.getTime() - fromDate.getTime();
-  return Math.ceil(diffTime / msPerDay);
-}
+export { parseLocalDate, formatLocalDate, calculateDaysRemaining } from './dates';

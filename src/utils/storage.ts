@@ -1,5 +1,6 @@
 import { EventPlan } from '../types/event';
 import { SAMPLE_EVENTS } from './sampleData';
+import { formatLocalDate } from './dates';
 
 const STORAGE_KEY_EVENTS = 'celebration_events_v1';
 const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v1';
@@ -66,7 +67,7 @@ export function exportPlanAsJson(plan: EventPlan): void {
 }
 
 export function exportPlanAsMarkdown(plan: EventPlan): string {
-  const dateFormatted = new Date(plan.date).toLocaleDateString(undefined, {
+  const dateFormatted = formatLocalDate(plan.date, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

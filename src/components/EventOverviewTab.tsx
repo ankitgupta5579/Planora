@@ -5,7 +5,8 @@ import {
   calculateTimelineProgress, 
   calculateVendorFinancials, 
   calculateGuestStats,
-  calculateDaysRemaining
+  calculateDaysRemaining,
+  formatLocalDate,
 } from '../utils/eventCalculators';
 import { 
   Calendar, 
@@ -103,7 +104,7 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-indigo-400" />
                 <span>
-                  {new Date(plan.date).toLocaleDateString(undefined, {
+                  {formatLocalDate(plan.date, {
                     weekday: 'short',
                     year: 'numeric',
                     month: 'short',
