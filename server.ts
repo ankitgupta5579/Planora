@@ -4,8 +4,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI, Type, ThinkingLevel } from '@google/genai';
-import { withTimeout, isTimeoutError } from './src/utils/withTimeout';
+import { isTimeoutError } from './src/utils/withTimeout';
 import { FallbackReason } from './src/utils/fallbackMessages';
 import { generateHeuristicEventPlan } from './src/utils/fallbackGenerator';
 import {
@@ -19,7 +18,39 @@ import {
   buildChatPrompt,
   buildInviteSpeechPrompt,
   buildVendorInquiryPrompt,
+  planResponseSchema,
+  chatResponseSchema,
 } from './src/server/prompts';
+import {
+  DEPRECATED_MODELS,
+  FALLBACK_MODELS,
+  DEFAULT_GEMINI_MODEL,
+  GEMINI_MODEL,
+  GEMINI_TIMEOUT_MS,
+  CHAT_THINKING_LEVEL,
+  classifyGeminiError,
+  tryFallbackModels,
+  generateContentWithRetry,
+  logGeminiError,
+  setCustomGeminiClient,
+  getGeminiClient,
+} from './src/server/geminiClient';
+
+// Re-export core Gemini helpers for backward compatibility with tests
+export {
+  DEPRECATED_MODELS,
+  FALLBACK_MODELS,
+  DEFAULT_GEMINI_MODEL,
+  GEMINI_MODEL,
+  GEMINI_TIMEOUT_MS,
+  CHAT_THINKING_LEVEL,
+  classifyGeminiError,
+  tryFallbackModels,
+  generateContentWithRetry,
+  logGeminiError,
+  setCustomGeminiClient,
+  getGeminiClient,
+};
 
 dotenv.config();
 if (process.env.NO_API_KEY === '1' || process.env.GEMINI_API_KEY === 'none' || process.env.GEMINI_API_KEY === '') {
@@ -29,134 +60,16 @@ if (process.env.NO_API_KEY === '1' || process.env.GEMINI_API_KEY === 'none' || p
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const DEPRECATED_MODELS = ['gemini-2.0-flash', 'gemini-2.0-flash-exp', 'gemini-2.5-flash', 'gemini-2.5-pro'];
-export const FALLBACK_MODELS = ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.6-flash'];
-
-const rawModel = process.env.GEMINI_MODEL;
-export const GEMINI_MODEL = (rawModel && !DEPRECATED_MODELS.includes(rawModel))
-  ? rawModel
-  : 'gemini-3-flash-preview';
-
-export const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30000;
-export const CHAT_THINKING_LEVEL = (ThinkingLevel && ThinkingLevel.MINIMAL) ? ThinkingLevel.MINIMAL : 'minimal';
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const isLocalhost =
   !process.env.FORCE_HTTPS &&
   (!process.env.HOST || process.env.HOST === '0.0.0.0' || process.env.HOST === 'localhost');
 
-/**
- * Sanitized server-side error logging for Gemini calls.
- * Never leaks the API key, and clearly logs status code vs timeout vs model errors.
- */
-function logGeminiError(context: string, err: any) {
-  if (isTimeoutError(err)) {
-    console.error(`[Gemini Error] ${context} timed out after ${GEMINI_TIMEOUT_MS}ms`);
-    return;
-  }
-  const status = err?.status || err?.statusCode || err?.code || 'UNKNOWN_STATUS';
-  let message = String(err?.message || err || 'Unknown error');
-  // Strip out any accidental API keys from query strings or headers in the error message
-  message = message.replace(/(key=)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
-  message = message.replace(/(API[ _-]?key[:=]\s*)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
-  console.error(`[Gemini Error] ${context} failed (status: ${status}): ${message}`);
-}
-
-/**
- * Executes a Gemini model call wrapped in a timeout.
- * If the model rejects with HTTP 400 mentioning 'thinking', it retries ONCE
- * without thinkingConfig before throwing/falling through to the fallback handler.
- * If the model rejects with HTTP 404 (deprecated model) or HTTP 503 (high demand spike),
- * it iterates through candidate fallback models until one succeeds.
- */
-export async function generateContentWithRetry(
-  ai: { models: { generateContent: (params: any) => Promise<any> } },
-  params: any,
-  timeoutMs: number = GEMINI_TIMEOUT_MS
-): Promise<any> {
-  try {
-    return await withTimeout(ai.models.generateContent(params), timeoutMs);
-  } catch (err: any) {
-    const status = err?.status ?? err?.statusCode ?? err?.code;
-    const is400 = status === 400 || String(status) === '400' || /400\b/.test(String(err?.message || ''));
-    const mentionsThinking = /thinking/i.test(String(err?.message || ''));
-
-    if (is400 && mentionsThinking && params?.config?.thinkingConfig) {
-      let cleanMsg = String(err?.message || err);
-      cleanMsg = cleanMsg.replace(/(key=)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
-      cleanMsg = cleanMsg.replace(/(API[ _-]?key[:=]\s*)[A-Za-z0-9_-]+/gi, '$1[REDACTED]');
-      console.warn(`[Gemini Warning] Model rejected thinkingConfig (HTTP 400), retrying once without thinkingConfig: ${cleanMsg}`);
-
-      const { thinkingConfig, ...configWithoutThinking } = params.config;
-      try {
-        return await withTimeout(
-          ai.models.generateContent({
-            ...params,
-            config: configWithoutThinking,
-          }),
-          timeoutMs
-        );
-      } catch (retryErr: any) {
-        const retryStatus = retryErr?.status ?? retryErr?.statusCode ?? retryErr?.code;
-        const retry404 = retryStatus === 404 || /404\b/.test(String(retryErr?.message || ''));
-        const retry503 = retryStatus === 503 || /503\b/.test(String(retryErr?.message || ''));
-        const retry429 = retryStatus === 429 || /429\b/.test(String(retryErr?.message || '')) || /quota|resource_exhausted/i.test(String(retryErr?.message || ''));
-        if (retry404 || retry503 || retry429) {
-          const candidates = FALLBACK_MODELS.filter((m) => m !== params.model);
-          for (const altModel of candidates) {
-            try {
-              console.warn(`[Gemini Warning] Retrying with fallback model ${altModel} after ${retryStatus}...`);
-              return await withTimeout(
-                ai.models.generateContent({
-                  ...params,
-                  model: altModel,
-                  config: configWithoutThinking,
-                }),
-                timeoutMs
-              );
-            } catch {
-              // try next fallback model
-            }
-          }
-        }
-        throw retryErr;
-      }
-    }
-
-    const is404 = status === 404 || String(status) === '404' || /404\b/.test(String(err?.message || '')) || /no longer available/i.test(String(err?.message || ''));
-    const is503 = status === 503 || String(status) === '503' || /503\b/.test(String(err?.message || '')) || /high demand|unavailable/i.test(String(err?.message || ''));
-    const is429 = status === 429 || String(status) === '429' || /429\b/.test(String(err?.message || '')) || /quota|resource_exhausted/i.test(String(err?.message || ''));
-
-    if (is404 || is503 || is429) {
-      const candidates = FALLBACK_MODELS.filter((m) => m !== params.model);
-      const { thinkingConfig, ...configWithoutThinking } = params.config || {};
-      for (const altModel of candidates) {
-        try {
-          console.warn(`[Gemini Warning] Model ${params.model} encountered status ${status}, retrying with fallback model ${altModel}...`);
-          return await withTimeout(
-            ai.models.generateContent({
-              ...params,
-              model: altModel,
-              config: configWithoutThinking,
-            }),
-            timeoutMs
-          );
-        } catch {
-          // try next candidate
-        }
-      }
-    }
-
-    throw err;
-  }
-}
-
 export const app = express();
 
 // Security headers with Helmet (strict CSP in production, relaxed in dev for Vite)
-// Note: upgrade-insecure-requests is standard in production HTTPS deployments to prevent mixed content.
-// When serving the production build locally over plain HTTP on localhost, we disable it (null)
-// so Safari and other browsers do not attempt to upgrade local HTTP asset requests to HTTPS.
+// upgrade-insecure-requests is disabled on localhost to allow plain HTTP testing
 app.use(
   helmet({
     contentSecurityPolicy: isProduction
@@ -191,24 +104,6 @@ const aiRateLimiter = rateLimit({
 
 app.use('/api/ai', aiRateLimiter);
 
-// Initialize Gemini Client Helper
-let customGeminiClient: { ai: any; apiKey?: string } | null = null;
-export function setCustomGeminiClient(client: { ai: any; apiKey?: string } | null) {
-  customGeminiClient = client;
-}
-
-export function getGeminiClient(): { ai: GoogleGenAI | null; apiKey?: string } {
-  if (customGeminiClient) return customGeminiClient;
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return { ai: null, apiKey: undefined };
-  try {
-    return { ai: new GoogleGenAI({ apiKey: key }), apiKey: key };
-  } catch (err) {
-    console.error('Failed to initialize GoogleGenAI client:', err);
-    return { ai: null, apiKey: undefined };
-  }
-}
-
 // -------------------------------------------------------------
 // POST /api/ai/generate-plan
 // -------------------------------------------------------------
@@ -242,96 +137,7 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              themeDescription: { type: Type.STRING },
-              colorPalette: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    hex: { type: Type.STRING },
-                  },
-                  required: ['name', 'hex'],
-                },
-              },
-              budgetItems: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    id: { type: Type.STRING },
-                    category: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    allocatedAmount: { type: Type.NUMBER },
-                    actualAmount: { type: Type.NUMBER },
-                    isPaid: { type: Type.BOOLEAN },
-                    notes: { type: Type.STRING },
-                  },
-                  required: ['id', 'category', 'title', 'allocatedAmount', 'actualAmount', 'isPaid'],
-                },
-              },
-              timelineItems: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    id: { type: Type.STRING },
-                    phase: { type: Type.STRING },
-                    timeLabel: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    completed: { type: Type.BOOLEAN },
-                    assignedTo: { type: Type.STRING },
-                  },
-                  required: ['id', 'phase', 'title', 'description', 'completed'],
-                },
-              },
-              vendors: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    id: { type: Type.STRING },
-                    category: { type: Type.STRING },
-                    name: { type: Type.STRING },
-                    contactName: { type: Type.STRING },
-                    phone: { type: Type.STRING },
-                    email: { type: Type.STRING },
-                    quoteAmount: { type: Type.NUMBER },
-                    depositPaid: { type: Type.NUMBER },
-                    status: { type: Type.STRING },
-                    notes: { type: Type.STRING },
-                    checklist: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                    },
-                  },
-                  required: ['id', 'category', 'name', 'quoteAmount', 'depositPaid', 'status', 'checklist'],
-                },
-              },
-              ideas: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    id: { type: Type.STRING },
-                    title: { type: Type.STRING },
-                    category: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    tags: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                    },
-                  },
-                  required: ['id', 'title', 'category', 'description', 'tags'],
-                },
-              },
-            },
-            required: ['themeDescription', 'colorPalette', 'budgetItems', 'timelineItems', 'vendors', 'ideas'],
-          },
+          responseSchema: planResponseSchema,
         },
       },
       GEMINI_TIMEOUT_MS
@@ -397,7 +203,6 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
   } catch (err: any) {
     const fallbackReason: FallbackReason = isTimeoutError(err) ? 'timeout' : 'error';
     logGeminiError('generate-plan', err);
-    // Return deterministic heuristic plan so client experience is resilient
     const fallbackPlan = generateHeuristicEventPlan(input);
     return res.json({
       plan: fallbackPlan,
@@ -450,17 +255,7 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              reply: { type: Type.STRING },
-              suggestions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-            },
-            required: ['reply', 'suggestions'],
-          },
+          responseSchema: chatResponseSchema,
           maxOutputTokens: 2500,
           thinkingConfig: {
             thinkingLevel: CHAT_THINKING_LEVEL,
@@ -631,7 +426,7 @@ export async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  return app.listen(PORT, '0.0.0.0', () => {
     console.log(`Celebration Planner Server running on http://0.0.0.0:${PORT}`);
     const { ai, apiKey } = getGeminiClient();
     const isAiEnabled = Boolean(apiKey && ai);

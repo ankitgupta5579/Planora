@@ -1,4 +1,108 @@
+import { Type } from '@google/genai';
 import { ValidatedPlanInput } from './validate';
+
+export const planResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    themeDescription: { type: Type.STRING },
+    colorPalette: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          name: { type: Type.STRING },
+          hex: { type: Type.STRING },
+        },
+        required: ['name', 'hex'],
+      },
+    },
+    budgetItems: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          category: { type: Type.STRING },
+          title: { type: Type.STRING },
+          allocatedAmount: { type: Type.NUMBER },
+          actualAmount: { type: Type.NUMBER },
+          isPaid: { type: Type.BOOLEAN },
+          notes: { type: Type.STRING },
+        },
+        required: ['id', 'category', 'title', 'allocatedAmount', 'actualAmount', 'isPaid'],
+      },
+    },
+    timelineItems: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          phase: { type: Type.STRING },
+          timeLabel: { type: Type.STRING },
+          title: { type: Type.STRING },
+          description: { type: Type.STRING },
+          completed: { type: Type.BOOLEAN },
+          assignedTo: { type: Type.STRING },
+        },
+        required: ['id', 'phase', 'title', 'description', 'completed'],
+      },
+    },
+    vendors: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          category: { type: Type.STRING },
+          name: { type: Type.STRING },
+          contactName: { type: Type.STRING },
+          phone: { type: Type.STRING },
+          email: { type: Type.STRING },
+          quoteAmount: { type: Type.NUMBER },
+          depositPaid: { type: Type.NUMBER },
+          status: { type: Type.STRING },
+          notes: { type: Type.STRING },
+          checklist: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+        },
+        required: ['id', 'category', 'name', 'quoteAmount', 'depositPaid', 'status', 'checklist'],
+      },
+    },
+    ideas: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          id: { type: Type.STRING },
+          title: { type: Type.STRING },
+          category: { type: Type.STRING },
+          description: { type: Type.STRING },
+          tags: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+        },
+        required: ['id', 'title', 'category', 'description', 'tags'],
+      },
+    },
+  },
+  required: ['themeDescription', 'colorPalette', 'budgetItems', 'timelineItems', 'vendors', 'ideas'],
+};
+
+export const chatResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    reply: { type: Type.STRING },
+    suggestions: {
+      type: Type.ARRAY,
+      items: { type: Type.STRING },
+    },
+  },
+  required: ['reply', 'suggestions'],
+};
 
 export function buildPlanGenerationPrompt(input: ValidatedPlanInput): string {
   return `You are a world-class professional Celebration and Event Planner. 
