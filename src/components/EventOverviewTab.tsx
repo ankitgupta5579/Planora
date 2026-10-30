@@ -222,7 +222,7 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
           <div className="text-2xl font-bold text-white mb-1">
             {vendorFinancials.bookedCount}
             <span className="text-xs font-normal text-slate-400 ml-1.5">
-              / {vendorFinancials.totalCount} locked
+              / {vendorFinancials.totalCount} booked or signed
             </span>
           </div>
           <p className="text-xs text-slate-400 mb-2">

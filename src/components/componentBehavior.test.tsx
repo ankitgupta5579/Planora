@@ -70,6 +70,7 @@ test('behavior: EventOverviewTab renders event title, date, location and guest c
     assert.ok(text.includes(event.title), 'Should display event title');
     assert.ok(text.includes(event.location), 'Should display event location');
     assert.ok(text.includes(String(event.guestCount)), 'Should display guest count');
+    assert.ok(text.includes('booked or signed'), 'Should display "booked or signed" to match Vendors tab');
   } finally {
     cleanupComponent();
   }
