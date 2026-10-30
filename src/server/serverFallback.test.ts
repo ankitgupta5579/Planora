@@ -314,3 +314,77 @@ test('server: /api/ai/chat retries ONCE without thinkingConfig on HTTP 400 think
     server.close();
   }
 });
+
+test('server: /api/ai/generate-plan AI-success maps output and enforces exact budget sum', async () => {
+  const mockAi = {
+    models: {
+      generateContent: async () => {
+        return {
+          text: JSON.stringify({
+            themeDescription: 'An ultra-modern chic corporate summit.',
+            colorPalette: [
+              { name: 'Slate Gray', hex: '#475569' },
+              { name: 'Indigo Accent', hex: '#6366f1' },
+            ],
+            budgetItems: [
+              { id: 'b-1', category: 'venue', title: 'Main Hall', allocatedAmount: 10000, actualAmount: 0, isPaid: false },
+              { id: 'b-2', category: 'catering', title: 'Buffet', allocatedAmount: 9000, actualAmount: 0, isPaid: false },
+              // Note: 10000 + 9000 = 19000, but target totalBudget is 20000. Normalizer must rebalance to 20000!
+            ],
+            timelineItems: [
+              { id: 't-1', phase: 'planning_early', timeLabel: '3 Months Prior', title: 'Secure keynote speaker', description: 'Confirm bio and topic', completed: true },
+            ],
+            vendors: [
+              { id: 'v-1', category: 'Catering', name: 'Gourmet Co', quoteAmount: 9000, depositPaid: 2000, status: 'booked', checklist: ['Menu tasting'] },
+            ],
+            ideas: [
+              { id: 'idea-1', category: 'theme_decor', title: 'LED Wall Backing', description: 'Dynamic visuals during transitions', tags: ['Modern', 'Tech'] },
+            ],
+          }),
+        };
+      },
+    },
+  };
+
+  setCustomGeminiClient({ ai: mockAi as any, apiKey: 'mock-valid-key' });
+  const { server, baseUrl } = await startTestServer();
+
+  try {
+    const res = await fetch(`${baseUrl}/api/ai/generate-plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Tech Horizon Summit',
+        type: 'corporate',
+        vibe: 'modern',
+        date: '2026-11-20',
+        location: 'Metro Convention Center',
+        guestCount: 200,
+        totalBudget: 20000,
+        currency: '$',
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const data = await res.json();
+    assert.equal(data.isFallback, false);
+    assert.ok(data.plan);
+    assert.equal(data.plan.title, 'Tech Horizon Summit');
+    assert.equal(data.plan.themeDescription, 'An ultra-modern chic corporate summit.');
+
+    // Crucial check: verify that normalizer eliminated LLM drift and enforced exact budget sum
+    const totalAllocated = data.plan.budgetItems.reduce(
+      (sum: number, item: { allocatedAmount: number }) => sum + item.allocatedAmount,
+      0
+    );
+    assert.equal(totalAllocated, 20000, 'Allocated budget items must sum exactly to 20000');
+    assert.equal(data.plan.colorPalette.length, 2);
+    assert.equal(data.plan.timelineItems.length, 1);
+    assert.equal(data.plan.vendors.length, 1);
+    assert.equal(data.plan.ideas.length, 1);
+    assert.equal(data.plan.guests.length, 2);
+  } finally {
+    setCustomGeminiClient(null);
+    server.close();
+  }
+});

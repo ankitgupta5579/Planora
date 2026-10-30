@@ -8,6 +8,7 @@ import {
   DEPRECATED_MODELS,
   FALLBACK_MODELS,
   DEFAULT_GEMINI_MODEL,
+  CHAT_THINKING_LEVEL,
 } from './geminiClient';
 
 test('resolveGeminiModel: defaults to gemini-3-flash-preview and maps deprecated models', () => {
@@ -123,7 +124,7 @@ test('generateContentWithRetry: 400-thinking retry without thinkingConfig', asyn
       contents: 'Plan',
       config: {
         maxOutputTokens: 500,
-        thinkingConfig: { thinkingLevel: 'minimal' },
+        thinkingConfig: { thinkingLevel: CHAT_THINKING_LEVEL },
       },
     },
     1000
@@ -168,7 +169,7 @@ test('generateContentWithRetry: 404 then success on the second fallback model', 
       contents: 'Plan event',
       config: {
         maxOutputTokens: 500,
-        thinkingConfig: { thinkingLevel: 'minimal' },
+        thinkingConfig: { thinkingLevel: CHAT_THINKING_LEVEL },
       },
     },
     1000
@@ -269,7 +270,7 @@ test('generateContentWithRetry: thinkingConfig is stripped on fallback calls', a
       model: 'gemini-3-flash-preview',
       contents: 'Test',
       config: {
-        thinkingConfig: { thinkingLevel: 'minimal' },
+        thinkingConfig: { thinkingLevel: CHAT_THINKING_LEVEL },
         maxOutputTokens: 600,
       },
     },

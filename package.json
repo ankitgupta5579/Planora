@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "tsx server.ts",
+    "dev": "node ./node_modules/tsx/dist/cli.mjs server.ts",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview",
+    "start": "node ./node_modules/tsx/dist/cli.mjs server.ts",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
-    "test": "tsx --test src/**/*.test.ts src/**/*.test.tsx"
+    "lint": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "test": "node ./node_modules/tsx/dist/cli.mjs --test src/**/*.test.ts src/**/*.test.tsx"
   },
   "dependencies": {
     "@google/genai": "^2.32.0",
