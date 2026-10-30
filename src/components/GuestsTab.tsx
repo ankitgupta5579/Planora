@@ -12,7 +12,8 @@ import {
   Search, 
   UtensilsCrossed, 
   X,
-  Upload 
+  Upload,
+  AlertTriangle
 } from 'lucide-react';
 import { CsvImportModal } from './CsvImportModal';
 
@@ -141,7 +142,7 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="flex items-center justify-between text-slate-300 mb-1">
-            <span className="text-xs font-semibold uppercase">Total Headcount</span>
+            <span className="text-xs font-semibold uppercase">Confirmed headcount (people)</span>
             <Users className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-bold text-white">{stats.totalHeadcount}</div>
@@ -152,7 +153,7 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
 
         <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="flex items-center justify-between text-slate-300 mb-1">
-            <span className="text-xs font-semibold uppercase">Confirmed Attending</span>
+            <span className="text-xs font-semibold uppercase">Parties attending</span>
             <UserCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">{stats.totalAttending}</div>
@@ -191,14 +192,26 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
             </div>
             {validDietaryEntries.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {validDietaryEntries.map(([diet, count]) => (
-                  <span
-                    key={diet}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 capitalize"
-                  >
-                    {diet}: <strong className="text-pink-400">{count}</strong>
-                  </span>
-                ))}
+                {validDietaryEntries.map(([diet, count]) => {
+                  const isAllergy = /allerg/i.test(diet);
+                  return (
+                    <span
+                      key={diet}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium capitalize inline-flex items-center gap-1.5 ${
+                        isAllergy
+                          ? 'bg-rose-950/70 border border-rose-500/50 text-rose-200'
+                          : 'bg-slate-800 border border-slate-700 text-slate-200'
+                      }`}
+                    >
+                      {isAllergy && <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" aria-hidden="true" />}
+                      <span>
+                        {diet}
+                        {isAllergy && !/allergy/i.test(diet) ? ' (Allergy)' : ''}:
+                      </span>
+                      <strong className={isAllergy ? 'text-rose-300 font-bold' : 'text-pink-400'}>{count}</strong>
+                    </span>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-slate-400">
@@ -352,9 +365,25 @@ export const GuestsTab: React.FC<GuestsTabProps> = ({ plan, onUpdatePlan }) => {
 
                     <td className="py-3 px-4">
                       {guest.dietaryRestrictions ? (
-                        <span className="text-pink-300 font-medium">
-                          {guest.dietaryRestrictions}
-                        </span>
+                        (() => {
+                          const isAllergy = /allerg/i.test(guest.dietaryRestrictions);
+                          if (isAllergy) {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-950/70 border border-rose-500/50 text-rose-200 font-semibold text-xs">
+                                <AlertTriangle className="w-3 h-3 text-rose-400 shrink-0" aria-hidden="true" />
+                                <span>
+                                  {guest.dietaryRestrictions}
+                                  {!/allergy/i.test(guest.dietaryRestrictions) && ' (Allergy)'}
+                                </span>
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="text-pink-300 font-medium">
+                              {guest.dietaryRestrictions}
+                            </span>
+                          );
+                        })()
                       ) : (
                         <span className="text-slate-400">Standard</span>
                       )}

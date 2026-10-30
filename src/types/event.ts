@@ -80,6 +80,7 @@ export interface EventPlan {
   guestCount: number;
   totalBudget: number;
   currency: string;
+  rsvpDeadline?: string;
   themeDescription: string;
   colorPalette: ColorSwatch[];
   budgetItems: BudgetItem[];

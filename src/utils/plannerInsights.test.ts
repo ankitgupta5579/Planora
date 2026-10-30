@@ -396,3 +396,193 @@ test('plannerInsights: caps output at MAX_INSIGHTS_DISPLAYED and sorts by severi
   assert.ok(insights.length <= MAX_INSIGHTS_DISPLAYED);
   assert.strictEqual(insights[0].severity, 'critical', 'First item should be highest severity (critical)');
 });
+
+test('plannerInsights: cash commitment rule triggers warning when uncommitted < 10% and days <= 45', () => {
+  // totalBudget = 20000, 10% = 2000.
+  // spent = 12000, vendor balances = 7000 => uncommitted = 20000 - 12000 - 7000 = 1000 (< 2000)
+  // daysRemaining = 20 (<= 45)
+  const plan = createBasePlan({
+    date: '2026-11-20',
+    totalBudget: 20000,
+    budgetItems: [
+      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 12000, actualAmount: 12000, isPaid: true },
+      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 8000, actualAmount: 0, isPaid: false },
+    ],
+    vendors: [
+      { id: 'v1', category: 'Catering', name: 'Chef Co', quoteAmount: 10000, depositPaid: 3000, status: 'booked', checklist: [] }, // balance = 7000
+    ],
+  });
+
+  const today = new Date(2026, 10, 1); // 19 days remaining
+  const insights = generatePlannerInsights(plan, today);
+  const cashInsight = insights.find((i) => i.id === 'insight-cash-commitment');
+
+  assert.ok(cashInsight, 'Expected cash commitment insight to trigger');
+  assert.strictEqual(cashInsight.severity, 'warning');
+  assert.strictEqual(
+    cashInsight.message,
+    'Only $1,000 is uncommitted after $7,000 in vendor balances. Hold the remainder for contingencies.'
+  );
+});
+
+test('plannerInsights: cash commitment rule does NOT trigger when uncommitted >= 10% or days > 45', () => {
+  // uncommitted = 20000 - 5000 - 2000 = 13000 (> 2000)
+  const planHealthy = createBasePlan({
+    date: '2026-11-20',
+    totalBudget: 20000,
+    budgetItems: [
+      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 10000, actualAmount: 5000, isPaid: true },
+      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 10000, actualAmount: 0, isPaid: false },
+    ],
+    vendors: [
+      { id: 'v1', category: 'Catering', name: 'Chef Co', quoteAmount: 4000, depositPaid: 2000, status: 'booked', checklist: [] },
+    ],
+  });
+
+  const today = new Date(2026, 10, 1);
+  const insights = generatePlannerInsights(planHealthy, today);
+  assert.strictEqual(insights.some((i) => i.id === 'insight-cash-commitment'), false);
+
+  // Far out: daysRemaining = 90 (> 45) even if buffer is tight
+  const planFar = createBasePlan({
+    date: '2027-02-01',
+    totalBudget: 20000,
+    budgetItems: [
+      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 19500, actualAmount: 19500, isPaid: true },
+      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 500, actualAmount: 0, isPaid: false },
+    ],
+  });
+  const insightsFar = generatePlannerInsights(planFar, today);
+  assert.strictEqual(insightsFar.some((i) => i.id === 'insight-cash-commitment'), false);
+});
+
+test('plannerInsights: RSVP deadline rule triggers warning when past deadline with pending RSVPs', () => {
+  // Deadline was 2026-10-10, today is 2026-10-15 (5 days past deadline), event is 2026-11-28
+  const plan = createBasePlan({
+    date: '2026-11-28',
+    rsvpDeadline: '2026-10-10',
+    guests: [
+      { id: 'g1', name: 'Alice', group: 'friends', rsvpStatus: 'attending', plusOnes: 0 },
+      { id: 'g2', name: 'Bob', group: 'family', rsvpStatus: 'pending', plusOnes: 0 },
+      { id: 'g3', name: 'Charlie', group: 'family', rsvpStatus: 'pending', plusOnes: 1 },
+    ],
+  });
+
+  const today = new Date(2026, 9, 15); // Oct 15, 2026 => 5 days past Oct 10
+  const insights = generatePlannerInsights(plan, today);
+  const rsvpInsight = insights.find((i) => i.id === 'insight-rsvp-deadline-passed');
+
+  assert.ok(rsvpInsight, 'Expected RSVP deadline passed insight');
+  assert.strictEqual(rsvpInsight.severity, 'warning');
+  assert.strictEqual(rsvpInsight.message, "2 guests haven't responded, 5 days past the RSVP deadline.");
+  assert.strictEqual(rsvpInsight.action?.tab, 'guests');
+});
+
+test('plannerInsights: RSVP deadline singular phrasing (1 guest, 1 day)', () => {
+  // Deadline was 2026-10-14, today is 2026-10-15 (1 day past), 1 pending guest
+  const plan = createBasePlan({
+    date: '2026-11-28',
+    rsvpDeadline: '2026-10-14',
+    guests: [
+      { id: 'g1', name: 'Alice', group: 'friends', rsvpStatus: 'attending', plusOnes: 0 },
+      { id: 'g2', name: 'Bob', group: 'family', rsvpStatus: 'pending', plusOnes: 0 },
+    ],
+  });
+
+  const today = new Date(2026, 9, 15);
+  const insights = generatePlannerInsights(plan, today);
+  const rsvpInsight = insights.find((i) => i.id === 'insight-rsvp-deadline-passed');
+
+  assert.ok(rsvpInsight);
+  assert.strictEqual(rsvpInsight.message, "1 guest hasn't responded, 1 day past the RSVP deadline.");
+});
+
+test('plannerInsights: RSVP deadline does NOT trigger when before deadline, zero pending, or no deadline', () => {
+  // Before deadline
+  const planBefore = createBasePlan({
+    date: '2026-11-28',
+    rsvpDeadline: '2026-10-25',
+    guests: [{ id: 'g1', name: 'Bob', group: 'family', rsvpStatus: 'pending', plusOnes: 0 }],
+  });
+  const today = new Date(2026, 9, 15); // 10 days before deadline
+  assert.strictEqual(
+    generatePlannerInsights(planBefore, today).some((i) => i.id === 'insight-rsvp-deadline-passed'),
+    false
+  );
+
+  // All responded (zero pending)
+  const planAllResponded = createBasePlan({
+    date: '2026-11-28',
+    rsvpDeadline: '2026-10-10',
+    guests: [{ id: 'g1', name: 'Bob', group: 'family', rsvpStatus: 'attending', plusOnes: 0 }],
+  });
+  assert.strictEqual(
+    generatePlannerInsights(planAllResponded, today).some((i) => i.id === 'insight-rsvp-deadline-passed'),
+    false
+  );
+
+  // No deadline set
+  const planNoDeadline = createBasePlan({
+    date: '2026-11-28',
+    guests: [{ id: 'g1', name: 'Bob', group: 'family', rsvpStatus: 'pending', plusOnes: 0 }],
+  });
+  assert.strictEqual(
+    generatePlannerInsights(planNoDeadline, today).some((i) => i.id === 'insight-rsvp-deadline-passed'),
+    false
+  );
+});
+
+test('plannerInsights: allergy safety rule triggers info insight for guests with allergies', () => {
+  const plan = createBasePlan({
+    date: '2026-11-28',
+    guests: [
+      { id: 'g1', name: 'Sam', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Nut Allergy' },
+      { id: 'g2', name: 'Tara', group: 'family', rsvpStatus: 'attending', plusOnes: 1, dietaryRestrictions: 'Shellfish allergy' },
+      { id: 'g3', name: 'Uma', group: 'family', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegetarian' },
+    ],
+  });
+
+  const today = new Date(2026, 9, 15);
+  const insights = generatePlannerInsights(plan, today);
+  const allergyInsight = insights.find((i) => i.id === 'insight-allergy-safety');
+
+  assert.ok(allergyInsight, 'Expected allergy safety insight');
+  assert.strictEqual(allergyInsight.severity, 'info');
+  assert.ok(allergyInsight.message.includes('2 guests with allergies'));
+  assert.ok(allergyInsight.message.includes('Nut Allergy'));
+  assert.ok(allergyInsight.message.includes('Shellfish allergy'));
+  assert.ok(allergyInsight.message.includes('confirm with your caterer'));
+  assert.strictEqual(allergyInsight.action?.tab, 'vendors');
+});
+
+test('plannerInsights: allergy safety rule does NOT trigger when no allergies present', () => {
+  const plan = createBasePlan({
+    date: '2026-11-28',
+    guests: [
+      { id: 'g1', name: 'Uma', group: 'family', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegetarian' },
+      { id: 'g2', name: 'Vic', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Gluten-Free' },
+      { id: 'g3', name: 'Will', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'None' },
+    ],
+  });
+
+  const today = new Date(2026, 9, 15);
+  const insights = generatePlannerInsights(plan, today);
+  assert.strictEqual(insights.some((i) => i.id === 'insight-allergy-safety'), false);
+});
+
+test('plannerInsights: unbooked vendors singular phrasing ("1 vendor remains")', () => {
+  const plan = createBasePlan({
+    date: '2026-11-20',
+    vendors: [
+      { id: 'v1', name: 'Sunset DJ', category: 'Music', status: 'contacted', quoteAmount: 1000, depositPaid: 0, checklist: [] },
+      { id: 'v2', name: 'Grand Venue', category: 'Venue', status: 'contract_signed', quoteAmount: 5000, depositPaid: 5000, checklist: [] },
+    ],
+  });
+
+  const today = new Date(2026, 10, 1); // 19 days remaining (<= 30)
+  const insights = generatePlannerInsights(plan, today);
+  const vendorInsight = insights.find((i) => i.id === 'insight-unbooked-vendors');
+
+  assert.ok(vendorInsight);
+  assert.ok(vendorInsight.message.includes('1 vendor (Sunset DJ) remains uncontracted with 19 days to go.'));
+});

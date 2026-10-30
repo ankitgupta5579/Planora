@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { EventPlan, BudgetItem } from '../types/event';
-import { calculateBudgetMetrics, rebalanceBudgetItems } from '../utils/eventCalculators';
+import { 
+  calculateBudgetMetrics, 
+  rebalanceBudgetItems,
+  getBudgetItemVariance,
+  calculateUncommittedCash,
+  calculateOutstandingVendorBalances
+} from '../utils/eventCalculators';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
 import { 
@@ -10,6 +16,7 @@ import {
   Wand2, 
   Search, 
   Check, 
+  Clock,
   X 
 } from 'lucide-react';
 
@@ -34,6 +41,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
   const modalRef = useFocusTrap(showAddModal, () => setShowAddModal(false));
   const metrics = calculateBudgetMetrics(plan.budgetItems, plan.totalBudget);
+  const uncommittedCash = calculateUncommittedCash(plan);
+  const outstandingVendorBalances = calculateOutstandingVendorBalances(plan.vendors);
 
   const categories: BudgetItem['category'][] = [
     'venue',
@@ -154,7 +163,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
   return (
     <div className="space-y-6">
       {/* Top Banner & Financial Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
           <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Total Budget Target</div>
           <div className="text-2xl font-bold text-white">
@@ -184,11 +193,11 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Remaining buffer</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Unspent budget</div>
           <div className="text-xl sm:text-2xl font-bold">
             {metrics.remainingCash > 0 ? (
-              <span className="text-emerald-400 flex items-center gap-1.5">
-                {plan.currency}{metrics.remainingCash.toLocaleString()} available
+              <span className="text-slate-100 flex items-center gap-1.5">
+                {plan.currency}{metrics.remainingCash.toLocaleString()}
               </span>
             ) : metrics.remainingCash < 0 ? (
               <span className="text-rose-400 flex items-center gap-1.5">
@@ -197,12 +206,35 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
               </span>
             ) : (
               <span className="text-slate-100">
-                {plan.currency}0 buffer (exact)
+                {plan.currency}0
               </span>
             )}
           </div>
-          <div className="text-xs text-slate-300 mt-1">
-            {metrics.remainingCash >= 0 ? 'Unspent allocation buffer' : '⚠️ Exceeds total budget cap'}
+          <div className="text-xs text-slate-400 mt-1">
+            {metrics.remainingCash >= 0 ? 'Remaining before commitments' : '⚠️ Exceeds total budget cap'}
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Uncommitted cash</div>
+          <div className="text-xl sm:text-2xl font-bold">
+            {uncommittedCash > 0 ? (
+              <span className="text-emerald-400 flex items-center gap-1.5">
+                Uncommitted {plan.currency}{uncommittedCash.toLocaleString()}
+              </span>
+            ) : uncommittedCash < 0 ? (
+              <span className="text-rose-400 flex items-center gap-1.5">
+                <AlertCircle className="w-5 h-5" aria-hidden="true" />
+                Overcommitted by {plan.currency}{Math.abs(uncommittedCash).toLocaleString()}
+              </span>
+            ) : (
+              <span className="text-slate-100">
+                Uncommitted {plan.currency}0
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-slate-400 mt-1">
+            after {plan.currency}{outstandingVendorBalances.toLocaleString()} vendor balances due
           </div>
         </div>
       </div>
@@ -365,19 +397,37 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                     </td>
 
                     <td className="py-3 px-4 text-right font-medium">
-                      {item.actualAmount < item.allocatedAmount ? (
-                        <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
-                          Under by {plan.currency}{(item.allocatedAmount - item.actualAmount).toLocaleString()}
-                        </span>
-                      ) : item.actualAmount > item.allocatedAmount ? (
-                        <span className="text-rose-400 font-bold inline-flex items-center gap-1">
-                          Over by {plan.currency}{(item.actualAmount - item.allocatedAmount).toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-slate-300 font-medium">
-                          On target ({plan.currency}0)
-                        </span>
-                      )}
+                      {(() => {
+                        const v = getBudgetItemVariance(item);
+                        if (v.status === 'over') {
+                          return (
+                            <span className="text-rose-400 font-bold inline-flex items-center gap-1">
+                              Over by {plan.currency}{v.amount.toLocaleString()}
+                            </span>
+                          );
+                        }
+                        if (v.status === 'under') {
+                          return (
+                            <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                              Under by {plan.currency}{v.amount.toLocaleString()}
+                            </span>
+                          );
+                        }
+                        if (v.status === 'balance_due') {
+                          return (
+                            <span className="text-amber-400 font-semibold inline-flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                              Balance due {plan.currency}{v.amount.toLocaleString()}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span className="text-slate-300 font-medium">
+                            On target ({plan.currency}0)
+                          </span>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-3 px-4 text-center">

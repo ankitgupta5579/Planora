@@ -39,12 +39,12 @@ Event coordination requires synchronizing budgets, milestones, vendors, and comm
 ---
 
 ## How It Works
-- **Overview Dashboard & Planner Insights**: Displays local-midnight event countdowns, proactive deterministic recommendations (budget pacing, contingency drawdown, unbooked vendor alerts, RSVP lags), mission control metric cards, and a color palette story.
-- **Budget Tracker**: Tracks categorized line items, payment statuses, explicit variance labels ("Under by $X", "Over by $X", "On target"), and includes a one-click auto-rebalance tool.
+- **Overview Dashboard & Planner Insights**: Displays local-midnight event countdowns, proactive deterministic recommendations (cash commitment buffers, RSVP deadline alerts, guest allergy safety notices, budget pacing, contingency drawdown, unbooked vendor alerts, RSVP lags), mission control metric cards, and a color palette story.
+- **Budget Tracker**: Tracks categorized line items, payment statuses (Paid, Deposit Paid, Unpaid), precise variance semantics ("Balance due $X" with clock icon for partial items, "Under by $X" only for fully paid items, "Over by $X", "On target"), uncommitted cash KPIs after outstanding vendor commitments, and includes a one-click auto-rebalance tool.
 - **Timeline & Schedule**: Organizes milestones across five phases (Early Planning, Mid Planning, Final Month, Week Of, and Day-Of Schedule) with status toggling and assignee tags.
 - **Vendor Directory**: Tracks vendor quotes, deposits, outstanding balances, custom action checklists, human-cased status badges, and generates tailored inquiry email drafts.
 - **Ideas & Moodboard**: AI-powered structured multi-card idea generator returning 3 distinct cards with category badges, tag pills, and accessible Show more / Show less expansion toggles.
-- **Guests & RSVPs**: Manages guest lists, plus-ones, meal requirements, inline seat/table assignment, and accessible CSV bulk import with live parse previews and duplicate detection.
+- **Guests & RSVPs**: Manages guest lists, confirmed headcount (people) with plus-ones, parties attending, pending RSVPs, dietary needs with distinct AA-compliant allergy callouts and alert icons, inline seat/table assignment, and accessible CSV bulk import with live parse previews and duplicate detection.
 - **AI Planning Consultant**: Context-aware slide-over assistant drawer providing tailored planning suggestions and advice. Shows no fallback notice during live responses, and displays clear offline indicators on fallbacks.
 - **Invites & Speeches Studio**: Generates customizable invitation text and speeches across multiple tones.
 - **Export Studio**: Exports event plans as JSON, formatted Markdown, or printable summaries.
@@ -115,11 +115,11 @@ npm run build
 
 ## Testing
 
-The project maintains an automated test suite of 108 tests executed via Node's native test runner (`npm test`). Tests cover:
+The project maintains an automated test suite of 124 tests executed via Node's native test runner (`npm test`). Tests cover:
 
 - **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
-- **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
-- **Planner Insights Engine (`src/utils/plannerInsights.test.ts`)**: Deterministic rules covering budget pace warnings, over-allocation vs under-allocation, early contingency drawdowns, RSVP pace lags, unbooked vendor warnings, day-of run of show checks, post-event balances, severity sorting, and insight capping.
+- **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation with deposit-paid balance-due semantics, uncommitted cash calculation with vendor balances, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
+- **Planner Insights Engine (`src/utils/plannerInsights.test.ts`)**: Deterministic rules covering cash commitment buffer (<10% & <=45 days), passed RSVP deadlines with pending guests, caterer allergy safety warnings, budget pace warnings, over-allocation vs under-allocation, early contingency drawdowns, RSVP pace lags, unbooked vendor warnings with proper singular/plural grammar, day-of run of show checks, post-event balances, severity sorting, and insight capping.
 - **Client-Side CSV Guest Parser (`src/utils/csvGuestParser.test.ts`)**: RFC 4180 parsing with embedded commas, quotes, and escaped quotes, case-insensitive header mapping, group and RSVP normalization, duplicate detection against existing guest lists, and error isolation.
 - **Input Validation & Sanitization (`src/server/validate.test.ts`)**: Whitelist constraints, string length limits, numeric range bounds, and whitelisted event types for plan generation, ideas generation, chat queries, speech generation, and vendor inquiries.
 - **Anti-Prompt-Injection Escaping (`src/server/promptEscape.test.ts`)**: Validates HTML/XML tag escaping (`esc()`) across all prompt builders, verifying user inputs cannot break out of tagged prompt delimiters.

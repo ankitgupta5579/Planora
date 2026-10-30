@@ -4,6 +4,8 @@ import {
   calculateBudgetMetrics,
   calculateGuestStats,
   calculateVendorFinancials,
+  calculateUncommittedCash,
+  calculateOutstandingVendorBalances,
 } from './eventCalculators';
 
 export type PlannerInsightSeverity = 'critical' | 'warning' | 'info' | 'success';
@@ -26,6 +28,8 @@ export const GUEST_RESPONSE_MIN_HEADCOUNT_PCT = 25;
 export const GUEST_RESPONSE_WARNING_DAYS_AHEAD = 45;
 export const VENDOR_RESEARCH_WARNING_DAYS_AHEAD = 30;
 export const DAY_OF_CRITICAL_DAYS_AHEAD = 7;
+export const CASH_COMMITMENT_WARNING_THRESHOLD_PCT = 10;
+export const CASH_COMMITMENT_WARNING_DAYS_AHEAD = 45;
 export const MAX_INSIGHTS_DISPLAYED = 5;
 
 const SEVERITY_ORDER: Record<PlannerInsightSeverity, number> = {
@@ -79,7 +83,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
         id: 'insight-day-of-incomplete',
         severity: 'warning',
         title: 'Day-Of Schedule Milestones Pending',
-        message: `${incompleteDayOf.length} day-of milestone${incompleteDayOf.length === 1 ? '' : 's'} remain incomplete for today's run of show.`,
+        message: `${incompleteDayOf.length} day-of milestone${incompleteDayOf.length === 1 ? '' : 's'} ${incompleteDayOf.length === 1 ? 'remains' : 'remain'} incomplete for today's run of show.`,
         action: { label: 'View Schedule', tab: 'timeline' },
       });
     }
@@ -143,6 +147,23 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
     }
   }
 
+  // 3b-2. Cash Commitment Check (Tight uncommitted cash buffer)
+  const uncommittedCash = calculateUncommittedCash(event);
+  const outstandingVendorBalances = calculateOutstandingVendorBalances(event.vendors);
+  if (
+    event.totalBudget > 0 &&
+    uncommittedCash < 0.1 * event.totalBudget &&
+    daysRemaining <= CASH_COMMITMENT_WARNING_DAYS_AHEAD
+  ) {
+    insights.push({
+      id: 'insight-cash-commitment',
+      severity: 'warning',
+      title: 'Tight Cash Commitment Buffer',
+      message: `Only ${currency}${uncommittedCash.toLocaleString()} is uncommitted after ${currency}${outstandingVendorBalances.toLocaleString()} in vendor balances. Hold the remainder for contingencies.`,
+      action: { label: 'Review Commitments', tab: 'budget' },
+    });
+  }
+
   // 3c. Contingency Drawdown Check
   const contingencyItem = (event.budgetItems || []).find((b) => b.category === 'contingency');
   if (contingencyItem && contingencyItem.allocatedAmount > 0) {
@@ -152,7 +173,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
         id: 'insight-contingency-drawdown',
         severity: 'warning',
         title: 'Early Contingency Drawdown',
-        message: `Emergency reserve is ${drawdownPct}% utilized (${currency}${contingencyItem.actualAmount.toLocaleString()}) with ${daysRemaining} days still remaining.`,
+        message: `Emergency reserve is ${drawdownPct}% utilized (${currency}${contingencyItem.actualAmount.toLocaleString()}) with ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} still remaining.`,
         action: { label: 'Inspect Contingency', tab: 'budget' },
       });
     }
@@ -181,11 +202,49 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
           id: 'insight-guest-response-lag',
           severity: 'warning',
           title: 'Low Confirmed RSVP Headcount',
-          message: `Only ${guestStats.totalHeadcount} of ${event.guestCount} target attendees (${confirmedPct}%) are confirmed with ${daysRemaining} days remaining.`,
+          message: `Only ${guestStats.totalHeadcount} of ${event.guestCount} target attendees (${confirmedPct}%) are confirmed with ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining.`,
           action: { label: 'Follow Up RSVPs', tab: 'guests' },
         });
       }
     }
+  }
+
+  // 3d-2. RSVP Deadline Check
+  if (event.rsvpDeadline && daysRemaining > 0) {
+    const deadlineDiff = calculateDaysRemaining(event.rsvpDeadline, today);
+    if (deadlineDiff < 0 && guestStats.totalPending > 0) {
+      const daysPast = Math.abs(deadlineDiff);
+      const pendingCount = guestStats.totalPending;
+      insights.push({
+        id: 'insight-rsvp-deadline-passed',
+        severity: 'warning',
+        title: 'RSVP Deadline Passed',
+        message: `${pendingCount} guest${pendingCount === 1 ? " hasn't" : "s haven't"} responded, ${daysPast} day${daysPast === 1 ? '' : 's'} past the RSVP deadline.`,
+        action: { label: 'Follow Up RSVPs', tab: 'guests' },
+      });
+    }
+  }
+
+  // 3d-3. Guest Allergy Alerts
+  const allergyGuests = (event.guests || []).filter(
+    (g) => g.dietaryRestrictions && /allerg/i.test(g.dietaryRestrictions)
+  );
+  if (allergyGuests.length > 0) {
+    const allergyTypes = Array.from(
+      new Set(
+        allergyGuests
+          .map((g) => g.dietaryRestrictions?.trim())
+          .filter((d): d is string => Boolean(d))
+      )
+    ).join(', ');
+    const count = allergyGuests.length;
+    insights.push({
+      id: 'insight-allergy-safety',
+      severity: 'info',
+      title: 'Guest Dietary Allergy Alerts',
+      message: `${count} guest${count === 1 ? '' : 's'} with allergies (${allergyTypes}): confirm with your caterer.`,
+      action: { label: 'Check Caterer', tab: 'vendors' },
+    });
   }
 
   // 3e. Unbooked Vendors with <= 30 Days Left
@@ -199,7 +258,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
         id: 'insight-unbooked-vendors',
         severity: 'warning',
         title: 'Unbooked Vendor Services',
-        message: `${unbooked.length} vendor${unbooked.length === 1 ? '' : 's'} (${names}) remain uncontracted with ${daysRemaining} days to go.`,
+        message: `${unbooked.length} vendor${unbooked.length === 1 ? '' : 's'} (${names}) ${unbooked.length === 1 ? 'remains' : 'remain'} uncontracted with ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} to go.`,
         action: { label: 'Finalize Vendors', tab: 'vendors' },
       });
     }
@@ -226,7 +285,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
         id: 'insight-day-of-incomplete-near',
         severity: 'warning',
         title: 'Day-Of Run of Show Incomplete',
-        message: `${incompleteDayOf.length} day-of milestone${incompleteDayOf.length === 1 ? '' : 's'} remain incomplete with only ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left.`,
+        message: `${incompleteDayOf.length} day-of milestone${incompleteDayOf.length === 1 ? '' : 's'} ${incompleteDayOf.length === 1 ? 'remains' : 'remain'} incomplete with only ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} left.`,
         action: { label: 'Review Run of Show', tab: 'timeline' },
       });
     }
@@ -239,7 +298,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
         id: 'insight-overdue-milestones',
         severity: 'warning',
         title: 'Overdue Early Planning Milestones',
-        message: `${incompleteEarly.length} earlier phase milestone${incompleteEarly.length === 1 ? '' : 's'} remain open 2 weeks prior to event.`,
+        message: `${incompleteEarly.length} earlier phase milestone${incompleteEarly.length === 1 ? '' : 's'} ${incompleteEarly.length === 1 ? 'remains' : 'remain'} open 2 weeks prior to event.`,
         action: { label: 'Catch Up Milestones', tab: 'timeline' },
       });
     }
@@ -252,7 +311,7 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
       id: 'insight-on-track',
       severity: 'success',
       title: 'Celebration Planning on Track',
-      message: `Your budget pacing and milestone progress are healthy for ${daysRemaining} days remaining.`,
+      message: `Your budget pacing and milestone progress are healthy for ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining.`,
       action: { label: 'Explore Ideas', tab: 'ideas' },
     });
   }

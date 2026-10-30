@@ -250,11 +250,11 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
           <div className="text-2xl font-bold text-white mb-1">
             {guestStats.totalHeadcount}
             <span className="text-xs font-normal text-slate-400 ml-1.5">
-              headcount confirmed
+              Confirmed headcount (people)
             </span>
           </div>
           <p className="text-xs text-slate-400 mb-2">
-            {guestStats.totalAttending} attending • {guestStats.totalPending} pending
+            {guestStats.totalAttending} parties attending • {guestStats.totalPending} pending
           </p>
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Target: {plan.guestCount} guests</span>

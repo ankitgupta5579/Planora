@@ -52,6 +52,57 @@ export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number)
   };
 }
 
+export type BudgetItemVarianceStatus = 'balance_due' | 'under' | 'over' | 'on_target';
+
+export interface BudgetItemVarianceResult {
+  status: BudgetItemVarianceStatus;
+  amount: number;
+  label: string;
+}
+
+/**
+ * Evaluates the financial variance of a budget line item.
+ * - If actual > allocated: 'over' (Over by $X)
+ * - If actual < allocated:
+ *     - If item is fully paid: 'under' (Under by $X)
+ *     - If item is deposit paid / partial (isPaid is false): 'balance_due' (Balance due $X)
+ * - If actual === allocated: 'on_target' (On target ($0))
+ */
+export function getBudgetItemVariance(item: BudgetItem): BudgetItemVarianceResult {
+  const allocated = Number(item.allocatedAmount) || 0;
+  const actual = Number(item.actualAmount) || 0;
+  const diff = allocated - actual;
+
+  if (actual > allocated) {
+    return {
+      status: 'over',
+      amount: actual - allocated,
+      label: 'Over by',
+    };
+  }
+
+  if (actual < allocated) {
+    if (item.isPaid) {
+      return {
+        status: 'under',
+        amount: diff,
+        label: 'Under by',
+      };
+    }
+    return {
+      status: 'balance_due',
+      amount: diff,
+      label: 'Balance due',
+    };
+  }
+
+  return {
+    status: 'on_target',
+    amount: 0,
+    label: 'On target ($0)',
+  };
+}
+
 export function normalizeBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
   const targetBudget = Math.max(0, Math.round(totalBudget));
   if (!items || items.length === 0) {
@@ -164,6 +215,37 @@ export function calculateVendorFinancials(vendors: VendorItem[]): {
     bookedCount,
     totalCount: vendors.length,
   };
+}
+
+/**
+ * Calculates total outstanding balances owed to vendors (excluding declined vendors).
+ */
+export function calculateOutstandingVendorBalances(vendors: VendorItem[] = []): number {
+  return vendors.reduce((sum, v) => {
+    if (v.status === 'declined') return sum;
+    const quote = Number(v.quoteAmount) || 0;
+    const deposit = Number(v.depositPaid) || 0;
+    return sum + Math.max(0, quote - deposit);
+  }, 0);
+}
+
+/**
+ * Calculates uncommitted cash:
+ * totalBudget - totalSpent - outstandingVendorBalances
+ * Never clamped below 0 unless truly overcommitted (returns a negative number so overcommitment can be flagged).
+ */
+export function calculateUncommittedCash(event: {
+  totalBudget: number;
+  budgetItems?: BudgetItem[];
+  vendors?: VendorItem[];
+}): number {
+  const safeTotalBudget = Number(event.totalBudget) || 0;
+  const totalSpent = (event.budgetItems || []).reduce(
+    (sum, item) => sum + (Number(item.actualAmount) || 0),
+    0
+  );
+  const outstandingVendorBalances = calculateOutstandingVendorBalances(event.vendors);
+  return safeTotalBudget - totalSpent - outstandingVendorBalances;
 }
 
 export function calculateGuestStats(guests: GuestItem[]): {

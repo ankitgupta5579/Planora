@@ -34,8 +34,8 @@ test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage is 
 
 test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage contains corrupt JSON', () => {
   const mock = new MockLocalStorage();
-  mock.setItem('celebration_storage_version', 'v4');
-  mock.setItem('celebration_events_v4', '{invalid-json');
+  mock.setItem('celebration_storage_version', 'v5');
+  mock.setItem('celebration_events_v5', '{invalid-json');
   (globalThis as any).window = globalThis;
   (globalThis as any).localStorage = mock;
 
@@ -46,8 +46,8 @@ test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage con
 
 test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage contains an empty array', () => {
   const mock = new MockLocalStorage();
-  mock.setItem('celebration_storage_version', 'v4');
-  mock.setItem('celebration_events_v4', '[]');
+  mock.setItem('celebration_storage_version', 'v5');
+  mock.setItem('celebration_events_v5', '[]');
   (globalThis as any).window = globalThis;
   (globalThis as any).localStorage = mock;
 
@@ -55,7 +55,7 @@ test('storage: loadSavedEvents falls back to SAMPLE_EVENTS when localStorage con
   assert.equal(events.length, SAMPLE_EVENTS.length);
 });
 
-test('storage: automatically migrates old storage version to v4 with fresh SAMPLE_EVENTS', () => {
+test('storage: automatically migrates old storage version to v5 with fresh SAMPLE_EVENTS', () => {
   const mock = new MockLocalStorage();
   mock.setItem('celebration_storage_version', 'v1');
   mock.setItem('celebration_events_v1', JSON.stringify([{ id: 'old-stale-event' }]));
@@ -65,7 +65,7 @@ test('storage: automatically migrates old storage version to v4 with fresh SAMPL
   const events = loadSavedEvents();
   assert.equal(events.length, SAMPLE_EVENTS.length);
   assert.equal(events[0].id, SAMPLE_EVENTS[0].id);
-  assert.equal(mock.getItem('celebration_storage_version'), 'v4');
+  assert.equal(mock.getItem('celebration_storage_version'), 'v5');
 });
 
 test('storage: saved events round-trip cleanly through saveAllEvents and loadSavedEvents', () => {
@@ -107,11 +107,11 @@ test('storage: resetToSampleEvents restores default samples and clears active id
   (globalThis as any).window = globalThis;
   (globalThis as any).localStorage = mock;
 
-  mock.setItem('celebration_active_event_id_v4', 'sample-custom');
-  mock.setItem('celebration_events_v4', JSON.stringify([]));
+  mock.setItem('celebration_active_event_id_v5', 'sample-custom');
+  mock.setItem('celebration_events_v5', JSON.stringify([]));
 
   const reset = resetToSampleEvents();
   assert.equal(reset.length, SAMPLE_EVENTS.length);
-  assert.equal(mock.getItem('celebration_active_event_id_v4'), null);
-  assert.equal(mock.getItem('celebration_storage_version'), 'v4');
+  assert.equal(mock.getItem('celebration_active_event_id_v5'), null);
+  assert.equal(mock.getItem('celebration_storage_version'), 'v5');
 });

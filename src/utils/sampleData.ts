@@ -11,6 +11,7 @@ export const SAMPLE_EVENTS: EventPlan[] = [
     guestCount: 120,
     totalBudget: 28000,
     currency: '$',
+    rsvpDeadline: '2026-10-10',
     themeDescription: 'Earthy coastal bohemian celebration with pampas grass arches, driftwood centerpieces, warm sunset tones, acoustic live sets, and seaside farm-to-table dining.',
     colorPalette: [
       { name: 'Terracotta Rust', hex: '#C86D51' },
@@ -30,7 +31,7 @@ export const SAMPLE_EVENTS: EventPlan[] = [
       { id: 'b8', category: 'contingency', title: 'Emergency Weather & Logistics Buffer', allocatedAmount: 2000, actualAmount: 300, isPaid: false, notes: 'Permit revision drawn; remainder reserved for rain canopy' },
     ],
     timelineItems: [
-      { id: 't1', phase: 'planning_early', timeLabel: '6 Months Out', title: 'Reserve Coastal Pavilion & Secure Permits', description: 'Paid 50% deposit and secured Monterey coastal noise permit.', completed: true, assignedTo: 'Marcus' },
+      { id: 't1', phase: 'planning_early', timeLabel: '6 Months Out', title: 'Reserve Coastal Pavilion & Secure Permits', description: 'Paid in full and secured Monterey coastal noise permit.', completed: true, assignedTo: 'Marcus' },
       { id: 't2', phase: 'planning_early', timeLabel: '5 Months Out', title: 'Select Photographer & Videographer', description: 'Booked Sunset Lenses Co. and finalized shot list.', completed: true, assignedTo: 'Elena' },
       { id: 't3', phase: 'planning_mid', timeLabel: '3 Months Out', title: 'Finalize Tasting & Signature Drinks Menu', description: 'Chose Citrus Halibut & Smoked Brisket, with Hibiscus Mezcalita.', completed: true, assignedTo: 'Both' },
       { id: 't4', phase: 'planning_mid', timeLabel: '2 Months Out', title: 'Mail Botanical Invitations & Launch RSVP Page', description: 'Sent invites to 120 guests with deadline Oct 10.', completed: true, assignedTo: 'Elena' },
@@ -56,7 +57,7 @@ export const SAMPLE_EVENTS: EventPlan[] = [
         depositPaid: 7500,
         status: 'contract_signed',
         notes: 'Includes tables, chairs, bridal cottage, and audio hookup.',
-        checklist: ['Insurance certificate uploaded', 'Signed noise ordinance', 'Final walkthrough scheduled'],
+        checklist: ['[x] Insurance certificate uploaded', '[x] Signed noise ordinance', 'Final walkthrough scheduled'],
       },
       {
         id: 'v2',

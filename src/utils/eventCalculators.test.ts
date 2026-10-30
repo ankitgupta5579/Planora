@@ -7,6 +7,9 @@ import {
   calculateVendorFinancials,
   calculateGuestStats,
   calculateDaysRemaining,
+  getBudgetItemVariance,
+  calculateUncommittedCash,
+  calculateOutstandingVendorBalances,
 } from './eventCalculators';
 import { BudgetItem, TimelineItem, VendorItem, GuestItem } from '../types/event';
 
@@ -138,4 +141,129 @@ test('calculateDaysRemaining returns correct difference', () => {
   const target = '2026-11-11T12:00:00Z';
   const days = calculateDaysRemaining(target, base);
   assert.equal(days, 10);
+});
+
+test('getBudgetItemVariance: deposit-paid item is balance_due and NOT under', () => {
+  const depositPaidItem: BudgetItem = {
+    id: 'b-deposit',
+    category: 'catering',
+    title: 'Catering 50% deposit',
+    allocatedAmount: 8000,
+    actualAmount: 4000,
+    isPaid: false,
+  };
+  const variance = getBudgetItemVariance(depositPaidItem);
+  assert.equal(variance.status, 'balance_due');
+  assert.notEqual(variance.status, 'under');
+  assert.equal(variance.amount, 4000);
+  assert.equal(variance.label, 'Balance due');
+});
+
+test('getBudgetItemVariance: fully paid under/over/on-target semantics', () => {
+  // Fully paid under
+  const fullyPaidUnder: BudgetItem = {
+    id: 'b-under',
+    category: 'favors',
+    title: 'Favors completed under budget',
+    allocatedAmount: 600,
+    actualAmount: 450,
+    isPaid: true,
+  };
+  const vUnder = getBudgetItemVariance(fullyPaidUnder);
+  assert.equal(vUnder.status, 'under');
+  assert.equal(vUnder.amount, 150);
+  assert.equal(vUnder.label, 'Under by');
+
+  // Over budget
+  const overBudget: BudgetItem = {
+    id: 'b-over',
+    category: 'decor',
+    title: 'Floral arches extra order',
+    allocatedAmount: 2000,
+    actualAmount: 2400,
+    isPaid: true,
+  };
+  const vOver = getBudgetItemVariance(overBudget);
+  assert.equal(vOver.status, 'over');
+  assert.equal(vOver.amount, 400);
+  assert.equal(vOver.label, 'Over by');
+
+  // On target
+  const onTarget: BudgetItem = {
+    id: 'b-exact',
+    category: 'venue',
+    title: 'Exact hall rental',
+    allocatedAmount: 5000,
+    actualAmount: 5000,
+    isPaid: true,
+  };
+  const vTarget = getBudgetItemVariance(onTarget);
+  assert.equal(vTarget.status, 'on_target');
+  assert.equal(vTarget.amount, 0);
+  assert.equal(vTarget.label, 'On target ($0)');
+});
+
+test('calculateUncommittedCash: zero, partial and overcommitted vendor balance cases', () => {
+  // 1. Zero vendor balances case
+  const eventZero = {
+    totalBudget: 10000,
+    budgetItems: [
+      { id: '1', category: 'venue' as const, title: 'Hall', allocatedAmount: 4000, actualAmount: 4000, isPaid: true },
+    ],
+    vendors: [
+      {
+        id: 'v1',
+        category: 'Venue',
+        name: 'Grand Hall',
+        quoteAmount: 4000,
+        depositPaid: 4000,
+        status: 'contract_signed' as const,
+        checklist: [],
+      },
+    ],
+  };
+  assert.equal(calculateOutstandingVendorBalances(eventZero.vendors), 0);
+  assert.equal(calculateUncommittedCash(eventZero), 6000);
+
+  // 2. Partial vendor balances case (sample wedding test)
+  const eventPartial = {
+    totalBudget: 28000,
+    budgetItems: [
+      { id: 'b1', category: 'venue' as const, title: 'Pavilion', allocatedAmount: 7500, actualAmount: 7500, isPaid: true },
+      { id: 'b2', category: 'catering' as const, title: 'Catering', allocatedAmount: 8500, actualAmount: 4250, isPaid: false },
+      { id: 'b3', category: 'photography' as const, title: 'Photo', allocatedAmount: 3400, actualAmount: 3400, isPaid: true },
+      { id: 'b4', category: 'decor' as const, title: 'Decor', allocatedAmount: 2800, actualAmount: 1400, isPaid: false },
+      { id: 'b5', category: 'entertainment' as const, title: 'Music', allocatedAmount: 2200, actualAmount: 1100, isPaid: false },
+      { id: 'b6', category: 'favors' as const, title: 'Favors', allocatedAmount: 600, actualAmount: 550, isPaid: true },
+      { id: 'b7', category: 'logistics' as const, title: 'Shuttles', allocatedAmount: 1000, actualAmount: 0, isPaid: false },
+      { id: 'b8', category: 'contingency' as const, title: 'Emergency', allocatedAmount: 2000, actualAmount: 300, isPaid: false },
+    ],
+    vendors: [
+      { id: 'v1', category: 'Venue', name: 'Pavilion', quoteAmount: 7500, depositPaid: 7500, status: 'contract_signed' as const, checklist: [] },
+      { id: 'v2', category: 'Catering', name: 'Catering', quoteAmount: 8500, depositPaid: 4250, status: 'booked' as const, checklist: [] },
+      { id: 'v3', category: 'Photo', name: 'Photo', quoteAmount: 3400, depositPaid: 3400, status: 'contract_signed' as const, checklist: [] },
+      { id: 'v4', category: 'Florist', name: 'Florist', quoteAmount: 2800, depositPaid: 1400, status: 'booked' as const, checklist: [] },
+      { id: 'v5', category: 'DJ', name: 'DJ', quoteAmount: 2200, depositPaid: 1100, status: 'booked' as const, checklist: [] },
+      { id: 'v6', category: 'Transit', name: 'Shuttles', quoteAmount: 1000, depositPaid: 0, status: 'contacted' as const, checklist: [] },
+    ],
+  };
+  // totalSpent = 18500, outstanding = 7750, uncommitted = 28000 - 18500 - 7750 = 1750
+  assert.equal(calculateOutstandingVendorBalances(eventPartial.vendors), 7750);
+  assert.equal(calculateUncommittedCash(eventPartial), 1750);
+
+  // 3. Overcommitted case: balances + spent exceed total budget -> returns negative number
+  const eventOver = {
+    totalBudget: 20000,
+    budgetItems: [
+      { id: '1', category: 'venue' as const, title: 'Hall', allocatedAmount: 10000, actualAmount: 14000, isPaid: false },
+    ],
+    vendors: [
+      { id: 'v1', category: 'Venue', name: 'Hall', quoteAmount: 14000, depositPaid: 5000, status: 'booked' as const, checklist: [] },
+    ],
+  };
+  // totalSpent = 14000, outstanding = 9000, uncommitted = 20000 - 14000 - 9000 = -3000
+  assert.equal(calculateOutstandingVendorBalances(eventOver.vendors), 9000);
+  const uncommitted = calculateUncommittedCash(eventOver);
+  assert.equal(uncommitted, -3000);
+  assert.equal(uncommitted < 0, true);
 });

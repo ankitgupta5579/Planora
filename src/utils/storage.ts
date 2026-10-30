@@ -2,10 +2,10 @@ import { EventPlan } from '../types/event';
 import { SAMPLE_EVENTS } from './sampleData';
 import { formatLocalDate } from './dates';
 
-const STORAGE_VERSION = 'v4';
+const STORAGE_VERSION = 'v5';
 const STORAGE_KEY_VERSION = 'celebration_storage_version';
-const STORAGE_KEY_EVENTS = 'celebration_events_v4';
-const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v4';
+const STORAGE_KEY_EVENTS = 'celebration_events_v5';
+const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v5';
 
 export function loadSavedEvents(): EventPlan[] {
   if (typeof window === 'undefined') return SAMPLE_EVENTS;

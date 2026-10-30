@@ -36,6 +36,7 @@ export interface ValidatedPlanInput {
   totalBudget: number;
   currency: string;
   specialRequests?: string;
+  rsvpDeadline?: string;
 }
 
 export interface EventSummaryContext {
@@ -49,6 +50,7 @@ export interface EventSummaryContext {
   currency?: string;
   totalAllocated?: number;
   totalSpent?: number;
+  rsvpDeadline?: string;
   [key: string]: unknown;
 }
 
@@ -58,7 +60,7 @@ export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlan
   }
 
   const b = body as Record<string, unknown>;
-  const { title, type, vibe, date, location, guestCount, totalBudget, currency, specialRequests } = b;
+  const { title, type, vibe, date, location, guestCount, totalBudget, currency, specialRequests, rsvpDeadline } = b;
 
   if (typeof title !== 'string' || title.trim().length === 0) {
     return { valid: false, error: 'Event title is required' };
@@ -116,6 +118,17 @@ export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlan
     safeRequests = specialRequests.trim();
   }
 
+  let safeRsvpDeadline: string | undefined = undefined;
+  if (rsvpDeadline !== undefined && rsvpDeadline !== null) {
+    if (typeof rsvpDeadline !== 'string') {
+      return { valid: false, error: 'rsvpDeadline must be a string' };
+    }
+    if (rsvpDeadline.trim().length > 50) {
+      return { valid: false, error: 'rsvpDeadline must not exceed 50 characters' };
+    }
+    safeRsvpDeadline = rsvpDeadline.trim();
+  }
+
   return {
     valid: true,
     data: {
@@ -128,6 +141,7 @@ export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlan
       totalBudget: numericBudget,
       currency: safeCurrency,
       specialRequests: safeRequests,
+      rsvpDeadline: safeRsvpDeadline,
     },
   };
 }
@@ -166,6 +180,7 @@ export function validateChatInput(body: unknown): ValidationResult<ValidatedChat
       currency: typeof ec.currency === 'string' ? ec.currency.slice(0, 5) : '$',
       totalAllocated: typeof ec.totalAllocated === 'number' ? Math.max(0, ec.totalAllocated) : undefined,
       totalSpent: typeof ec.totalSpent === 'number' ? Math.max(0, ec.totalSpent) : undefined,
+      rsvpDeadline: typeof ec.rsvpDeadline === 'string' ? ec.rsvpDeadline.slice(0, 50) : undefined,
     };
   }
 

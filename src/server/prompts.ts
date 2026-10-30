@@ -129,6 +129,7 @@ Aesthetic / Vibe: ${esc(input.vibe)}
 Date: ${esc(input.date)}
 Location: ${esc(input.location)}
 Expected Attendees: ${esc(input.guestCount)} guests
+RSVP Deadline: ${esc(input.rsvpDeadline || 'None specified')}
 Total Budget: ${esc(input.currency)}${esc(input.totalBudget)}
 Additional Constraints / Wishes: ${esc(input.specialRequests || 'None provided')}
 </event_parameters>
@@ -158,6 +159,7 @@ Vibe: ${esc(eventContext?.vibe || 'Festive')}
 Date: ${esc(eventContext?.date || 'Upcoming')}
 Location: ${esc(eventContext?.location || 'TBD')}
 Guests: ${esc(eventContext?.guestCount || 0)} attendees
+RSVP Deadline: ${esc(eventContext?.rsvpDeadline || 'None')}
 Total Budget: ${esc(eventContext?.currency || '$')}${esc(eventContext?.totalBudget || 0)}
 Current Allocated: ${esc(eventContext?.totalAllocated || 0)}
 Current Spent: ${esc(eventContext?.totalSpent || 0)}

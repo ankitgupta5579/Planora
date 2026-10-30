@@ -19,12 +19,40 @@ test('validatePlanInput: valid input passes cleanly', () => {
     totalBudget: 25000,
     currency: '$',
     specialRequests: 'Vegan dessert table',
+    rsvpDeadline: '2026-09-15',
   });
 
   assert.equal(result.valid, true);
   assert.equal(result.data?.title, 'Autumn Garden Wedding');
   assert.equal(result.data?.guestCount, 120);
   assert.equal(result.data?.totalBudget, 25000);
+  assert.equal(result.data?.rsvpDeadline, '2026-09-15');
+});
+
+test('validatePlanInput: rejects non-string or oversized rsvpDeadline', () => {
+  const nonString = validatePlanInput({
+    title: 'Autumn Garden Wedding',
+    type: 'wedding',
+    date: '2026-10-15',
+    location: 'Napa Valley, CA',
+    guestCount: 120,
+    totalBudget: 25000,
+    rsvpDeadline: 12345,
+  });
+  assert.equal(nonString.valid, false);
+  assert.match(nonString.error!, /rsvpDeadline must be a string/i);
+
+  const oversized = validatePlanInput({
+    title: 'Autumn Garden Wedding',
+    type: 'wedding',
+    date: '2026-10-15',
+    location: 'Napa Valley, CA',
+    guestCount: 120,
+    totalBudget: 25000,
+    rsvpDeadline: 'A'.repeat(51),
+  });
+  assert.equal(oversized.valid, false);
+  assert.match(oversized.error!, /must not exceed 50 characters/i);
 });
 
 test('validatePlanInput: rejects missing or empty required fields', () => {
