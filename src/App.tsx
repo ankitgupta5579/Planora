@@ -124,7 +124,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin mx-auto" />
-          <p className="text-sm text-slate-300">Loading Celebration Planner...</p>
+          <p className="text-sm text-slate-300">Loading Planora...</p>
         </div>
       </div>
     );
@@ -257,10 +257,10 @@ export default function App() {
       {/* Footer */}
       <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-400">
         <p className="font-medium text-slate-300">
-          Celebration & Event Planner
+          Planora · Plan today, celebrate tomorrow
         </p>
         <p className="mt-1 text-slate-400">
-          Organize Weddings, Birthdays, Community Events with AI Budgets, Timelines & Vendors.
+          GenAI-powered planning for weddings, birthdays and community events: budgets, timelines & vendors.
         </p>
         <div className="mt-3">
           <button

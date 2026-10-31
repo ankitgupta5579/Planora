@@ -1,4 +1,10 @@
-# Celebration & Event Planner AI
+<p align="center">
+  <img src="public/planora-icon-256.png" alt="Planora logo" width="96" height="96" />
+</p>
+
+# Planora
+
+> **Plan today, celebrate tomorrow.** A GenAI-powered planning assistant for weddings, birthdays and community events.
 
 A full-stack celebration and event planning application built with React, TypeScript, Express, and Google Gemini. It coordinates weddings, birthdays, community gatherings, and corporate events with budget allocation, timeline management, vendor checklists, and guest coordination.
 
@@ -7,7 +13,7 @@ The app works without an API key using an offline fallback planner.
 ---
 
 ## Chosen Vertical
-Celebration & Event Planner — Designed for individual hosts, families, and community coordinators planning milestone events including weddings, birthday parties, anniversaries, corporate gatherings, and community festivals.
+Planora (a celebration & event planner) — Designed for individual hosts, families, and community coordinators planning milestone events including weddings, birthday parties, anniversaries, corporate gatherings, and community festivals.
 
 ---
 

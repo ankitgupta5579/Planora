@@ -1,7 +1,6 @@
 import React from 'react';
 import { EventPlan } from '../types/event';
 import { 
-  Sparkles, 
   Calendar, 
   Plus, 
   Download, 
@@ -46,15 +45,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm sm:text-base tracking-tight text-white whitespace-nowrap">
-                Event Planner AI
-              </span>
-            </div>
+          <img
+            src="/planora-icon.svg"
+            alt=""
+            aria-hidden="true"
+            width={36}
+            height={36}
+            className="w-8 h-8 sm:w-9 sm:h-9 shrink-0"
+          />
+          <div className="leading-tight">
+            <span className="block font-extrabold text-base sm:text-lg tracking-tight text-white whitespace-nowrap">
+              Planora
+            </span>
+            <span className="hidden md:block text-[10px] uppercase tracking-[0.18em] text-slate-300 whitespace-nowrap">
+              Plan today, celebrate tomorrow
+            </span>
           </div>
         </div>
 
@@ -118,8 +123,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onOpenAiChat}
             className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-500/20 transition cursor-pointer"
-            title="Open AI Event Planner Assistant (Press to chat)"
-            aria-label="Open AI Event Planner Assistant (Press to chat)"
+            title="Open the Planora AI assistant"
+            aria-label="Open the Planora AI assistant"
           >
             <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
             <span className="hidden xs:inline">Ask AI</span>

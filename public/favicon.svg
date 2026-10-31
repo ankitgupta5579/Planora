@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="ribbon" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#6D28D9"/>
+      <stop offset=".42" stop-color="#E83EAD"/>
+      <stop offset=".72" stop-color="#FF8A78"/>
+      <stop offset="1" stop-color="#FFC66D"/>
+    </linearGradient>
+    <linearGradient id="sprinkle" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#FF7B9C"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="48" fill="#201039"/>
+  <g fill="url(#sprinkle)">
+    <ellipse cx="74" cy="65" rx="9" ry="17" transform="rotate(-38 74 65)"/>
+    <ellipse cx="104" cy="43" rx="8" ry="17" transform="rotate(18 104 43)"/>
+    <ellipse cx="126" cy="66" rx="8" ry="15" transform="rotate(45 126 66)"/>
+    <circle cx="62" cy="95" r="6"/>
+  </g>
+  <path d="M91 208 L91 174 C91 151 106 137 130 125 L164 108 C183 98 188 79 176 66 C164 53 146 57 134 69 L91 113 C103 82 122 57 145 48 C169 39 195 49 205 69 C219 96 205 124 179 139 L139 161 C126 168 121 176 121 190 L121 208 C121 221 112 229 101 229 C95 229 91 221 91 208Z" fill="url(#ribbon)"/>
+  <path d="M107 146 C122 123 145 111 165 101 C178 94 182 83 176 74 C189 91 183 108 166 118 L130 139 C120 145 113 153 109 164Z" fill="#FFD18A" opacity=".95"/>
+  <path d="M165 78 L170 89 L182 93 L170 98 L165 110 L160 98 L148 93 L160 89Z" fill="#FFD16A"/>
+</svg>

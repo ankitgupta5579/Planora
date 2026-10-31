@@ -507,7 +507,7 @@ export async function startServer() {
   }
 
   return app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Celebration Planner Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Planora server running on http://0.0.0.0:${PORT}`);
     const { ai, apiKey } = getGeminiClient();
     const isAiEnabled = Boolean(apiKey && ai);
     console.log(`Planner Mode: ${isAiEnabled ? `AI mode active (${GEMINI_MODEL})` : 'Offline-fallback mode active'}`);
