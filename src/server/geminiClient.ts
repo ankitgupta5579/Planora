@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { GoogleGenAI, ThinkingLevel, GenerateContentParameters } from '@google/genai';
 import { withTimeout, isTimeoutError } from '../utils/withTimeout';
 
