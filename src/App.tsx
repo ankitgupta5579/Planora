@@ -27,15 +27,24 @@ import {
   Building2, 
   Sparkles, 
   Users,
-  RotateCcw
+  RotateCcw,
+  ArrowLeft
 } from 'lucide-react';
 
 type TabKey = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests';
 
+const VALID_TABS: TabKey[] = ['overview', 'budget', 'timeline', 'vendors', 'ideas', 'guests'];
+
+function getTabFromHash(): TabKey {
+  if (typeof window === 'undefined') return 'overview';
+  const raw = window.location.hash.replace(/^#/, '').toLowerCase().trim();
+  return (VALID_TABS.includes(raw as TabKey) ? (raw as TabKey) : 'overview');
+}
+
 export default function App() {
   const [events, setEvents] = useState<EventPlan[]>([]);
   const [activeId, setActiveId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  const [activeTab, setActiveTab] = useState<TabKey>(() => getTabFromHash());
 
   // Modals state
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -47,13 +56,46 @@ export default function App() {
 
   const tabListRef = useRef<HTMLDivElement>(null);
 
-  // Initialize
+  // Initialize and synchronize browser history
   useEffect(() => {
     const loaded = loadSavedEvents();
     setEvents(loaded);
     const initialId = getActiveEventId(loaded);
     setActiveId(initialId);
+
+    // Browser back/forward navigation support
+    const handlePopState = () => {
+      const currentTab = getTabFromHash();
+      setActiveTab(currentTab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+
+    // Initial hash sync
+    const initialTab = getTabFromHash();
+    if (initialTab !== 'overview') {
+      setActiveTab(initialTab);
+    } else if (typeof window !== 'undefined' && !window.location.hash) {
+      // Set default hash on initial landing so back button from other tabs returns here
+      window.history.replaceState({ tab: 'overview' }, '', '#overview');
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
   }, []);
+
+  const handleNavigateTab = (tab: TabKey, pushHistory = true) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined' && pushHistory) {
+      const targetHash = tab === 'overview' ? '#overview' : `#${tab}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState({ tab }, '', targetHash);
+      }
+    }
+  };
 
   const activeEvent = events.find((e) => e.id === activeId) || events[0];
 
@@ -74,7 +116,7 @@ export default function App() {
     setActiveId(newPlan.id);
     setActiveEventId(newPlan.id);
     saveAllEvents(updatedList);
-    setActiveTab('overview');
+    handleNavigateTab('overview');
   };
 
   const handleResetSampleData = () => {
@@ -126,7 +168,7 @@ export default function App() {
 
     if (nextIndex !== -1) {
       const nextKey = tabs[nextIndex].key;
-      setActiveTab(nextKey);
+      handleNavigateTab(nextKey);
       const tabButton = document.getElementById(`tab-${nextKey}`);
       tabButton?.focus();
     }
@@ -163,6 +205,7 @@ export default function App() {
         onOpenExport={() => setIsExportOpen(true)}
         onOpenSpeechModal={() => setIsSpeechModalOpen(true)}
         onOpenDeleteEvent={() => setIsDeleteConfirmOpen(true)}
+        onNavigateHome={() => handleNavigateTab('overview')}
       />
 
       {/* Main Container */}
@@ -189,7 +232,7 @@ export default function App() {
                 aria-selected={isActive}
                 aria-controls={`panel-${tab.key}`}
                 tabIndex={isActive ? 0 : -1}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleNavigateTab(tab.key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition whitespace-nowrap cursor-pointer border-b-2 -mb-[2px] ${
                   isActive
                     ? 'border-indigo-500 text-indigo-400 bg-slate-900/60 shadow-sm'
@@ -220,10 +263,42 @@ export default function App() {
           tabIndex={0}
           className="pt-2 focus:outline-none"
         >
+          {/* Back to Home Navigation Bar for all pages apart from Home (overview) */}
+          {activeTab !== 'overview' && (
+            <div className="flex items-center justify-between mb-5 p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => handleNavigateTab('overview')}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-indigo-600/20 hover:border-indigo-500/50 text-slate-200 hover:text-white border border-slate-700/80 text-xs font-semibold transition cursor-pointer shadow-sm group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                aria-label="Back to Home Overview"
+              >
+                <ArrowLeft className="w-4 h-4 text-indigo-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Back to Home</span>
+                <span className="text-slate-400 text-[11px] font-normal hidden sm:inline">
+                  • {activeEvent.title}
+                </span>
+              </button>
+
+              <nav aria-label="Breadcrumb" className="text-xs text-slate-400 flex items-center gap-1.5 pr-1">
+                <button
+                  type="button"
+                  onClick={() => handleNavigateTab('overview')}
+                  className="hover:text-indigo-400 text-slate-400 transition cursor-pointer font-medium"
+                >
+                  Home
+                </button>
+                <span aria-hidden="true" className="text-slate-600">/</span>
+                <span className="text-indigo-300 capitalize font-semibold">
+                  {tabs.find((t) => t.key === activeTab)?.label || activeTab}
+                </span>
+              </nav>
+            </div>
+          )}
+
           {activeTab === 'overview' && (
             <EventOverviewTab
               plan={activeEvent}
-              onNavigateTab={(t) => setActiveTab(t)}
+              onNavigateTab={(t) => handleNavigateTab(t)}
               onOpenAiChat={() => setIsAiDrawerOpen(true)}
               onOpenSpeechModal={() => setIsSpeechModalOpen(true)}
               onOpenDeleteEvent={() => setIsDeleteConfirmOpen(true)}
@@ -266,6 +341,26 @@ export default function App() {
               plan={activeEvent}
               onUpdatePlan={handleUpdatePlan}
             />
+          )}
+
+          {/* Bottom Back to Home Button for convenient return on long pages */}
+          {activeTab !== 'overview' && (
+            <div className="pt-8 pb-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  handleNavigateTab('overview');
+                  if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 text-xs font-semibold transition cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 shadow-sm"
+                aria-label="Back to Home Overview"
+              >
+                <ArrowLeft className="w-4 h-4 text-indigo-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Back to Home Overview</span>
+              </button>
+            </div>
           )}
         </div>
       </main>

@@ -22,6 +22,7 @@ interface NavbarProps {
   onOpenExport: () => void;
   onOpenSpeechModal: () => void;
   onOpenDeleteEvent?: () => void;
+  onNavigateHome?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -33,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenExport,
   onOpenSpeechModal,
   onOpenDeleteEvent,
+  onNavigateHome,
 }) => {
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -46,8 +48,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Brand / Home Link */}
+        <button
+          type="button"
+          onClick={onNavigateHome}
+          title="Planora - Back to Home Overview"
+          aria-label="Planora - Back to Home Overview"
+          className="flex items-center gap-2 shrink-0 text-left cursor-pointer p-1 -ml-1 rounded-xl transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+        >
           <img
             src="/planora-icon.svg"
             alt=""
@@ -64,7 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               Plan today, celebrate tomorrow
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Center: Event Selector */}
         <div className="flex items-center gap-1.5 flex-1 max-w-[200px] sm:max-w-[320px] justify-center">

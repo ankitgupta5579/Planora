@@ -12,6 +12,8 @@ import { TimelineTab } from './TimelineTab';
 import { VendorsTab } from './VendorsTab';
 import { IdeasTab } from './IdeasTab';
 import { ResetConfirmDialog } from './ResetConfirmDialog';
+import { Navbar } from './Navbar';
+import App from '../App';
 
 // Setup JSDOM environment if not already defined
 if (!globalThis.window) {
@@ -256,5 +258,64 @@ test('behavior: ResetConfirmDialog handles cancel vs confirm', () => {
     assert.equal(confirmed, true, 'Clicking Confirm must trigger onConfirm');
   } finally {
     cleanupComponent();
+  }
+});
+
+test('behavior: Navbar brand logo button triggers onNavigateHome', () => {
+  let navigatedHome = false;
+  const sample = SAMPLE_EVENTS[0];
+  const rendered = renderComponent(
+    <Navbar
+      events={SAMPLE_EVENTS}
+      activeEvent={sample}
+      onSelectEvent={() => {}}
+      onOpenWizard={() => {}}
+      onOpenAiChat={() => {}}
+      onOpenExport={() => {}}
+      onOpenSpeechModal={() => {}}
+      onNavigateHome={() => {
+        navigatedHome = true;
+      }}
+    />
+  );
+
+  try {
+    const brandButton = rendered.querySelector('button[aria-label="Planora - Back to Home Overview"]');
+    assert.ok(brandButton, 'Brand button with Back to Home Overview must exist');
+    act(() => {
+      (brandButton as HTMLButtonElement).click();
+    });
+    assert.equal(navigatedHome, true, 'Clicking brand button should trigger onNavigateHome');
+  } finally {
+    cleanupComponent();
+  }
+});
+
+test('behavior: App renders Back to Home bar and breadcrumb on non-overview page, and returns to overview on click', () => {
+  window.location.hash = '#budget';
+  const rendered = renderComponent(<App />);
+
+  try {
+    const backBtn = rendered.querySelector('button[aria-label="Back to Home Overview"]');
+    assert.ok(backBtn, 'Back to Home button must exist on budget page');
+    assert.ok(backBtn.textContent?.includes('Back to Home'), 'Button text should include Back to Home');
+
+    const breadcrumb = rendered.querySelector('nav[aria-label="Breadcrumb"]');
+    assert.ok(breadcrumb, 'Breadcrumb navigation must exist');
+    assert.ok(breadcrumb.textContent?.includes('Home'), 'Breadcrumb should include Home');
+    assert.ok(breadcrumb.textContent?.includes('Budget'), 'Breadcrumb should include Budget');
+
+    // Click Back to Home
+    act(() => {
+      (backBtn as HTMLButtonElement).click();
+    });
+
+    // Should now be on overview
+    assert.equal(window.location.hash, '#overview');
+    const overviewPanel = rendered.querySelector('#panel-overview');
+    assert.ok(overviewPanel, 'Active panel should now be overview');
+  } finally {
+    cleanupComponent();
+    window.location.hash = '';
   }
 });

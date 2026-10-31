@@ -121,7 +121,7 @@ npm run build
 
 ## Testing
 
-The project maintains an automated test suite of 134 tests executed via Node's native test runner (`npm test`). Tests cover:
+The project maintains an automated test suite of 136 tests executed via Node's native test runner (`npm test`). Tests cover:
 
 - **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
 - **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation with deposit-paid balance-due semantics, uncommitted cash calculation with vendor balances, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
@@ -138,7 +138,7 @@ The project maintains an automated test suite of 134 tests executed via Node's n
 - **Fallback Reason Mapping (`src/utils/fallbackMessages.test.ts`)**: Mapping fallback reasons (`timeout`, `no-api-key`, `error`) to user-facing messages, asserting no notice is prepended when `isFallback: false`, and verifying fallback notices when `isFallback: true`.
 - **Client-Side Storage Resilience (`src/utils/storage.test.ts`)**: Corrupted, malformed, or empty `localStorage` fallback to sample events, and round-tripping through `saveAllEvents` and `loadSavedEvents`.
 - **Server API & Fallback Paths (`src/server/serverFallback.test.ts`)**: Ephemeral server instance testing all AI endpoints without an API key (HTTP 200 with `isFallback: true` and `fallbackReason: 'no-api-key'`), input rejection (HTTP 400), payload limits (HTTP 413), retry without thinkingConfig, and AI-success path mapping with server-side budget normalization.
-- **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, VendorsTab, and multi-card IdeasTab.
+- **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, VendorsTab, multi-card IdeasTab, ResetConfirmDialog, Navbar brand home navigation, and App Back to Home breadcrumb/history return.
 - **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), standalone PlannerInsights, all 5 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite, CSV Import), and both alert dialogs (Reset Confirm, Delete Event Confirm) in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
 
 ### Test Execution Commands
@@ -160,7 +160,8 @@ npm run build
 ### Verified Automatically in Test Suite (`npm test`)
 - **Axe-core Audit**: All 6 tabs, all 5 dialogs, and both alert dialogs (Reset Confirm, Delete Event Confirm) pass automated axe-core accessibility checks with zero violations.
 - **Dialog & Focus Traps**: Modals and the slide-over AI drawer implement `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, trap Tab/Shift+Tab focus cycling, close on `Escape`, and restore focus to trigger elements (`src/utils/useFocusTrap.ts`).
-- **Tab Navigation**: Main tabs use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with keyboard arrow navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`).
+- **Tab Navigation & History**: Main tabs use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with keyboard arrow navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`). Tab changes synchronize with browser history (`#overview`, `#budget`, `#timeline`, etc.) and `popstate`, ensuring that clicking the browser's Back button returns to the Home overview rather than closing or exiting the site.
+- **Back to Home Navigation**: All pages apart from the Home overview provide a prominent "Back to Home" button, breadcrumb hierarchy, bottom return action, and a clickable top brand logo to return home instantly.
 - **Skip Link**: A "Skip to main content" anchor is available as the first focusable element.
 - **Form Controls & Labels**: Inputs, selects, and textareas include associated `<label htmlFor>` tags or `aria-label` attributes.
 - **Live Status Regions**: Dynamic updates declare `aria-live="polite"` and `role="status"`.
@@ -200,7 +201,7 @@ The following manual verification passes should be performed in target browser e
   - Zero unnecessary LLM calls: pure arithmetic, budget aggregations, timeline progress, and insights are computed locally in microseconds.
   - Production Vite bundle optimized with tree-shaking (~118 kB gzipped JS).
 - **Testing**:
-  - 134 automated unit, integration, and accessibility tests executed via Node's native test runner (`npm test`).
+  - 136 automated unit, integration, and accessibility tests executed via Node's native test runner (`npm test`).
   - Covers date arithmetic, budget math, planner insights, offline chat fallbacks, CSV parsing, API route validation, prompt escaping, timeout resilience, and Gemini error recovery.
 - **Accessibility (WCAG 2.1 AA)**:
   - Zero Axe-core violations across all 6 tabs, insights, all 5 dialogs, and both alert dialogs.
