@@ -11,7 +11,7 @@ import {
   GEMINI_TIMEOUT_MS,
   CHAT_THINKING_LEVEL,
 } from './src/server/config';
-import { applySecurityMiddleware } from './src/server/middleware/security';
+import { applySecurityMiddleware, applyErrorMiddleware } from './src/server/middleware/security';
 import { aiRateLimiter } from './src/server/middleware/rateLimit';
 import { healthRouter } from './src/server/routes/health';
 import { aiRouter } from './src/server/routes/ai';
@@ -52,6 +52,9 @@ applySecurityMiddleware(app);
 // Mount modular route handlers
 app.use('/api/health', healthRouter);
 app.use('/api/ai', aiRateLimiter, aiRouter);
+
+// Apply centralized error handler for 413, 400 and unhandled exceptions
+applyErrorMiddleware(app);
 
 /**
  * Initializes and starts the Express server.
