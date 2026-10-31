@@ -69,6 +69,11 @@ if (process.env.NO_API_KEY === '1' || process.env.GEMINI_API_KEY === 'none' || p
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Auto-detect production mode when run via "npm start" or hosted on Render/cloud platforms
+if (!process.env.NODE_ENV && (process.env.RENDER === 'true' || process.env.npm_lifecycle_event === 'start')) {
+  process.env.NODE_ENV = 'production';
+}
+
 const PORT = Number(process.env.PORT) || 3000;
 const isProduction = process.env.NODE_ENV === 'production';
 const isLocalhost =
@@ -119,6 +124,16 @@ const aiRateLimiter = rateLimit({
 });
 
 app.use('/api/ai', aiRateLimiter);
+
+// Lightweight health check endpoint for Render, cloud monitors, and container probes
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+  });
+});
 
 /**
  * Standardized AI route wrapper that handles:
@@ -524,7 +539,9 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
 // -------------------------------------------------------------
 // Dev vs Production Server
 // -------------------------------------------------------------
-export async function startServer() {
+export async function startServer(portOverride?: number) {
+  const listenPort = portOverride || Number(process.env.PORT) || 3000;
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -539,8 +556,8 @@ export async function startServer() {
     });
   }
 
-  return app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Planora server running on http://0.0.0.0:${PORT}`);
+  return app.listen(listenPort, '0.0.0.0', () => {
+    console.log(`Planora server running on http://0.0.0.0:${listenPort}`);
     const { ai, apiKey } = getGeminiClient();
     const isAiEnabled = Boolean(apiKey && ai);
     console.log(`Planner Mode: ${isAiEnabled ? `AI mode active (${GEMINI_MODEL})` : 'Offline-fallback mode active'}`);
