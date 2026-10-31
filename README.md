@@ -179,7 +179,7 @@ Planora guides the user through the complete event lifecycle across 6 dedicated 
 - **Minimal Token Consumption**: AI calls use bounded `maxOutputTokens` and strict `responseSchema` JSON structures, eliminating preamble fluff.
 - **Instant Client Computation**: Budget variance, uncommitted cash, timeline progress, insight rules, and guest tallies execute locally in microseconds without network trips.
 - **Lightweight Production Bundle**: Built with Vite tree-shaking (~462 kB JS, ~64 kB CSS, gzip total ~128 kB).
-- **Fast Resiliency Cascade**: Primary model (`gemini-3-flash-preview`) fails over gracefully to `gemini-3.5-flash`, `gemini-3.1-flash-lite`, and `gemini-3.6-flash` before falling back to instant local heuristics.
+- **Fast Resiliency Cascade**: Multi-model cascade (`gemini-flash-lite-latest` → `gemini-3-flash-preview` → `gemini-3.5-flash` → `gemini-3.1-flash-lite`) with in-memory quota-exhaustion caching and bounded tokens delivering live responses in 1–2 seconds.
 
 ### D. Testing — Validation of Functionality
 Automated test suite of **137 tests** executed via Node's native test runner (`npm test`):

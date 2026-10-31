@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { EventPlan, AiChatMessage } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { getFallbackMessage, FallbackReason } from '../utils/fallbackMessages';
+import { generateOfflineChatReply } from '../utils/chatFallback';
 import { 
   Send, 
   User, 
@@ -33,10 +34,10 @@ interface AiAssistantDrawerProps {
 }
 
 /**
- * Client-side abort timeout: 35s (5s longer than default server timeout of 30s)
- * Allows the server to return structured fallbackReason before the client aborts.
+ * Client-side abort timeout: 15s
+ * Responsive limit ensuring users are never stalled waiting for replies.
  */
-export const CLIENT_CHAT_TIMEOUT_MS = 35000;
+export const CLIENT_CHAT_TIMEOUT_MS = 15000;
 
 export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
   isOpen,
@@ -143,12 +144,21 @@ How can I assist your planning today?`,
       const isTimeout = controller.signal.aborted;
       const fallbackReason: FallbackReason = isTimeout ? 'timeout' : 'error';
       const note = getFallbackMessage(fallbackReason);
+      const offline = generateOfflineChatReply(text.trim(), {
+        title: plan.title,
+        type: plan.type,
+        guestCount: plan.guestCount,
+        totalBudget: plan.totalBudget,
+        currency: plan.currency,
+        totalAllocated: plan.budgetItems.reduce((acc, b) => acc + b.allocatedAmount, 0),
+        totalSpent: plan.budgetItems.reduce((acc, b) => acc + b.actualAmount, 0),
+      });
       const errorMsg: AiChatMessage = {
         id: 'msg-err-' + Date.now(),
         role: 'assistant',
-        content: `${note}\n\nPlanner Tip: Ensure your contracts have specific force majeure and overtime terms. For a ${plan.vibe} celebration with ${plan.guestCount} guests, having a designated point of contact on day-of is essential!`,
+        content: `${note}\n\n${offline.reply}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        actionSuggestions: ['Vendor negotiation tips', 'Day-of coordinator duties'],
+        actionSuggestions: offline.suggestions,
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {

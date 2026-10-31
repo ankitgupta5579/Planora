@@ -304,7 +304,7 @@ app.post('/api/ai/chat', async (req: Request, res: Response) => {
           config: {
             responseMimeType: 'application/json',
             responseSchema: chatResponseSchema,
-            maxOutputTokens: 2500,
+            maxOutputTokens: 800,
             thinkingConfig: {
               thinkingLevel: CHAT_THINKING_LEVEL,
             },
@@ -354,7 +354,7 @@ app.post('/api/ai/generate-invite-speech', async (req: Request, res: Response) =
           model: GEMINI_MODEL,
           contents: prompt,
           config: {
-            maxOutputTokens: 2500,
+            maxOutputTokens: 800,
             thinkingConfig: {
               thinkingLevel: CHAT_THINKING_LEVEL,
             },
@@ -406,7 +406,7 @@ Event Planning Team`;
           model: GEMINI_MODEL,
           contents: prompt,
           config: {
-            maxOutputTokens: 2500,
+            maxOutputTokens: 800,
             thinkingConfig: {
               thinkingLevel: CHAT_THINKING_LEVEL,
             },
@@ -474,7 +474,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
           config: {
             responseMimeType: 'application/json',
             responseSchema: ideasResponseSchema,
-            maxOutputTokens: 2500,
+            maxOutputTokens: 1500,
             thinkingConfig: {
               thinkingLevel: CHAT_THINKING_LEVEL,
             },

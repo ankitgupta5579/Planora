@@ -15,6 +15,8 @@ export const FALLBACK_MODELS = [
   'gemini-3-flash-preview',
   'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-flash-latest',
   'gemini-3.5-flash-lite',
   'gemini-3.6-flash',
 ] as const;
@@ -37,8 +39,30 @@ export function resolveGeminiModel(): string {
 }
 
 export const GEMINI_MODEL = resolveGeminiModel();
-export const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30000;
+export const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 12000;
 export const CHAT_THINKING_LEVEL: ThinkingLevel = ThinkingLevel.MINIMAL;
+
+const quotaExhaustedModels = new Map<string, number>();
+const QUOTA_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+
+export function markModelQuotaExhausted(model: string) {
+  quotaExhaustedModels.set(model, Date.now() + QUOTA_COOLDOWN_MS);
+}
+
+export function isModelQuotaExhausted(model: string): boolean {
+  if (process.env.NODE_ENV === 'test') return false;
+  const expiresAt = quotaExhaustedModels.get(model);
+  if (!expiresAt) return false;
+  if (Date.now() > expiresAt) {
+    quotaExhaustedModels.delete(model);
+    return false;
+  }
+  return true;
+}
+
+export function resetQuotaExhaustedModelsForTest() {
+  quotaExhaustedModels.clear();
+}
 
 export type GeminiErrorClassification = 'bad-thinking' | 'model-unavailable' | 'other';
 
@@ -125,9 +149,14 @@ export async function tryFallbackModels(
   timeoutMs: number = GEMINI_TIMEOUT_MS
 ): Promise<GenerateContentResponseLike> {
   const failedModel = params.model;
-  const candidates = FALLBACK_MODELS.filter((m) => m !== failedModel);
+  let candidates = FALLBACK_MODELS.filter((m) => m !== failedModel);
+  const activeCandidates = candidates.filter((m) => !isModelQuotaExhausted(m));
+  if (activeCandidates.length > 0) {
+    candidates = activeCandidates;
+  }
   const { thinkingConfig, ...configWithoutThinking } = (params.config || {}) as Record<string, unknown>;
 
+  const candidateTimeout = Math.min(timeoutMs, 8000);
   let lastError: unknown = null;
   for (const altModel of candidates) {
     try {
@@ -138,11 +167,14 @@ export async function tryFallbackModels(
           model: altModel,
           config: configWithoutThinking as GenerateContentParameters['config'],
         }),
-        timeoutMs
+        candidateTimeout
       );
     } catch (candidateErr: unknown) {
       lastError = candidateErr;
-      const { status: cStatus } = getErrorInfo(candidateErr);
+      const { status: cStatus, message: cMsg } = getErrorInfo(candidateErr);
+      if (cStatus === 429 || /quota|resource_exhausted/i.test(cMsg)) {
+        markModelQuotaExhausted(altModel);
+      }
       console.warn(`[Gemini Warning] Fallback candidate ${altModel} failed with status ${cStatus ?? 'UNKNOWN'}`);
     }
   }
@@ -166,6 +198,10 @@ export async function generateContentWithRetry(
     return await withTimeout(ai.models.generateContent(params), timeoutMs);
   } catch (err: unknown) {
     const errorType = classifyGeminiError(err);
+    const { status, message } = getErrorInfo(err);
+    if (status === 429 || /quota|resource_exhausted/i.test(message)) {
+      markModelQuotaExhausted(params.model);
+    }
 
     if (errorType === 'bad-thinking' && params?.config?.thinkingConfig) {
       const cleanMsg = sanitizeGeminiErrorMessage(err);
