@@ -672,7 +672,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
           <div
             ref={inquiryModalRef}
             tabIndex={-1}
-            className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative"
+            className="w-full max-w-2xl rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -701,15 +701,21 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
             ) : (
               <div className="space-y-4">
                 <div className="relative">
-                  <label htmlFor="inquiry-email-textarea" className="block text-xs font-semibold text-slate-200 mb-1">
-                    Email Draft Content:
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label htmlFor="inquiry-email-textarea" className="block text-xs font-semibold text-slate-200">
+                      Email Draft Content:
+                    </label>
+                    <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      Complete ready-to-send draft ({inquiryEmailText ? inquiryEmailText.split(/\s+/).filter(Boolean).length : 0} words)
+                    </span>
+                  </div>
                   <textarea
                     id="inquiry-email-textarea"
-                    rows={10}
+                    rows={15}
                     value={inquiryEmailText}
                     onChange={(e) => setInquiryEmailText(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 text-xs font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full p-3.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 text-xs font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
                   />
                 </div>
 
