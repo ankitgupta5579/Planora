@@ -12,7 +12,7 @@ test('getFallbackMessage: returns correct message for timeout', () => {
 test('getFallbackMessage: returns correct message for no-api-key', () => {
   assert.equal(
     getFallbackMessage('no-api-key'),
-    'Offline mode: add a Gemini API key for live AI replies.'
+    'Offline mode: add an API key for live Planora AI replies.'
   );
 });
 
@@ -50,7 +50,7 @@ test('AiAssistantDrawer message prefix: no notice when isFallback is false, corr
     fallbackReason: 'no-api-key',
     reply: 'Check vendor contracts 48 hours before.',
   });
-  assert.match(noApiKeyMsg, /^Offline mode: add a Gemini API key for live AI replies\.\n\n/);
+  assert.match(noApiKeyMsg, /^Offline mode: add an API key for live Planora AI replies\.\n\n/);
 
   // When isFallback is true with timeout
   const timeoutMsg = formatAssistantMessage({

@@ -19,6 +19,7 @@ import { SpeechInviteModal } from './SpeechInviteModal';
 import { PlannerInsights } from './PlannerInsights';
 import { CsvImportModal } from './CsvImportModal';
 import { ResetConfirmDialog } from './ResetConfirmDialog';
+import { DeleteEventConfirmDialog } from './DeleteEventConfirmDialog';
 
 // Setup JSDOM environment
 const dom = new JSDOM(
@@ -388,6 +389,43 @@ test('a11y dialog: ResetConfirmDialog has role="alertdialog", moves focus inside
     assert.equal(closed, true, 'Escape key must trigger dialog close');
 
     await checkAxe(container, 'ResetConfirmDialog');
+  } finally {
+    cleanup();
+  }
+});
+
+test('a11y dialog: DeleteEventConfirmDialog has role="alertdialog", moves focus inside, closes on Escape, and has zero axe violations', async () => {
+  let closed = false;
+  const { container, cleanup } = await renderComponent(
+    <DeleteEventConfirmDialog
+      isOpen={true}
+      onClose={() => {
+        closed = true;
+      }}
+      onConfirm={() => {}}
+      eventTitle="Elena & Marcus: Coastal Boho Wedding"
+      canDelete={true}
+    />
+  );
+
+  try {
+    const dialog = container.querySelector('[role="alertdialog"]');
+    assert.equal(Boolean(dialog), true, 'Dialog must have role="alertdialog"');
+    assert.equal(dialog?.getAttribute('aria-modal'), 'true');
+    assert.equal(dialog?.getAttribute('aria-labelledby'), 'delete-event-dialog-title');
+    assert.equal(dialog?.getAttribute('aria-describedby'), 'delete-event-dialog-description');
+
+    await new Promise((r) => setTimeout(r, 60));
+    assert.equal(
+      dialog?.contains(dom.window.document.activeElement),
+      true,
+      'Focus must move inside the alertdialog upon opening'
+    );
+
+    dom.window.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape' }));
+    assert.equal(closed, true, 'Escape key must trigger dialog close');
+
+    await checkAxe(container, 'DeleteEventConfirmDialog');
   } finally {
     cleanup();
   }

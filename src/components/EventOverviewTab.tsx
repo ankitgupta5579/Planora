@@ -22,7 +22,8 @@ import {
   ArrowRight,
   TrendingUp,
   AlertTriangle,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 
 interface EventOverviewTabProps {
@@ -30,6 +31,8 @@ interface EventOverviewTabProps {
   onNavigateTab: (tab: 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests') => void;
   onOpenAiChat: () => void;
   onOpenSpeechModal: () => void;
+  onOpenDeleteEvent?: () => void;
+  canDelete?: boolean;
 }
 
 export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
@@ -37,6 +40,8 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
   onNavigateTab,
   onOpenAiChat,
   onOpenSpeechModal,
+  onOpenDeleteEvent,
+  canDelete = true,
 }) => {
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
@@ -140,6 +145,18 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
               <FileText className="w-4 h-4 text-pink-400" />
               <span>Invites & Speeches</span>
             </button>
+            {onOpenDeleteEvent && (
+              <button
+                onClick={onOpenDeleteEvent}
+                disabled={canDelete === false}
+                title={canDelete === false ? "Cannot delete the only event" : `Delete ${plan.title}`}
+                aria-label={`Delete event ${plan.title}`}
+                className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-600/80 border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-white text-sm font-medium flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/80 disabled:hover:text-slate-300"
+              >
+                <Trash2 className="w-4 h-4 text-rose-400" />
+                <span>Delete Event</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

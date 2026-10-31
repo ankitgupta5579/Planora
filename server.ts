@@ -415,7 +415,26 @@ Event Planning Team`;
         GEMINI_TIMEOUT_MS
       );
 
-      return { email: response.text || defaultEmail };
+      let draft = response.text?.trim() || defaultEmail;
+
+      // Safety check: Ensure the generated draft is a complete email with body content, not just a subject line
+      if (draft.split(/\s+/).length < 25 || !draft.includes('\n')) {
+        const subjectLine = draft.startsWith('Subject:') ? draft : `Subject: Inquiry regarding ${vendor.category || 'services'} for ${event?.title || 'our event'}`;
+        draft = `${subjectLine}
+
+Dear ${vendor.contactName || vendor.name || 'Events Team'},
+
+We are currently planning ${event?.title || 'our celebration'} on ${event?.date || 'an upcoming date'} in ${event?.location || 'the local area'} for approximately ${event?.guestCount || 50} guests.
+
+We love your work and would appreciate learning more about your availability, service packages, and pricing within our target budget of ${event?.currency || '$'}${vendor.quoteAmount ?? 'flexible'}. Could you also share your standard booking deposit requirements and timeline for scheduling?
+
+We look forward to hearing from you!
+
+Warm regards,
+${event?.title ? event.title + ' Planning Team' : 'Event Host'}`;
+      }
+
+      return { email: draft };
     }
   );
 });

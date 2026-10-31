@@ -19,6 +19,7 @@ import { AiAssistantDrawer } from './components/AiAssistantDrawer';
 import { SpeechInviteModal } from './components/SpeechInviteModal';
 import { ExportModal } from './components/ExportModal';
 import { ResetConfirmDialog } from './components/ResetConfirmDialog';
+import { DeleteEventConfirmDialog } from './components/DeleteEventConfirmDialog';
 import { 
   LayoutDashboard, 
   DollarSign, 
@@ -42,6 +43,7 @@ export default function App() {
   const [isSpeechModalOpen, setIsSpeechModalOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const tabListRef = useRef<HTMLDivElement>(null);
 
@@ -80,6 +82,17 @@ export default function App() {
     setEvents(fresh);
     if (fresh.length > 0) {
       setActiveId(fresh[0].id);
+    }
+  };
+
+  const handleDeleteActiveEvent = () => {
+    if (!activeEvent || events.length <= 1) return;
+    const remaining = events.filter((e) => e.id !== activeEvent.id);
+    setEvents(remaining);
+    saveAllEvents(remaining);
+    if (remaining.length > 0) {
+      setActiveId(remaining[0].id);
+      setActiveEventId(remaining[0].id);
     }
   };
 
@@ -149,6 +162,7 @@ export default function App() {
         onOpenAiChat={() => setIsAiDrawerOpen(true)}
         onOpenExport={() => setIsExportOpen(true)}
         onOpenSpeechModal={() => setIsSpeechModalOpen(true)}
+        onOpenDeleteEvent={() => setIsDeleteConfirmOpen(true)}
       />
 
       {/* Main Container */}
@@ -212,6 +226,8 @@ export default function App() {
               onNavigateTab={(t) => setActiveTab(t)}
               onOpenAiChat={() => setIsAiDrawerOpen(true)}
               onOpenSpeechModal={() => setIsSpeechModalOpen(true)}
+              onOpenDeleteEvent={() => setIsDeleteConfirmOpen(true)}
+              canDelete={events.length > 1}
             />
           )}
 
@@ -276,10 +292,20 @@ export default function App() {
       </footer>
 
       {/* Modals & Drawers */}
-      <EventWizardModal
-        isOpen={isWizardOpen}
-        onClose={() => setIsWizardOpen(false)}
-        onPlanCreated={handlePlanCreated}
+      {isWizardOpen && (
+        <EventWizardModal
+          isOpen={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
+          onPlanCreated={handlePlanCreated}
+        />
+      )}
+
+      <DeleteEventConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteActiveEvent}
+        eventTitle={activeEvent?.title || 'Current Event'}
+        canDelete={events.length > 1}
       />
 
       <AiAssistantDrawer

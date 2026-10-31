@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EventPlan, EventType, EventVibe } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
@@ -40,6 +40,23 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   const [specialRequests, setSpecialRequests] = useState('');
 
   const modalRef = useFocusTrap(isOpen, onClose);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      setIsGenerating(false);
+      setGenerationStepMessage('');
+      setEventType('wedding');
+      setTitle('');
+      setDate('2026-12-15');
+      setLocation('');
+      setGuestCount('100');
+      setTotalBudget('15000');
+      setCurrency('$');
+      setVibe('elegant');
+      setSpecialRequests('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

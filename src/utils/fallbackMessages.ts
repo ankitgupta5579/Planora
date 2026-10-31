@@ -11,7 +11,7 @@ export function getFallbackMessage(reason?: FallbackReason | null): string {
     case 'timeout':
       return 'The assistant took too long, so this is an offline answer.';
     case 'no-api-key':
-      return 'Offline mode: add a Gemini API key for live AI replies.';
+      return 'Offline mode: add an API key for live Planora AI replies.';
     case 'error':
       return 'The assistant is unavailable right now, so this is an offline answer.';
     default:

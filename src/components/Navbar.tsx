@@ -9,7 +9,8 @@ import {
   Cake, 
   Users, 
   Briefcase, 
-  Layers
+  Layers,
+  Trash2
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -20,6 +21,7 @@ interface NavbarProps {
   onOpenAiChat: () => void;
   onOpenExport: () => void;
   onOpenSpeechModal: () => void;
+  onOpenDeleteEvent?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -30,6 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAiChat,
   onOpenExport,
   onOpenSpeechModal,
+  onOpenDeleteEvent,
 }) => {
   const getEventIcon = (type: string) => {
     switch (type) {
@@ -96,6 +99,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline ml-1">New</span>
           </button>
+
+          {onOpenDeleteEvent && (
+            <button
+              onClick={onOpenDeleteEvent}
+              disabled={events.length <= 1}
+              title={events.length <= 1 ? "Cannot delete the only remaining event" : `Delete active event: ${activeEvent.title}`}
+              aria-label={`Delete active event ${activeEvent.title}`}
+              className="flex items-center justify-center p-1.5 sm:px-2 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-rose-600/80 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800 disabled:hover:text-slate-300"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="sr-only sm:not-sr-only sm:inline ml-1 hidden xl:inline">Delete</span>
+            </button>
+          )}
         </div>
 
         {/* Right Actions */}
