@@ -139,7 +139,7 @@ The project maintains an automated test suite of 133 tests executed via Node's n
 - **Client-Side Storage Resilience (`src/utils/storage.test.ts`)**: Corrupted, malformed, or empty `localStorage` fallback to sample events, and round-tripping through `saveAllEvents` and `loadSavedEvents`.
 - **Server API & Fallback Paths (`src/server/serverFallback.test.ts`)**: Ephemeral server instance testing all AI endpoints without an API key (HTTP 200 with `isFallback: true` and `fallbackReason: 'no-api-key'`), input rejection (HTTP 400), payload limits (HTTP 413), retry without thinkingConfig, and AI-success path mapping with server-side budget normalization.
 - **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, VendorsTab, and multi-card IdeasTab.
-- **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), standalone PlannerInsights, and all 5 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite, CSV Import) in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
+- **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), standalone PlannerInsights, all 5 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite, CSV Import), and the reset alert dialog in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
 
 ### Test Execution Commands
 ```bash
@@ -158,7 +158,7 @@ npm run build
 ## Accessibility Notes (WCAG 2.1 AA)
 
 ### Verified Automatically in Test Suite (`npm test`)
-- **Axe-core Audit**: All 6 tabs and all 4 dialogs pass automated axe-core accessibility checks with zero violations.
+- **Axe-core Audit**: All 6 tabs and all 5 dialogs and the reset alert dialog pass automated axe-core accessibility checks with zero violations.
 - **Dialog & Focus Traps**: Modals and the slide-over AI drawer implement `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, trap Tab/Shift+Tab focus cycling, close on `Escape`, and restore focus to trigger elements (`src/utils/useFocusTrap.ts`).
 - **Tab Navigation**: Main tabs use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with keyboard arrow navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`).
 - **Skip Link**: A "Skip to main content" anchor is available as the first focusable element.
@@ -203,7 +203,7 @@ The following manual verification passes should be performed in target browser e
   - 133 automated unit, integration, and accessibility tests executed via Node's native test runner (`npm test`).
   - Covers date arithmetic, budget math, planner insights, offline chat fallbacks, CSV parsing, API route validation, prompt escaping, timeout resilience, and Gemini error recovery.
 - **Accessibility (WCAG 2.1 AA)**:
-  - Zero Axe-core violations across all 6 tabs, insights, and 5 modal dialogs.
+  - Zero Axe-core violations across all 6 tabs, insights, all 5 dialogs, and the reset alert dialog.
   - Focus trapping with `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, and `Escape` key dismissal.
   - Keyboard navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`) on tablists, "Skip to main content" link, screen-reader live announcements (`aria-live="polite"`), and high-contrast `:focus-visible` rings.
 - **Problem Statement Alignment**:
