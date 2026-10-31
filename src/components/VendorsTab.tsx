@@ -13,7 +13,8 @@ import {
   Copy, 
   Check, 
   Send, 
-  X 
+  X,
+  RefreshCw 
 } from 'lucide-react';
 
 interface VendorsTabProps {
@@ -718,6 +719,15 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   </span>
 
                   <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateInquiry(inquiryModalVendor)}
+                      aria-label="Regenerate inquiry email"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-medium flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Regenerate</span>
+                    </button>
                     <button
                       onClick={copyInquiryEmail}
                       aria-label="Copy inquiry email draft to clipboard"

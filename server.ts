@@ -188,6 +188,9 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
           config: {
             responseMimeType: 'application/json',
             responseSchema: planResponseSchema,
+            thinkingConfig: {
+              thinkingLevel: CHAT_THINKING_LEVEL,
+            },
           },
         },
         GEMINI_TIMEOUT_MS
@@ -351,7 +354,10 @@ app.post('/api/ai/generate-invite-speech', async (req: Request, res: Response) =
           model: GEMINI_MODEL,
           contents: prompt,
           config: {
-            maxOutputTokens: 600,
+            maxOutputTokens: 2500,
+            thinkingConfig: {
+              thinkingLevel: CHAT_THINKING_LEVEL,
+            },
           },
         },
         GEMINI_TIMEOUT_MS
@@ -400,7 +406,10 @@ Event Planning Team`;
           model: GEMINI_MODEL,
           contents: prompt,
           config: {
-            maxOutputTokens: 600,
+            maxOutputTokens: 2500,
+            thinkingConfig: {
+              thinkingLevel: CHAT_THINKING_LEVEL,
+            },
           },
         },
         GEMINI_TIMEOUT_MS
@@ -445,7 +454,10 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
           config: {
             responseMimeType: 'application/json',
             responseSchema: ideasResponseSchema,
-            maxOutputTokens: 1000,
+            maxOutputTokens: 2500,
+            thinkingConfig: {
+              thinkingLevel: CHAT_THINKING_LEVEL,
+            },
           },
         },
         GEMINI_TIMEOUT_MS
