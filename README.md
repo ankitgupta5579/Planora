@@ -2,62 +2,214 @@
   <img src="public/planora-icon-256.png" alt="Planora logo" width="96" height="96" />
 </p>
 
-# Planora
+# Planora — Celebration & Event Planner AI
 
-> **Plan today, celebrate tomorrow.** A GenAI-powered planning assistant for weddings, birthdays and community events.
+> **Plan today, celebrate tomorrow.** A smart, dynamic GenAI assistant for milestone celebrations, weddings, birthdays, and community festivals.
 
-A full-stack celebration and event planning application built with React, TypeScript, Express, and Google Gemini. It coordinates weddings, birthdays, community gatherings, and corporate events with budget allocation, timeline management, vendor checklists, and guest coordination.
+[![Test Suite](https://img.shields.io/badge/tests-137%20passed-brightgreen.svg)](#testing)
+[![WCAG 2.1 AA](https://img.shields.io/badge/accessibility-WCAG%202.1%20AA-blue.svg)](#accessibility-notes-wcag-21-aa)
+[![TypeScript](https://img.shields.io/badge/typescript-strict-informational.svg)](#code-quality)
+[![GitHub Repository](https://img.shields.io/badge/github-ankitgupta5579%2Fevent--planner-181717.svg?logo=github)](https://github.com/ankitgupta5579/event-planner)
 
-The app works without an API key using an offline fallback planner.
-
----
-
-## Chosen Vertical
-Planora (a celebration & event planner) — Designed for individual hosts, families, and community coordinators planning milestone events including weddings, birthday parties, anniversaries, corporate gatherings, and community festivals.
-
----
-
-## Approach and Logic
-Event coordination requires synchronizing budgets, milestones, vendors, and communications. This solution implements a dual-engine architecture:
-
-1. **Server-Side GenAI Planning**: Event parameters (type, vibe, date, venue location, guest headcount, budget cap, and notes) are sent to an Express API endpoint. When configured, Google Gemini generates structured plans enforced by JSON schemas (`responseSchema`), returning categorized budget line items, chronological milestones, vendor checklists, and themed ideas. All AI-generated budget items pass through a server-side budget normalizer (`normalizeBudgetItems`) to enforce exact dollar-for-dollar budget equality with zero drift.
-2. **Offline Fallback Engine**: If no API key is configured or an external API failure occurs, the server falls back to a deterministic heuristic generator (`src/utils/fallbackGenerator.ts`). Every supported event type and vibe generates a complete plan, and budget line items always sum exactly to the specified total.
-3. **Pure Arithmetic Modules**: Budget calculations, percentage utilization, timeline progress, vendor balances, and RSVP guest tallies are implemented as decoupled utility functions (`src/utils/eventCalculators.ts`).
-4. **Adaptive Budget Rebalancing**: If expenses exceed allocated amounts, an in-memory rebalancing algorithm rescales line items proportionally to maintain the target ceiling.
+- **Public Repository**: [https://github.com/ankitgupta5579/event-planner](https://github.com/ankitgupta5579/event-planner)
+- **Live Demo Port**: `http://localhost:3000` (runs locally with or without an API key)
 
 ---
 
-## AI Models and Fallback Strategy
+## 1. Chosen Vertical
 
-- **Default Model**: `gemini-3-flash-preview`
-- **Fallback Models (`FALLBACK_MODELS`)**:
-  1. `gemini-3-flash-preview`
-  2. `gemini-3.5-flash`
-  3. `gemini-3.1-flash-lite`
-  4. `gemini-3.6-flash`
-- **Multi-Model Resiliency**:
-  - The server first calls the configured model (`GEMINI_MODEL`, defaulting to `gemini-3-flash-preview`).
-  - If rejected with HTTP 400 mentioning `thinking`, it retries once without `thinkingConfig`.
-  - If the model returns HTTP 404 (model deprecated/sunset), HTTP 503 (high demand spike), or HTTP 429 (per-model rate limit/quota exhausted), the server automatically tries the fallback models in `FALLBACK_MODELS` in sequential order (skipping the failed model and stripping `thinkingConfig`).
-  - If all models fail or the network times out, the server falls back to the deterministic offline planner (`fallbackReason: 'no-api-key' | 'timeout' | 'error'`).
-  - Note: Preview models can change over time; setting `GEMINI_MODEL` in `.env` overrides the default for any active model. If a deprecated model (such as `gemini-2.0-flash` or `gemini-2.5-flash`) is provided in `.env`, the server automatically remaps it to `gemini-3-flash-preview`.
+### Celebration & Event Planning
+Event and celebration planning is a high-stakes, multi-variable domain involving financial constraints, hard chronological deadlines, vendor negotiations, guest dietary risks, and creative direction. 
+
+Hosts, couples, families, and community coordinators frequently struggle with fragmented tools (spreadsheets, chat apps, note-taking apps, calendars) that cannot talk to one another. A budget overrun in catering often goes unnoticed until vendor deposits are due; a guest's severe nut allergy is easily buried in a spreadsheet row; and vendor inquiry emails consume hours of repetitive drafting.
+
+**Planora** solves this by unifying every dimension of event coordination into a single, cohesive, context-aware system:
+- **Milestone Weddings & Anniversaries**: Ceremony logistics, cocktail hours, seating charts, and delicate timelines.
+- **Birthday & Milestone Parties**: Themes, entertainment, custom drink bars, and photo backdrops.
+- **Community Festivals & 5K Runs**: Crowd permits, sanitation, volunteer coordination, and large-scale safety.
+- **Corporate Offsites & Gatherings**: Keynote staging, farm-to-table catering, and interactive team trivia.
 
 ---
 
-## How It Works
-- **Overview Dashboard & Planner Insights**: Displays local-midnight event countdowns, proactive deterministic recommendations (cash commitment buffers, RSVP deadline alerts, guest allergy safety notices, budget pacing, contingency drawdown, unbooked vendor alerts, RSVP lags), mission control metric cards, and a color palette story.
-- **Budget Tracker**: Tracks categorized line items, payment statuses (Paid, Deposit Paid, Unpaid), precise variance semantics ("Balance due $X" with clock icon for partial items, "Under by $X" only for fully paid items, "Over by $X", "On target"), uncommitted cash KPIs after outstanding vendor commitments, and includes a one-click auto-rebalance tool.
-- **Timeline & Schedule**: Organizes milestones across five phases (Early Planning, Mid Planning, Final Month, Week Of, and Day-Of Schedule) with status toggling and assignee tags.
-- **Vendor Directory**: Tracks vendor quotes, deposits, outstanding balances, custom action checklists, human-cased status badges, and generates tailored inquiry email drafts.
-- **Ideas & Moodboard**: AI-powered structured multi-card idea generator returning 3 distinct cards with category badges, tag pills, and accessible Show more / Show less expansion toggles.
-- **Guests & RSVPs**: Manages guest lists, confirmed headcount (people) with plus-ones, parties attending, pending RSVPs, dietary needs with distinct AA-compliant allergy callouts and alert icons, inline seat/table assignment, and accessible CSV bulk import with live parse previews and duplicate detection.
-- **AI Planning Consultant**: Context-aware slide-over assistant drawer providing tailored planning suggestions and advice. Shows no fallback notice during live responses, and displays clear offline indicators on fallbacks.
-- **Invites & Speeches Studio**: Generates customizable invitation text and speeches across multiple tones.
-- **Export Studio**: Exports event plans as JSON, formatted Markdown, or printable summaries.
+## 2. Approach and Logic
+
+Event coordination requires balancing deterministic mathematical precision (budgets must equal totals to the exact cent; deadlines must respect local midnights) with generative creativity (vibe themes, color stories, friendly vendor inquiry emails, speech writing).
+
+Planora implements a **dual-engine hybrid architecture**:
+
+```
+ ┌──────────────────────────────────────────────────────────────┐
+ │                      User Request / State                    │
+ └──────────────────────────────┬───────────────────────────────┘
+                                │
+               ┌────────────────┴────────────────┐
+               ▼                                 ▼
+┌─────────────────────────────┐   ┌─────────────────────────────┐
+│    Deterministic Engine     │   │      GenAI Engine (Gemini)  │
+│  (Pure Arithmetic & Rules)  │   │   (Creativity & Language)   │
+├─────────────────────────────┤   ├─────────────────────────────┤
+│ • Budget Line Allocation    │   │ • Multi-model cascade       │
+│ • Exact Dollar Normalizer   │   │ • Structured JSON schemas   │
+│ • Local-Midnight Countdowns │   │ • Contextual advice drawer  │
+│ • Proactive Planner Insights│   │ • Vendor email drafter      │
+│ • RFC 4180 CSV Guest Parser │   │ • Speech & invite copy      │
+│ • Offline Fallback Pool     │   │ • Ideas across 5 sections   │
+└─────────────────────────────┘   └─────────────────────────────┘
+               │                                 │
+               └────────────────┬────────────────┘
+                                ▼
+ ┌──────────────────────────────────────────────────────────────┐
+ │                 Unified Planora Application State            │
+ │            (WCAG 2.1 AA UI • LocalStorage Privacy)           │
+ └──────────────────────────────────────────────────────────────┘
+```
+
+### Core Architectural Principles:
+1. **Server-Side GenAI Planning**: Event parameters (type, vibe, date, venue location, guest headcount, budget cap, and special requests) are processed by Express API endpoints. Google Gemini returns strictly typed JSON schemas (`responseSchema`), returning categorized budget line items, chronological milestones, vendor checklists, and themed ideas.
+2. **Deterministic Budget Normalization**: All AI-generated budget items pass through a server-side normalizer (`normalizeBudgetItems`) that enforces exact dollar-for-dollar budget equality with zero penny drift.
+3. **Proactive Planner Insights (Rule-Based Decision Making)**: Rather than relying on LLMs for financial risk detection, a deterministic rules engine (`src/utils/plannerInsights.ts`) evaluates real-time event health:
+   - **Cash Commitment Buffer**: Warns when uncommitted funds fall below 10% within 45 days of the event.
+   - **RSVP Deadline Alerts**: Triggers warnings when deadlines pass with pending RSVPs.
+   - **Guest Allergy Safety**: Alerts when guests report dietary restrictions so caterers are notified.
+   - **Contingency Drawdown**: Alerts if the emergency fund is depleted early.
+   - **Unbooked Vendor Reminders**: Alerts when essential vendor categories lack confirmed bookings.
+4. **Offline Fallback Engine**: If no API key is provided, or in the event of provider downtime, the server seamlessly switches to deterministic heuristic generators (`src/utils/fallbackGenerator.ts`, `src/utils/ideaGenerator.ts`), guaranteeing 100% functionality out of the box.
+5. **Prompt Security & Delimiter Isolation (Prompt Wars Aligned)**: Untrusted user parameters are strictly isolated inside XML tags (`<event_parameters>`, `<event_context>`, `<user_input>`, `<ideas_focus>`) with delimiter escaping (`esc()`). System instructions explicitly forbid role reversals, instruction overrides, or disclosing internal prompts, keys, or schemas.
+6. **Local Midnight & Timezone Arithmetic**: Date countdowns evaluate relative to the user's local calendar midnight, preventing date-shifting across international timezones.
 
 ---
 
-## How to Run
+## 3. How the Solution Works
+
+Planora guides the user through the complete event lifecycle across 6 dedicated tabs, 5 modals, and a contextual AI assistant:
+
+```
+[Create Event Wizard] ──► [Overview Dashboard & Insights]
+                                  │
+      ┌───────────────┬───────────┼───────────┬───────────────┐
+      ▼               ▼           ▼           ▼               ▼
+[Budget Tracker] [Timeline]  [Vendors]   [Ideas & Mood]  [Guests & RSVPs]
+      │               │           │           │               │
+  Auto-Rebalance  5 Phases    Email Draft  5 Sections     CSV Import
+```
+
+### 1. AI Planning Wizard Modal (`EventWizardModal.tsx`)
+- Three-step modal gathering event title, event type (wedding, birthday, corporate, community, anniversary), date, location, guest headcount, total budget, currency, aesthetic atmosphere (9 distinct vibes), and custom dietary/logistical requests.
+- Submits to `/api/ai/generate-plan`, generating an exhaustive plan or using the heuristic fallback generator.
+
+### 2. Overview Dashboard & Planner Insights (`EventOverviewTab.tsx` & `PlannerInsights.tsx`)
+- Mission Control displays days-to-go, budget utilization %, confirmed headcount, and unbooked vendors.
+- Color palette story with one-click HEX color code copying.
+- Proactive insights ranked by severity (Alert, Warning, Info) with actionable guidance.
+
+### 3. Budget Management & Auto-Rebalancer (`BudgetTab.tsx`)
+- Visual budget breakdown across categories (Venue, Catering, Decor, Photography, Entertainment, Logistics, Favors, Contingency).
+- Tracks allocation vs. actual spent, payment statuses (Paid, Deposit Paid, Unpaid), and uncommitted cash remaining.
+- One-click **Auto-Rebalance Budget** tool rescales line items proportionally to maintain the ceiling.
+
+### 4. Timeline & Schedule Coordinator (`TimelineTab.tsx`)
+- Chronological milestone tracker spanning 5 event phases:
+  1. *Early Planning* (Months out)
+  2. *Mid Planning* (Weeks out)
+  3. *Final Month* (Confirmations)
+  4. *Week-Of* (Rehearsals & Packing)
+  5. *Day-Of Schedule* (Minute-by-minute run of show)
+- Supports task completion toggles, phase filtering, and person-responsible assignment tags.
+
+### 5. Vendor Directory & Inquiry Email Studio (`VendorsTab.tsx`)
+- Tracks quotes, deposit milestones, balance due dates, contact info, and custom action checklists.
+- **AI Vendor Inquiry Email Drafter**: Automatically drafts complete, ready-to-send inquiry emails with event context, questions on availability, package pricing, setup timing, and sign-offs.
+
+### 6. Personalized Ideas & Moodboard (`IdeasTab.tsx`)
+- Delivers creative concepts across **all 5 sections**:
+  1. `Theme & Decor`
+  2. `Food & Signature Drinks`
+  3. `Entertainment & Games`
+  4. `Guest Experience & Keepsakes`
+  5. `Eco-Friendly & Zero Waste`
+- Written in **simple, friendly everyday language** without complex jargon.
+- Filter pills show live category item counts; context-aware Spark button brainstorms across all sections or for a targeted category.
+
+### 7. Guests & RSVPs Coordinator (`GuestsTab.tsx`)
+- Tracks confirmed guest headcount (accounting for plus-ones), attending parties, pending responses, and seating assignments.
+- Dietary restriction tracking with high-contrast allergy callouts and alert icons.
+- **RFC 4180 CSV Import Modal**: Bulk-imports guest lists with live parse previews, column auto-mapping, and duplicate detection.
+
+### 8. Contextual AI Planning Consultant Drawer (`AiAssistantDrawer.tsx`)
+- Slide-over assistant drawer aware of the active event's real-time state (title, budget, tasks, vendors, headcount).
+- Answers queries with domain advice (e.g. bad weather contingencies, contract checklists, catering cost savings) and provides clickable quick-prompt suggestions.
+
+### 9. Speech & Invite Studio and Export Studio (`SpeechInviteModal.tsx` & `ExportModal.tsx`)
+- Generates bespoke invitations and speeches across customizable tones (Warm, Formal, Humorous, Romantic).
+- Exports plans to JSON, structured Markdown, or clean printable HTML summaries.
+
+---
+
+## 4. Assumptions Made
+
+1. **Target Users & Scope**: Designed for hosts, families, and coordinators organizing events ranging from intimate gatherings (10 guests) to large festivals (5,000 attendees).
+2. **Client-Side Privacy & Persistence**: Event state is stored in browser `localStorage`. No mandatory user accounts, tracking cookies, or remote databases are required; user data remains strictly private on their device.
+3. **Resilience & Offline Operation**: An API key is optional. The application guarantees 100% functionality in offline mode with deterministic heuristic fallbacks. When configured with an API key, it connects to Google Gemini with automatic multi-model failover.
+4. **Budget as a Hard Ceiling**: Total budget represents an enforced ceiling. All line items generated by AI or heuristics are strictly normalized to ensure exact penny-for-penny equality with zero drift.
+5. **Timezone & Locale Integrity**: Event countdowns and deadlines evaluate relative to the user's local calendar midnight, preventing date shifts across international borders.
+6. **Multi-Currency Support**: Supports `$`, `€`, `£`, `₹`, `C$`, and `A$` with consistent formatting.
+7. **Adversarial Prompt Resistance**: User inputs are treated strictly as untrusted data values to plan around, preventing prompt injection, jailbreaks, or instruction overrides.
+
+---
+
+## 5. Evaluation Focus Areas Alignment
+
+### A. Code Quality — Structure, Readability, Maintainability
+- **Decoupled Architecture**: Clear boundary between UI components (`src/components/`), domain math (`src/utils/eventCalculators.ts`), date algorithms (`src/utils/dates.ts`), rules engine (`src/utils/plannerInsights.ts`), and server logic (`src/server/`).
+- **Strict TypeScript**: 100% typed codebase with strict typechecking (`npm run lint` passes with 0 errors). Zero `any` casts in production application code.
+- **Maintainable Standards**: Comprehensive inline documentation, JSDoc annotations, single-responsibility modules, and clean formatting.
+
+### B. Security — Safe and Responsible Implementation
+- **Prompt Injection Defense (Prompt Wars Aligned)**:
+  - System prompts clearly delineate developer instructions from untrusted user content.
+  - User parameters are wrapped inside isolated XML delimiter tags (`<event_parameters>`, `<event_context>`, `<user_input>`, `<ideas_focus>`) with XML escaping (`esc()`).
+  - System instructions explicitly mandate ignoring jailbreaks, role reversals, or requests to reveal internal prompts or keys.
+- **Zero Client-Side Secret Leakage**: All Gemini API calls execute strictly on the server (`server.ts`, `geminiClient.ts`). API keys never touch the client.
+- **Safe Error Masking**: `sanitizeGeminiErrorMessage` redacts API keys and sensitive tokens (`[REDACTED]`) from logs and error payloads.
+- **DoS & Payload Protection**: Express payload body size is capped at `50kb`; `express-rate-limit` enforces 20 req/min per IP on all AI routes.
+- **HTTP Security & CSP**: Production Helmet enforces Content-Security-Policy, HSTS, X-Content-Type-Options, and frame restrictions.
+- **Zero Dangerous HTML Injection**: React JSX escapes all dynamic text; zero use of `dangerouslySetInnerHTML`.
+
+### C. Efficiency — Optimal Use of Resources
+- **Minimal Token Consumption**: AI calls use bounded `maxOutputTokens` and strict `responseSchema` JSON structures, eliminating preamble fluff.
+- **Instant Client Computation**: Budget variance, uncommitted cash, timeline progress, insight rules, and guest tallies execute locally in microseconds without network trips.
+- **Lightweight Production Bundle**: Built with Vite tree-shaking (~462 kB JS, ~64 kB CSS, gzip total ~128 kB).
+- **Fast Resiliency Cascade**: Primary model (`gemini-3-flash-preview`) fails over gracefully to `gemini-3.5-flash`, `gemini-3.1-flash-lite`, and `gemini-3.6-flash` before falling back to instant local heuristics.
+
+### D. Testing — Validation of Functionality
+Automated test suite of **137 tests** executed via Node's native test runner (`npm test`):
+- **Dates & Midnights (`dates.test.ts`)**: Timezone-safe arithmetic across IST, US Pacific, NZDT, and UTC; DST transitions; leap years.
+- **Domain Calculators (`eventCalculators.test.ts`)**: Budget totals, variances, vendor balance tracking, uncommitted cash, plus-one headcount, and auto-rebalancing.
+- **Planner Insights (`plannerInsights.test.ts`)**: Cash commitment buffers, RSVP deadlines, allergy warnings, contingency drawdowns, and singular/plural grammar.
+- **Offline Chat Fallback (`chatFallback.test.ts`)**: Keyword-driven topic classification, event interpolation, and follow-up suggestions.
+- **CSV Guest Parser (`csvGuestParser.test.ts`)**: RFC 4180 parsing with quotes/commas, duplicate detection, and group normalization.
+- **Input Validation (`validate.test.ts`)**: Whitelists, string lengths, numeric ranges, and malformed body rejection.
+- **Prompt Delimiter Escaping (`promptEscape.test.ts`)**: Tag escaping to prevent delimiter injection breakout.
+- **Idea Generation (`ideaGenerator.test.ts`)**: Validates 5 distinct categories with plain English descriptions.
+- **Heuristic Plan Generator (`fallbackGenerator.test.ts`)**: 45 combinations (5 types × 9 vibes) guaranteeing exact budget sums.
+- **Resiliency & Timeout (`geminiClient.test.ts`, `withTimeout.test.ts`)**: Model failovers, thinking-config stripping, and key redaction.
+- **Accessibility (`accessibility.test.tsx`)**: Automated axe-core audits across all 6 tabs, 5 dialogs, and 2 alert dialogs (**0 violations**).
+
+### E. Accessibility — Inclusive and Usable Design (WCAG 2.1 AA)
+- **Zero Axe-Core Violations**: All 6 tabs, 5 dialog modals, and 2 alert dialogs achieve **0 axe violations**.
+- **Keyboard Navigation & Focus Traps**: Accessible Tab/Shift+Tab focus cycling via `useFocusTrap.ts`, `Escape` key dismissal, and trigger focus restoration.
+- **Tab Navigation & History Synchronization**: ARIA `role="tablist"` with arrow key navigation (`ArrowLeft`, `ArrowRight`, `Home`, `End`) synced to browser URL hash (`#overview`, `#budget`, `#timeline`, etc.) and `popstate` history.
+- **Back-to-Home Navigation**: Prominent breadcrumb navigation, top brand return, and bottom return buttons on every view prevent accidental website closure.
+- **Screen Reader Announcements**: Dynamic updates use `aria-live="polite"` and `role="status"`.
+- **High Contrast & Focus Rings**: Global `2px solid #818cf8` focus-visible outlines ensure clear keyboard visibility.
+- **Reduced Motion**: Disables celebratory confetti when `prefers-reduced-motion` is detected.
+
+### F. Problem Statement Alignment — Relevance to the Stated Problem
+Planora directly addresses the end-to-end reality of event coordination. It unites creative inspiration with quantitative rigor, delivering an intuitive, accessible, and resilient planning assistant suitable for any celebration.
+
+---
+
+## 6. How to Run & Verify
 
 ### 1. Install Dependencies
 ```bash
@@ -65,11 +217,11 @@ npm install
 ```
 
 ### 2. Configure Environment (Optional)
-The application functions without an API key using the built-in offline fallback planner. To enable live Gemini AI generation:
+The app runs 100% offline without an API key. To enable live Gemini AI generation:
 ```bash
 cp .env.example .env
 ```
-Set your credentials in `.env`:
+Add your Gemini API key in `.env`:
 ```env
 GEMINI_API_KEY="your-gemini-api-key"
 GEMINI_MODEL="gemini-3-flash-preview"
@@ -77,145 +229,26 @@ GEMINI_TIMEOUT_MS=30000
 PORT=3000
 ```
 
-| Variable | Description | Default |
-|---|---|---|
-| `GEMINI_API_KEY` | Google Gemini API key from AI Studio | _none (offline mode)_ |
-| `GEMINI_MODEL` | Gemini model name | `gemini-3-flash-preview` |
-| `GEMINI_TIMEOUT_MS` | External request timeout limit in milliseconds | `30000` |
-| `PORT` | Local server port | `3000` |
-
 ### 3. Start Development Server
 ```bash
 npm run dev
 ```
-The server starts on `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### 4. Run Tests
+### 4. Run Automated Tests
 ```bash
 npm test
 ```
+*Expected output: `137 passed, 0 failed, 0 skipped`.*
 
 ### 5. Typecheck & Lint
 ```bash
 npm run lint
 ```
+*Expected output: TypeScript check passes with 0 errors.*
 
-### 6. Production Build
+### 6. Build Production Bundle
 ```bash
 npm run build
 ```
-
----
-
-## Security Notes
-- **Server-Side API Execution**: Gemini API calls are executed strictly on the server (`server.ts` and `src/server/geminiClient.ts`). API keys are never passed to the client.
-- **Payload Boundaries**: `express.json` enforces a strict `50kb` body limit to protect against oversized payload attacks.
-- **Content-Security-Policy (CSP)**: In production, helmet enforces a strict CSP restricting scripts, connections, and default sources to `'self'`, styles to `'self'`, `'unsafe-inline'`, and Google Fonts (`https://fonts.googleapis.com`), and fonts to `'self'`, `data:`, and Google Fonts (`https://fonts.gstatic.com`). CSP is disabled in dev mode to support Vite HMR/eval.
-- **Security Headers**: `helmet` is configured to set standard security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, etc.).
-- **Reverse Proxy & Rate Limiting**: `express.set('trust proxy', 1)` (configurable via `TRUST_PROXY`) ensures reverse proxies (Cloud Run, Render, Heroku, Nginx) pass client IPs through `X-Forwarded-For`, preventing shared-IP rate limiting collisions. `express-rate-limit` enforces a ceiling of 20 requests per minute per IP address across all `/api/ai/*` routes.
-- **Anti-Prompt-Injection Delimiters**: User text (titles, messages, special requests, vendor notes) is wrapped in structured XML tags (`<user_input>`, `<event_parameters>`, `<event_context>`, `<vendor_details>`) alongside explicit system instructions treating content strictly as passive data and forbidding instruction overrides.
-- **Input Validation**: All incoming API requests are validated via whitelist and boundary checks (`src/server/validate.ts`). String lengths are capped (title <= 100, text <= 500, message <= 1000), guest counts are bounded (1 to 5000), and budgets must be positive numbers. Invalid inputs are rejected with HTTP 400.
-- **Safe Error Masking**: Internal error stacks and provider error messages are sanitized before logging; query strings and headers with API keys are redacted (`[REDACTED]`). Clients receive non-leaking fallback responses.
-
----
-
-## Testing
-
-The project maintains an automated test suite of 136 tests executed via Node's native test runner (`npm test`). Tests cover:
-
-- **Local Midnight & Timezone Dates (`src/utils/dates.test.ts`)**: Timezone-safe date arithmetic comparing local midnights across IST (`Asia/Kolkata`), US Pacific (`America/Los_Angeles`), NZDT (`Pacific/Auckland`), and UTC, DST transitions, leap years, and calendar round-tripping.
-- **Event & Budget Calculators (`src/utils/eventCalculators.test.ts`)**: Financial aggregation, budget utilization percentages, variance calculation with deposit-paid balance-due semantics, uncommitted cash calculation with vendor balances, timeline phase progress, guest count tallies with plus-ones and dietary restrictions (filtering out "None"), and proportional budget rebalancing.
-- **Planner Insights Engine (`src/utils/plannerInsights.test.ts`)**: Deterministic rules covering cash commitment buffer (<10% & <=45 days), passed RSVP deadlines with pending guests, caterer allergy safety warnings, budget pace warnings, over-allocation vs under-allocation, early contingency drawdowns, RSVP pace lags, unbooked vendor warnings with proper singular/plural grammar, day-of run of show checks, post-event balances, severity sorting, and insight capping.
-- **Keyword-Aware Offline Chat Fallback (`src/utils/chatFallback.test.ts`)**: Deterministic topic classification across weather, catering, venue contracts, icebreakers, timeline, budget, vendors, guests, decor, and entertainment; contextual event data interpolation and relevant follow-up suggestions in offline mode.
-- **Client-Side CSV Guest Parser (`src/utils/csvGuestParser.test.ts`)**: RFC 4180 parsing with embedded commas, quotes, and escaped quotes, case-insensitive header mapping, group and RSVP normalization, duplicate detection against existing guest lists, and error isolation.
-- **Input Validation & Sanitization (`src/server/validate.test.ts`)**: Whitelist constraints, string length limits, numeric range bounds, and whitelisted event types for plan generation, ideas generation, chat queries, speech generation, and vendor inquiries.
-- **Anti-Prompt-Injection Escaping (`src/server/promptEscape.test.ts`)**: Validates HTML/XML tag escaping (`esc()`) across all prompt builders, verifying user inputs cannot break out of tagged prompt delimiters.
-- **Structured Idea Generation (`src/utils/ideaGenerator.test.ts`)**: Deterministic multi-card idea heuristics returning 3 bespoke cards per event type and vibe with human titles.
-- **Offline Heuristic Fallback Generator (`src/utils/fallbackGenerator.test.ts`)**: Deterministic, complete plan generation across all 5 supported event types and all 9 aesthetic vibes (45 combinations), guaranteeing exact budget item sums and edge-value handling.
-- **Promise Timeout Helper (`src/utils/withTimeout.test.ts`)**: Resolves when promises finish in time, rejects with `TimeoutError` when durations are exceeded, handles underlying rejections, and honors defaults.
-- **Gemini Client Resiliency (`src/server/geminiClient.test.ts`)**: Mocked tests covering primary model success, timeouts, HTTP 400 thinking retry without `thinkingConfig`, HTTP 404 model deprecation with second fallback recovery, HTTP 503 high-demand recovery, HTTP 429 quota recovery, failed model skipping, thinkingConfig stripping on fallbacks, exhausted fallback errors, and error message credential sanitization.
-- **Chat Response Parsing & Recovery (`src/server/parseChatReply.test.ts`)**: Valid JSON extraction, regex salvage on truncated JSON, garbage input rejection, empty input rejection, and suggestion capping at 4 items.
-- **Fallback Reason Mapping (`src/utils/fallbackMessages.test.ts`)**: Mapping fallback reasons (`timeout`, `no-api-key`, `error`) to user-facing messages, asserting no notice is prepended when `isFallback: false`, and verifying fallback notices when `isFallback: true`.
-- **Client-Side Storage Resilience (`src/utils/storage.test.ts`)**: Corrupted, malformed, or empty `localStorage` fallback to sample events, and round-tripping through `saveAllEvents` and `loadSavedEvents`.
-- **Server API & Fallback Paths (`src/server/serverFallback.test.ts`)**: Ephemeral server instance testing all AI endpoints without an API key (HTTP 200 with `isFallback: true` and `fallbackReason: 'no-api-key'`), input rejection (HTTP 400), payload limits (HTTP 413), retry without thinkingConfig, and AI-success path mapping with server-side budget normalization.
-- **Component Behavior (`src/components/componentBehavior.test.tsx`)**: Validates DOM rendering, calculations, and data presentation for EventOverviewTab, BudgetTab, GuestsTab, TimelineTab, VendorsTab, multi-card IdeasTab, ResetConfirmDialog, Navbar brand home navigation, and App Back to Home breadcrumb/history return.
-- **Automated Accessibility with axe-core & JSDOM (`src/components/accessibility.test.tsx`)**: Renders all 6 application tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), standalone PlannerInsights, all 5 dialog modals (Wizard, AI Assistant Drawer, Export, Speech/Invite, CSV Import), and both alert dialogs (Reset Confirm, Delete Event Confirm) in a JSDOM environment, asserting **ZERO** axe violations (WCAG 2.1 AA/A). Validates `role="dialog"`, focus containment, and `Escape` key dismissal.
-
-### Test Execution Commands
-```bash
-# Run the full automated test suite
-npm test
-
-# Run TypeScript static typecheck
-npm run lint
-
-# Run production Vite bundle
-npm run build
-```
-
----
-
-## Accessibility Notes (WCAG 2.1 AA)
-
-### Verified Automatically in Test Suite (`npm test`)
-- **Axe-core Audit**: All 6 tabs, all 5 dialogs, and both alert dialogs (Reset Confirm, Delete Event Confirm) pass automated axe-core accessibility checks with zero violations.
-- **Dialog & Focus Traps**: Modals and the slide-over AI drawer implement `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, trap Tab/Shift+Tab focus cycling, close on `Escape`, and restore focus to trigger elements (`src/utils/useFocusTrap.ts`).
-- **Tab Navigation & History**: Main tabs use `role="tablist"`, `role="tab"`, and `role="tabpanel"` with keyboard arrow navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`). Tab changes synchronize with browser history (`#overview`, `#budget`, `#timeline`, etc.) and `popstate`, ensuring that clicking the browser's Back button returns to the Home overview rather than closing or exiting the site.
-- **Back to Home Navigation**: All pages apart from the Home overview provide a prominent "Back to Home" button, breadcrumb hierarchy, bottom return action, and a clickable top brand logo to return home instantly.
-- **Skip Link**: A "Skip to main content" anchor is available as the first focusable element.
-- **Form Controls & Labels**: Inputs, selects, and textareas include associated `<label htmlFor>` tags or `aria-label` attributes.
-- **Live Status Regions**: Dynamic updates declare `aria-live="polite"` and `role="status"`.
-- **High-Contrast Focus Indicators**: Global `:focus-visible` outlines (`2px solid #818cf8`) ensure clear keyboard focus throughout.
-- **Reduced Motion**: Respects `prefers-reduced-motion: reduce` by disabling confetti animations and transition durations (`src/utils/motion.ts`).
-
-### Manual Checks
-The following manual verification passes should be performed in target browser environments:
-1. **Live Gemini Reply**: Verify end-to-end generation and contextual drawer recommendations with a live API key.
-2. **Lighthouse Accessibility Audit**: Run Google Lighthouse in Chrome DevTools on the production build to inspect real-browser color contrast and layout rendering.
-3. **Screen Reader Pass**: Walk through the application with NVDA/JAWS on Windows or VoiceOver on macOS to confirm auditory announcement clarity and navigation flow.
-
----
-
-## Challenge Expectations & Evaluation Focus Alignment
-
-### 1. Challenge Expectations
-| Expectation | Implementation in Planora |
-|---|---|
-| **Smart, Dynamic Assistant** | Context-aware AI Planning Consultant drawer, multi-model fallback cascade (`gemini-3-flash-preview` → `gemini-3.5-flash` → `gemini-3.1-flash-lite` → `gemini-3.6-flash`), structured JSON generation schemas, tailored vendor inquiry drafters, and custom speech/invite generators. |
-| **Logical Decision Making Based on User Context** | Deterministic Planner Insights engine proactively evaluating real-time plan state: cash commitment buffers (<10% uncommitted with ≤45 days), RSVP deadline alerts, caterer allergy safety warnings, budget pacing, contingency drawdowns, and unbooked vendor reminders. |
-| **Practical & Real-World Usability** | Comprehensive event management across 6 purpose-built tabs (Overview, Budget, Timeline, Vendors, Ideas, Guests), CSV bulk guest import with live duplicate detection, one-click budget auto-rebalancing, and multi-format export (JSON, Markdown, Print). Works 100% out of the box with or without an API key. |
-| **Clean & Maintainable Code** | Decoupled domain calculators (`src/utils/eventCalculators.ts`), centralized validation (`src/server/validate.ts`), reusable accessibility hooks (`useFocusTrap.ts`), zero `any` types in production code, and comprehensive modular architecture. |
-
-### 2. Evaluation Focus Areas
-- **Code Quality**: Clean separation of concerns between presentation, domain arithmetic, server routing, and LLM integrations. Strongly typed TypeScript passing strict typechecking (`npm run lint`).
-- **Security**:
-  - Zero client-side API key leakage (all Gemini requests are proxied server-side).
-  - Strict Content-Security-Policy (CSP) in production and standard HTTP security headers via Helmet.
-  - Request payload size limited to `50kb` to protect against DoS.
-  - Rate limiting enforced on all AI endpoints (20 req/min per IP) with reverse proxy trust (`X-Forwarded-For`).
-  - Structured XML prompt injection isolation boundaries (`<user_input>`, `<event_parameters>`) and system prompt defense guards.
-  - Strict input validation whitelists and bounds checking on every endpoint.
-  - Automatic credential and sensitive data sanitization (`[REDACTED]`) in server logging.
-- **Efficiency**:
-  - Token consumption minimized using `ThinkingLevel.MINIMAL` and strict `responseSchema` specifications.
-  - Zero unnecessary LLM calls: pure arithmetic, budget aggregations, timeline progress, and insights are computed locally in microseconds.
-  - Production Vite bundle optimized with tree-shaking (~118 kB gzipped JS).
-- **Testing**:
-  - 136 automated unit, integration, and accessibility tests executed via Node's native test runner (`npm test`).
-  - Covers date arithmetic, budget math, planner insights, offline chat fallbacks, CSV parsing, API route validation, prompt escaping, timeout resilience, and Gemini error recovery.
-- **Accessibility (WCAG 2.1 AA)**:
-  - Zero Axe-core violations across all 6 tabs, insights, all 5 dialogs, and both alert dialogs.
-  - Focus trapping with `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, and `Escape` key dismissal.
-  - Keyboard navigation (`ArrowRight`, `ArrowLeft`, `Home`, `End`) on tablists, "Skip to main content" link, screen-reader live announcements (`aria-live="polite"`), and high-contrast `:focus-visible` rings.
-- **Problem Statement Alignment**:
-  - Built specifically as a GenAI-powered celebration and event planning assistant tailored for milestone life events (weddings, birthdays, anniversaries, community festivals).
-
----
-
-## Assumptions
-1. **Target Users & Event Scope**: Designed for individual hosts, families, and community coordinators planning milestone events with up to 5,000 attendees and customizable budgets.
-2. **Privacy & Client-Side Persistence**: Event data is stored in the browser's `localStorage` for complete user privacy and offline availability, requiring no account creation or external database.
-3. **Resilience & Offline Operation**: The application functions without an API key using deterministic heuristic fallback generation. If an API key is provided, it connects to Google Gemini with automatic multi-model fallback resiliency.
-4. **Budget Integrity**: The total budget represents an enforced ceiling. All AI-generated and heuristic line items are normalized to ensure exact penny-for-penny budget allocation with zero drift.
-5. **Timezone & Locale**: Event dates and countdowns evaluate relative to the host's local midnight and system timezone, preventing date-shifting across international borders.
-6. **Currency Support**: Defaults to USD (`$`), with support for EUR (`€`), GBP (`£`), INR (`₹`), CAD (`C$`), and AUD (`A$`).
+*Expected output: Vite build succeeds with ~462 kB production bundle.*
