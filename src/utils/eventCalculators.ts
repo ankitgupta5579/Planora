@@ -165,12 +165,14 @@ export function rebalanceBudgetItems(items: BudgetItem[], totalBudget: number): 
   return normalizeBudgetItems(items, totalBudget);
 }
 
-export function calculateTimelineProgress(items: TimelineItem[]): {
+export interface TimelineProgress {
   total: number;
   completed: number;
   percentage: number;
   byPhase: Record<string, { total: number; completed: number }>;
-} {
+}
+
+export function calculateTimelineProgress(items: TimelineItem[]): TimelineProgress {
   const total = items.length;
   if (total === 0) {
     return { total: 0, completed: 0, percentage: 0, byPhase: {} };
@@ -193,13 +195,15 @@ export function calculateTimelineProgress(items: TimelineItem[]): {
   return { total, completed, percentage, byPhase };
 }
 
-export function calculateVendorFinancials(vendors: VendorItem[]): {
+export interface VendorFinancials {
   totalQuotes: number;
   totalDepositsPaid: number;
   totalRemainingBalance: number;
   bookedCount: number;
   totalCount: number;
-} {
+}
+
+export function calculateVendorFinancials(vendors: VendorItem[]): VendorFinancials {
   let totalQuotes = 0;
   let totalDepositsPaid = 0;
   let bookedCount = 0;
@@ -254,24 +258,30 @@ export function calculateUncommittedCash(event: {
   return safeTotalBudget - totalSpent - outstandingVendorBalances;
 }
 
-export function calculateGuestStats(guests: GuestItem[]): {
+export interface GuestStats {
   totalInvited: number;
   totalAttending: number;
   totalDeclined: number;
   totalPending: number;
+  totalPlusOnes: number;
   totalHeadcount: number; // including plusOnes
   dietaryCounts: Record<string, number>;
-} {
+}
+
+export function calculateGuestStats(guests: GuestItem[]): GuestStats {
   let totalAttending = 0;
   let totalDeclined = 0;
   let totalPending = 0;
+  let totalPlusOnes = 0;
   let totalHeadcount = 0;
   const dietaryCounts: Record<string, number> = {};
 
   for (const guest of guests) {
     if (guest.rsvpStatus === 'attending') {
       totalAttending++;
-      totalHeadcount += 1 + (Number(guest.plusOnes) || 0);
+      const plus = Number(guest.plusOnes) || 0;
+      totalPlusOnes += plus;
+      totalHeadcount += 1 + plus;
     } else if (guest.rsvpStatus === 'declined') {
       totalDeclined++;
     } else {
@@ -297,6 +307,7 @@ export function calculateGuestStats(guests: GuestItem[]): {
     totalAttending,
     totalDeclined,
     totalPending,
+    totalPlusOnes,
     totalHeadcount,
     dietaryCounts,
   };
