@@ -202,7 +202,7 @@ export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
           className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-pink-600/20 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <Sparkles className={`w-4 h-4 text-yellow-300 ${isGenerating ? 'animate-spin' : ''}`} />
-          <span>{isGenerating ? 'Crafting with Gemini AI...' : `Generate ${activeType === 'invitation' ? 'Invitation' : 'Speech'}`}</span>
+          <span>{isGenerating ? 'Crafting with Planora AI...' : `Generate ${activeType === 'invitation' ? 'Invitation' : 'Speech'}`}</span>
         </button>
 
         {/* Output Area */}

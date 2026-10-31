@@ -695,7 +695,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
               <div className="py-12 text-center space-y-2" aria-live="polite">
                 <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
                 <p className="text-xs text-slate-300">
-                  Gemini is drafting a tailored vendor inquiry email...
+                  Planora is drafting a tailored vendor inquiry email...
                 </p>
               </div>
             ) : (
