@@ -299,6 +299,7 @@ export interface ValidatedIdeasInput {
   eventContext?: EventSummaryContext;
   focusCategory?: IdeaCategory;
   existingTitles?: string[];
+  allSections?: boolean;
 }
 
 export function validateIdeasInput(body: unknown): ValidationResult<ValidatedIdeasInput> {
@@ -307,7 +308,7 @@ export function validateIdeasInput(body: unknown): ValidationResult<ValidatedIde
   }
 
   const b = body as Record<string, unknown>;
-  const { eventContext, focusCategory, existingTitles } = b;
+  const { eventContext, focusCategory, existingTitles, allSections } = b;
 
   let safeFocus: IdeaCategory | undefined = undefined;
   if (focusCategory !== undefined && focusCategory !== null) {
@@ -355,6 +356,7 @@ export function validateIdeasInput(body: unknown): ValidationResult<ValidatedIde
       eventContext: safeContext,
       focusCategory: safeFocus,
       existingTitles: safeTitles,
+      allSections: allSections === true,
     },
   };
 }

@@ -459,6 +459,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
         ...input.eventContext,
         focusCategory: input.focusCategory,
         existingTitles: input.existingTitles,
+        allSections: Boolean(input.allSections),
       }),
       message: 'AI service temporarily unavailable; loaded offline creative ideas.',
     }),
@@ -488,7 +489,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
 
       const rawIdeas = Array.isArray(parsed.ideas) ? parsed.ideas : [];
       const sanitizedIdeas: PersonalizedIdea[] = rawIdeas
-        .slice(0, 6)
+        .slice(0, 10)
         .filter((item) => typeof item.title === 'string' && item.title.trim().length > 0)
         .map((item, idx) => {
           const cat = validCategories.includes(item.category || '')
@@ -498,7 +499,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
             id: `idea-ai-${Date.now()}-${idx + 1}`,
             title: item.title!.trim().slice(0, 100),
             category: cat,
-            description: (item.description || 'Creative touch tailored for your event.').trim().slice(0, 500),
+            description: (item.description || 'Fun creative touch tailored for your event.').trim().slice(0, 500),
             tags: Array.isArray(item.tags)
               ? item.tags.filter((t) => typeof t === 'string').map((t) => t.trim().slice(0, 30)).slice(0, 4)
               : ['Creative', 'Personalized'],
@@ -512,6 +513,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
               ...input.eventContext,
               focusCategory: input.focusCategory,
               existingTitles: input.existingTitles,
+              allSections: Boolean(input.allSections),
             });
 
       return { ideas: finalIdeas };

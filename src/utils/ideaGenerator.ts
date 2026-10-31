@@ -8,6 +8,7 @@ export interface HeuristicIdeasInput {
   totalBudget?: number;
   focusCategory?: string;
   existingTitles?: string[];
+  allSections?: boolean;
 }
 
 interface IdeaTemplate {
@@ -17,169 +18,207 @@ interface IdeaTemplate {
   tags: string[];
 }
 
+const ALL_CATEGORIES: PersonalizedIdea['category'][] = [
+  'theme_decor',
+  'food_beverage',
+  'entertainment',
+  'guest_experience',
+  'sustainable_tip',
+];
+
 const IDEAS_BY_TYPE: Record<string, IdeaTemplate[]> = {
   wedding: [
     {
-      title: 'Acoustic Golden-Hour Prelude',
-      category: 'entertainment',
-      description: 'Host an unplugged acoustic soloist performing mellow indie arrangements as guests arrive and transition between ceremony and cocktail hour.',
-      tags: ['Acoustic', 'Music', 'Golden Hour'],
-    },
-    {
-      title: 'Artisan Culinary Tasting Station',
-      category: 'food_beverage',
-      description: 'Feature a curated tasting flight celebrating local regional flavors with paired mocktails, infused oils, and chef storytelling cards.',
-      tags: ['Foodie', 'Local', 'Pairing'],
-    },
-    {
-      title: 'Botanical Herb & Seedling Favor Bar',
-      category: 'sustainable_tip',
-      description: 'Offer guests potted aromatic culinary herbs or wildflower seed packets in stamped recyclable kraft planters as eco-conscious living keepsakes.',
-      tags: ['Eco Friendly', 'Zero Waste', 'Living Keepsake'],
-    },
-    {
-      title: 'Interactive Audio Guestbook Station',
-      category: 'guest_experience',
-      description: 'Set up a vintage rotary telephone recording heartfelt voicemail messages and spontaneous toasts from loved ones throughout the reception.',
-      tags: ['Audio Book', 'Vintage', 'Memories'],
-    },
-    {
-      title: 'Warm Canopy Bistro & Micro-Fairy Lighting',
+      title: 'Warm Fairy String Lights',
       category: 'theme_decor',
-      description: 'Suspend criss-cross Edison filaments and warm ambient micro-fairy strands above dining tables to create an intimate, stargazing glow.',
-      tags: ['Lighting', 'Warm Glow', 'Ambience'],
+      description: 'Hang soft, warm string lights across the ceiling or garden trees to make dinner and dancing feel magical.',
+      tags: ['Warm Lights', 'Cozy Vibe', 'Romantic'],
+    },
+    {
+      title: 'Local Snack Tasting Table',
+      category: 'food_beverage',
+      description: 'A fun snack table with bite-sized treats and fresh fruit drinks celebrating delicious local flavors.',
+      tags: ['Snack Table', 'Tasty Bites', 'Refreshing'],
+    },
+    {
+      title: 'Live Acoustic Welcome Songs',
+      category: 'entertainment',
+      description: 'A friendly local guitar player performs relaxed, popular acoustic songs as your guests arrive and mingle.',
+      tags: ['Live Music', 'Acoustic Guitar', 'Welcome'],
+    },
+    {
+      title: 'Vintage Voicemail Guestbook',
+      category: 'guest_experience',
+      description: 'Set up a classic rotary telephone where friends pick up the receiver and record sweet voice messages for you to keep.',
+      tags: ['Voice Messages', 'Keepsake', 'Guest Fun'],
+    },
+    {
+      title: 'Little Potted Herb Favors',
+      category: 'sustainable_tip',
+      description: 'Give each guest a cute little potted kitchen herb (like basil or mint) in paper pots to grow at home.',
+      tags: ['Potted Herbs', 'Zero Waste', 'Living Gift'],
     },
   ],
   birthday: [
     {
-      title: 'Signature Birthday Mocktail Bar',
-      category: 'food_beverage',
-      description: 'Craft two bespoke infused signature drinks with edible floral ice spheres, fresh herbal garnishes, and custom commemorative swizzle sticks.',
-      tags: ['Signature Drink', 'Mocktail', 'Interactive'],
-    },
-    {
-      title: 'Interactive Polaroid Memory Gallery',
-      category: 'guest_experience',
-      description: 'Provide instant cameras, metallic gel pens, and a wooden pinboard where guests clip candid snapshots beside handwritten notes.',
-      tags: ['Polaroid', 'Guest Photos', 'Keepsake'],
-    },
-    {
-      title: 'Illuminated Milestone Neon Photo Op',
+      title: 'Custom Glow Neon Selfie Wall',
       category: 'theme_decor',
-      description: 'Stage an energetic selfie backdrop with a customized warm neon phrase nestled inside lush trailing greenery and architectural palms.',
-      tags: ['Photo Backdrop', 'Neon', 'Vibrant'],
+      description: 'A bright, colorful neon sign on a leafy green backdrop where friends can take fun group photos and selfies.',
+      tags: ['Neon Sign', 'Photo Wall', 'Celebration'],
     },
     {
-      title: 'Curated Vinyl Listening Lounge',
+      title: 'DIY Mocktail & Soda Station',
+      category: 'food_beverage',
+      description: 'Guests can mix sparkling fruit sodas with tasty flavor syrups, fresh berries, and colorful straws.',
+      tags: ['Fun Drinks', 'Fruit Soda', 'Sweet Treats'],
+    },
+    {
+      title: 'Crowd-Favorite Song Requests DJ',
       category: 'entertainment',
-      description: 'Set up a cozy listening nook with a turntable and genre crates where guests browse and queue milestone tracks.',
-      tags: ['Vinyl', 'Music Lounge', 'Retro'],
+      description: 'A lively DJ who plays birthday guest favorite anthems and takes requests to keep everyone dancing.',
+      tags: ['Party DJ', 'Dance Music', 'Song Requests'],
     },
     {
-      title: 'Biodegradable Confetti Sunset Sendoff',
+      title: 'Instant Photo & Notes Board',
+      category: 'guest_experience',
+      description: 'Set out instant cameras and pens so guests can snap pictures and peg them on a board with sweet handwritten wishes.',
+      tags: ['Instant Photos', 'Polaroid', 'Guest Wishes'],
+    },
+    {
+      title: 'Flower Petal Confetti Sendoff',
       category: 'sustainable_tip',
-      description: 'Supply dried flower petal sachets in unbleached glassine envelopes for an environmentally safe send-off shower at sunset.',
-      tags: ['Eco Confetti', 'Petals', 'Sunset'],
+      description: 'Use packets of dried flower petals instead of plastic glitter for a pretty, eco-friendly celebration toss.',
+      tags: ['Flower Petals', 'Eco Confetti', 'Clean Sendoff'],
     },
   ],
   anniversary: [
     {
-      title: 'Curated Timeline Memory Ribbon',
+      title: 'Milestone Photo Timeline Wall',
       category: 'theme_decor',
-      description: 'Suspend an illuminated photo timeline along a gallery wall showcasing milestone moments from each decade of love and companionship.',
-      tags: ['Photo Gallery', 'Milestone', 'Heritage'],
+      description: 'Display favorite framed photos from each year along a pathway showing your journey together.',
+      tags: ['Photo Timeline', 'Memories', 'Heritage'],
     },
     {
-      title: 'Vintage Dessert & Wine Pairing Bar',
+      title: 'Sweet Treats & Coffee Cart',
       category: 'food_beverage',
-      description: 'Serve mini dessert pairings alongside commemorative reserve vintage beverages and artisanal chocolate truffles.',
-      tags: ['Dessert Flight', 'Pairing', 'Gourmet'],
+      description: 'A cozy dessert cart serving mini pastries, warm chocolate brownies, and freshly brewed coffee or tea.',
+      tags: ['Dessert Cart', 'Warm Coffee', 'Sweet Bites'],
     },
     {
-      title: 'Community Story Circle & Open Mic',
+      title: 'Family Story Sharing Hour',
       category: 'entertainment',
-      description: 'Designate a 20-minute twilight storytelling block where close family members share fond anecdotes and toast the hosts.',
-      tags: ['Storytelling', 'Heartfelt', 'Toast'],
+      description: 'Set aside 20 minutes for close family and friends to share warm, funny memories and raise a heartfelt toast.',
+      tags: ['Family Stories', 'Heartfelt Toasts', 'Gathering'],
     },
     {
-      title: 'Hand-Bound Leather Commemorative Album',
+      title: 'Handmade Memory Keepsake Book',
       category: 'guest_experience',
-      description: 'Invite attendees to pen blessings and press instant portraits into an archival hand-stitched leather guest journal.',
-      tags: ['Archival', 'Leather Journal', 'Keepsake'],
+      description: 'A beautiful open scrapbook where guests can paste instant snapshots and write personal blessings.',
+      tags: ['Scrapbook', 'Loving Notes', 'Keepsake'],
+    },
+    {
+      title: 'Donation in Honor of Guests',
+      category: 'sustainable_tip',
+      description: 'In place of plastic party favors, make a friendly contribution to a local nature sanctuary in honor of your guests.',
+      tags: ['Giving Back', 'Eco Choice', 'Meaningful'],
     },
   ],
   corporate: [
     {
-      title: 'Gamified Team Connection Scavenger Quest',
-      category: 'entertainment',
-      description: 'Deploy a lightweight mobile QR-based team trivia hunt that encourages cross-department networking and friendly puzzle solving.',
-      tags: ['Team Building', 'Gamified', 'Interactive'],
+      title: 'Modern Brand Color Glow Lighting',
+      category: 'theme_decor',
+      description: 'Clean uplighting around the room in your organization brand colors to create an upbeat, professional look.',
+      tags: ['Room Lighting', 'Modern Glow', 'Brand Colors'],
     },
     {
-      title: 'Locally Sourced Farm-to-Fork Grazing Tables',
+      title: 'Fresh Farm-Style Grazing Bar',
       category: 'food_beverage',
-      description: 'Partner with regional growers to present artisanal cheeses, sourdough, honeycomb, and seasonal fruits labeled with farm origins.',
-      tags: ['Farm to Table', 'Local Growers', 'Sustainable'],
+      description: 'A delicious assortment of fresh breads, fruit, local cheeses, and healthy snacks that are easy to grab while talking.',
+      tags: ['Fresh Snacks', 'Grazing Table', 'Healthy Bites'],
     },
     {
-      title: 'Digital Keynote & Live Sketch Artist',
+      title: 'Interactive Team Trivia Contest',
+      category: 'entertainment',
+      description: 'A quick, friendly smartphone trivia game with fun questions that gets everyone chatting and laughing together.',
+      tags: ['Team Trivia', 'Interactive Game', 'Fun Quiz'],
+    },
+    {
+      title: 'Live Digital Sketch Artist',
       category: 'guest_experience',
-      description: 'Commission a live graphic scribe to illustrate key themes and keynote takeaways on a digital display wall in real time.',
-      tags: ['Graphic Scribing', 'Visual Notes', 'Keynote'],
+      description: 'A talented illustrator draws fun digital caricatures or key highlights on a screen for attendees to take home.',
+      tags: ['Fun Sketches', 'Digital Art', 'Memorable'],
     },
     {
-      title: 'Carbon-Neutral Plant-a-Tree Badge',
+      title: 'Plant-a-Tree Green Pass',
       category: 'sustainable_tip',
-      description: 'Pledge one native sapling planting per attendee through verified conservation partners, with custom digital impact certificates.',
-      tags: ['Carbon Offset', 'Tree Planting', 'Green Summit'],
+      description: 'Plant one native tree seedling for each attendee through an environmental partner, sharing a certificate link.',
+      tags: ['Tree Planting', 'Green Choice', 'Zero Waste'],
     },
   ],
   community: [
     {
-      title: 'Neighborhood Artisan Craft Workshop Corner',
-      category: 'guest_experience',
-      description: 'Invite local makers to run interactive mini workshops where participants handcraft pottery, screen prints, or floral wreaths.',
-      tags: ['Artisan', 'Hands-on', 'Community'],
-    },
-    {
-      title: 'Community Acoustic Lawn Sessions',
-      category: 'entertainment',
-      description: 'Host rotating half-hour performance sets showcasing neighborhood singer-songwriters, school ensembles, and folk acoustic artists.',
-      tags: ['Local Talent', 'Acoustic', 'Festival'],
-    },
-    {
-      title: 'Zero-Waste Reusable Dishware Hub',
-      category: 'sustainable_tip',
-      description: 'Implement a sanitized returnable cup and plate station to eliminate single-use plastics across all food and beverage stalls.',
-      tags: ['Zero Waste', 'Reusable', 'Eco Pioneer'],
-    },
-    {
-      title: 'Communal Canvas Mural Project',
+      title: 'Bright Welcome Banners & Lanterns',
       category: 'theme_decor',
-      description: 'Erect a giant primed canvas board with paint markers where community members contribute spontaneous drawings and signatures.',
-      tags: ['Collaborative Art', 'Mural', 'Inclusive'],
+      description: 'Hang colorful fabric banners and paper lanterns between trees to guide families between activity zones.',
+      tags: ['Park Banners', 'Festive Flags', 'Welcoming'],
+    },
+    {
+      title: 'Fresh Lemonade & Snack Stand',
+      category: 'food_beverage',
+      description: 'Ice-cold fresh lemonade with fruit slices and baked snacks contributed by neighborhood bakers.',
+      tags: ['Cold Lemonade', 'Baked Snacks', 'Community'],
+    },
+    {
+      title: 'Neighborhood Talent & Acoustic Stage',
+      category: 'entertainment',
+      description: 'A relaxed outdoor stage featuring local singer-songwriters, school groups, and acoustic performers.',
+      tags: ['Local Bands', 'Acoustic Stage', 'Live Music'],
+    },
+    {
+      title: 'Community Canvas Handprint Mural',
+      category: 'guest_experience',
+      description: 'A big canvas board with washable paints where neighbors add handprints, signatures, and cheerful wishes.',
+      tags: ['Art Mural', 'Handprints', 'Kids & Family'],
+    },
+    {
+      title: 'Reusable Cup & Water Refill Hub',
+      category: 'sustainable_tip',
+      description: 'Free drinking water refill stations with reusable cups to keep the park completely clean of plastic bottles.',
+      tags: ['Water Refill', 'Zero Plastic', 'Park Clean'],
     },
   ],
 };
 
 const DEFAULT_IDEAS: IdeaTemplate[] = [
   {
-    title: 'Interactive Polaroid & Audio Guestbook Corner',
-    category: 'guest_experience',
-    description: 'Set up a dedicated photo table with vintage instant cameras, metallic gel pens, and custom envelopes for handwritten notes.',
-    tags: ['Keepsake', 'Photo', 'Creative'],
-  },
-  {
-    title: 'Curated Twilight Bistro Lighting Canopy',
+    title: 'Warm Fairy String Lights',
     category: 'theme_decor',
-    description: 'Drape warm Edison bulbs and micro-fairy strands above common areas to elevate evening atmosphere and photo quality.',
-    tags: ['Ambience', 'Lighting', 'Warmth'],
+    description: 'Hang soft, warm string lights across the ceiling or outdoor trees to give your celebration a cozy, welcoming glow.',
+    tags: ['Warm Lights', 'Cozy Vibe', 'Atmosphere'],
   },
   {
-    title: 'Artisan Infused Refreshment Station',
+    title: 'Chilled Fruit Refreshment Bar',
     category: 'food_beverage',
-    description: 'Feature crystal glass dispensers with cucumber-mint, blackberry-thyme, and citrus-rosemary water alongside seasonal mocktails.',
-    tags: ['Hydration', 'Fresh Herbs', 'Refreshing'],
+    description: 'Clear drink dispensers with fresh cucumber-mint water, lemonade, and iced tea with fun fruit garnishes.',
+    tags: ['Fresh Lemonade', 'Cold Drinks', 'Refreshing'],
+  },
+  {
+    title: 'Live Acoustic Guitar & Song Requests',
+    category: 'entertainment',
+    description: 'A friendly local musician plays upbeat acoustic tunes and takes song requests from guests.',
+    tags: ['Acoustic Guitar', 'Live Songs', 'Singalong'],
+  },
+  {
+    title: 'Instant Photo & Memory Board',
+    category: 'guest_experience',
+    description: 'Set up an instant camera station where guests snap cute photos and clip them to a board with nice notes.',
+    tags: ['Instant Photos', 'Polaroid', 'Guestbook'],
+  },
+  {
+    title: 'Eco-Friendly Flower Seed Packets',
+    category: 'sustainable_tip',
+    description: 'Give guests small packets of native flower seeds in brown paper envelopes to plant in their home gardens.',
+    tags: ['Wildflower Seeds', 'Zero Waste', 'Earth Friendly'],
   },
 ];
 
@@ -189,9 +228,34 @@ export function generateHeuristicIdeas(input: HeuristicIdeasInput): Personalized
   const existingSet = new Set((input.existingTitles || []).map((t) => t.trim().toLowerCase()));
 
   // Filter pool to avoid duplicate titles
-  let candidates = pool.filter((idea) => !existingSet.has(idea.title.toLowerCase()));
+  const poolFiltered = pool.filter((idea) => !existingSet.has(idea.title.toLowerCase()));
 
-  // If focusCategory requested, prioritize matching items
+  // 1. If allSections is requested (or explicitly asked to generate across all categories)
+  if (input.allSections) {
+    const selectedAcrossAll: IdeaTemplate[] = [];
+
+    for (const cat of ALL_CATEGORIES) {
+      // Find candidate in poolFiltered
+      const match = poolFiltered.find((i) => i.category === cat && !selectedAcrossAll.some((s) => s.title === i.title))
+        || pool.find((i) => i.category === cat)
+        || DEFAULT_IDEAS.find((i) => i.category === cat)!;
+
+      selectedAcrossAll.push(match);
+    }
+
+    const now = Date.now();
+    return selectedAcrossAll.map((item, idx) => ({
+      id: `idea-heur-${now}-${idx + 1}`,
+      title: item.title,
+      category: item.category,
+      description: item.description,
+      tags: item.tags,
+    }));
+  }
+
+  // 2. Standard mode (prioritize focus category or take slice of 3)
+  let candidates = [...poolFiltered];
+
   if (input.focusCategory) {
     const focus = input.focusCategory.toLowerCase();
     const focused = candidates.filter((c) => c.category === focus);
@@ -208,7 +272,7 @@ export function generateHeuristicIdeas(input: HeuristicIdeasInput): Personalized
     }
   }
 
-  // Always return exactly 3 ideas
+  // Return 3 ideas for standard calls
   const selected = candidates.slice(0, 3);
   const now = Date.now();
 

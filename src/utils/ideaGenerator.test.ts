@@ -56,3 +56,29 @@ test('generateHeuristicIdeas: avoids duplicate existing titles', () => {
     assert.ok(!existing.includes(idea.title), `Idea title ${idea.title} should not be in existing list`);
   }
 });
+
+test('generateHeuristicIdeas: generates ideas covering all 5 sections when allSections is true', () => {
+  const expectedCategories = ['theme_decor', 'food_beverage', 'entertainment', 'guest_experience', 'sustainable_tip'];
+
+  for (const type of EVENT_TYPES) {
+    const ideas = generateHeuristicIdeas({
+      type,
+      allSections: true,
+    });
+
+    assert.equal(ideas.length, 5, `Expected 5 ideas for ${type} with allSections`);
+    const cats = ideas.map((i) => i.category);
+    for (const exp of expectedCategories) {
+      assert.ok(cats.includes(exp as any), `Must include category ${exp} for ${type}`);
+    }
+
+    // Verify simple language (no pompous jargon)
+    const bannedJargon = ['sonic backdrop', 'curated vignette', 'natural acoustics', 'epicurean', 'artisan prelude'];
+    for (const idea of ideas) {
+      const lowerDesc = idea.description.toLowerCase();
+      for (const jargon of bannedJargon) {
+        assert.ok(!lowerDesc.includes(jargon), `Description should not contain pretentious jargon: ${jargon}`);
+      }
+    }
+  }
+});

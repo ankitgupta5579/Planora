@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { EventPlan, PersonalizedIdea } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
+import { generateHeuristicIdeas } from '../utils/ideaGenerator';
 import { 
   Sparkles, 
   Plus, 
@@ -85,8 +86,10 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
   const handleSparkMoreAiIdeas = async () => {
     setIsSparkingAi(true);
     setFallbackNotice(null);
+    const existingTitles = plan.ideas.map((i) => i.title);
+    let newIdeas: PersonalizedIdea[] = [];
+
     try {
-      const existingTitles = plan.ideas.map((i) => i.title);
       const res = await fetch('/api/ai/generate-ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,28 +97,39 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
           eventContext: plan,
           focusCategory: selectedCategory === 'all' ? undefined : selectedCategory,
           existingTitles,
+          allSections: selectedCategory === 'all',
         }),
       });
       const data = await res.json();
-      const newIdeas: PersonalizedIdea[] = Array.isArray(data.ideas) && data.ideas.length > 0
-        ? data.ideas
-        : [];
-
-      if (newIdeas.length > 0) {
-        onUpdatePlan({
-          ...plan,
-          ideas: [...newIdeas, ...plan.ideas],
-          updatedAt: new Date().toISOString(),
-        });
-        setAiStatusMessage(`Added ${newIdeas.length} fresh ideas!`);
+      if (Array.isArray(data.ideas) && data.ideas.length > 0) {
+        newIdeas = data.ideas;
       }
 
       if (data.isFallback) {
         setFallbackNotice('Showing offline suggestions: ' + (data.message || 'AI service unavailable.'));
       }
     } catch {
-      setFallbackNotice('Network error: unable to generate fresh ideas.');
+      // Local offline heuristic fallback
+      newIdeas = generateHeuristicIdeas({
+        type: plan.type,
+        vibe: plan.vibe,
+        location: plan.location,
+        guestCount: plan.guestCount,
+        totalBudget: plan.totalBudget,
+        focusCategory: selectedCategory === 'all' ? undefined : selectedCategory,
+        existingTitles,
+        allSections: selectedCategory === 'all',
+      });
+      setFallbackNotice('Offline mode: generated suggestions locally.');
     } finally {
+      if (newIdeas.length > 0) {
+        onUpdatePlan({
+          ...plan,
+          ideas: [...newIdeas, ...plan.ideas],
+          updatedAt: new Date().toISOString(),
+        });
+        setAiStatusMessage(`Added ${newIdeas.length} fresh ideas across sections!`);
+      }
       setIsSparkingAi(false);
     }
   };
@@ -124,6 +138,9 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
     if (selectedCategory === 'all') return true;
     return i.category === selectedCategory;
   });
+
+  const activeCategory = categories.find((c) => c.id === selectedCategory);
+  const currentCategoryLabel = activeCategory ? activeCategory.label : 'All Sections';
 
   return (
     <div className="space-y-6">
@@ -147,11 +164,21 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
           <button
             onClick={handleSparkMoreAiIdeas}
             disabled={isSparkingAi}
-            aria-label="Generate more AI personalized creative ideas"
+            aria-label={
+              selectedCategory === 'all'
+                ? 'Generate AI ideas across all 5 sections'
+                : `Generate AI ideas for ${currentCategoryLabel}`
+            }
             className="px-4 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-600/20 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
             <Sparkles className={`w-4 h-4 text-yellow-300 ${isSparkingAi ? 'animate-spin' : ''}`} />
-            <span>{isSparkingAi ? 'Brainstorming...' : 'Spark AI Ideas'}</span>
+            <span>
+              {isSparkingAi
+                ? 'Brainstorming...'
+                : selectedCategory === 'all'
+                ? 'Spark All Section Ideas'
+                : `Spark ${currentCategoryLabel} Ideas`}
+            </span>
           </button>
 
           <button
@@ -216,22 +243,27 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
         >
           All Concepts ({plan.ideas.length})
         </button>
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setSelectedCategory(c.id)}
-            role="radio"
-            aria-checked={selectedCategory === c.id}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-              selectedCategory === c.id
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-800 text-slate-200 hover:text-white'
-            }`}
-          >
-            {c.icon}
-            <span>{c.label}</span>
-          </button>
-        ))}
+        {categories.map((c) => {
+          const count = plan.ideas.filter((i) => i.category === c.id).length;
+          return (
+            <button
+              key={c.id}
+              onClick={() => setSelectedCategory(c.id)}
+              role="radio"
+              aria-checked={selectedCategory === c.id}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                selectedCategory === c.id
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-slate-800 text-slate-200 hover:text-white'
+              }`}
+            >
+              {c.icon}
+              <span>
+                {c.label} ({count})
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Offline Notice & Live Status */}
@@ -254,8 +286,18 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
       {/* Ideas Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIdeas.length === 0 ? (
-          <div className="md:col-span-2 p-8 text-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 text-slate-300">
-            No ideas in this category yet. Click "Spark AI Ideas" to generate fresh concepts!
+          <div className="md:col-span-2 p-8 text-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 text-slate-300 space-y-3">
+            <p className="text-sm">No ideas in this section yet.</p>
+            <button
+              type="button"
+              onClick={handleSparkMoreAiIdeas}
+              disabled={isSparkingAi}
+              aria-label={`Generate ideas for ${currentCategoryLabel}`}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white shadow transition cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${isSparkingAi ? 'animate-spin' : ''}`} />
+              <span>Generate Ideas for {currentCategoryLabel}</span>
+            </button>
           </div>
         ) : (
           filteredIdeas.map((idea) => {

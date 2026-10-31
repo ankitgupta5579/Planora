@@ -282,35 +282,42 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
     },
   ];
 
-  // Ideas
+  // Ideas covering all 5 categories in clear, simple everyday English
   const ideas: PersonalizedIdea[] = [
     {
       id: 'idea-1',
-      title: 'Ambient Photo-Op Backdrop & Vignette',
+      title: 'Fun Photo Corner with Fairy Lights',
       category: 'theme_decor',
-      description: `Create an eye-catching photo corner featuring ambient backlighting, customized event signage, and props matching the ${input.vibe} aesthetic.`,
-      tags: ['Instagrammable', 'Decor', 'Memories'],
+      description: `A cozy photo backdrop with warm fairy lights, colorful props, and a custom welcome sign so your guests can snap great keepsake pictures.`,
+      tags: ['Photo Spot', 'Fairy Lights', 'Decor'],
     },
     {
       id: 'idea-2',
-      title: 'Signature Event Beverage & Mocktail Station',
+      title: 'Self-Serve Drink & Mocktail Station',
       category: 'food_beverage',
-      description: 'Feature a custom-named specialty drink infused with fresh botanicals, citrus extracts, and commemorative glassware.',
-      tags: ['Signature Drink', 'Hospitality', 'Creative'],
+      description: 'A colorful drink station with dispensers of fruit-infused water, iced tea, and a custom event mocktail that guests can easily pour themselves.',
+      tags: ['Signature Drink', 'Mocktail', 'Self-Serve'],
     },
     {
       id: 'idea-3',
-      title: 'Interactive Memory Wall & Digital QR Guestbook',
-      category: 'guest_experience',
-      description: 'Place cards or a digital QR code at tables allowing guests to instantly upload smartphone snapshots and voice notes directly into a private live photo gallery.',
-      tags: ['Interactive', 'Keepsake', 'Modern'],
+      title: 'Live Acoustic Music & Guest Song Requests',
+      category: 'entertainment',
+      description: 'A friendly local acoustic musician playing popular cover songs everyone knows, with request cards on tables so guests can hear their favorite tunes.',
+      tags: ['Live Music', 'Acoustic', 'Song Requests'],
     },
     {
       id: 'idea-4',
-      title: 'Zero-Waste & Eco-Conscious Touch',
+      title: 'Instant Photo & Voice Note Guestbook',
+      category: 'guest_experience',
+      description: 'A simple QR code on each table where guests can scan with their phones to instantly share photos, toasts, and sweet voice notes into a shared album.',
+      tags: ['Guest Photos', 'QR Guestbook', 'Keepsake'],
+    },
+    {
+      id: 'idea-5',
+      title: 'Take-Home Mini Potted Herb Plants',
       category: 'sustainable_tip',
-      description: 'Opt for biodegradable compostable tablewares, seed-packet party favors, and digital-first RSVP management to reduce paper waste.',
-      tags: ['Eco-Friendly', 'Green', 'Modern'],
+      description: 'Give each guest a cute little potted basil, rosemary, or mint plant to take home. It is zero-waste, eco-friendly, and something they will use in their kitchen.',
+      tags: ['Eco-Friendly', 'Potted Herbs', 'Zero Waste'],
     },
   ];
 
