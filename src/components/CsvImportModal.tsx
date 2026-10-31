@@ -1,17 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GuestItem } from '../types/event';
 import { parseCsvGuestList, CsvImportResult } from '../utils/csvGuestParser';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
-import {
-  Upload,
-  FileText,
-  AlertTriangle,
-  CheckCircle2,
-  X,
-  Copy,
-  Users,
-} from 'lucide-react';
+import { Upload, FileText, AlertTriangle, CheckCircle2, X, Copy, Users } from 'lucide-react';
 
 interface CsvImportModalProps {
   isOpen: boolean;
@@ -35,14 +27,14 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
 }) => {
   const [csvText, setCsvText] = useState('');
   const [parseResult, setParseResult] = useState<CsvImportResult | null>(null);
-  const modalRef = useFocusTrap(isOpen, onClose);
 
-  useEffect(() => {
-    if (isOpen) {
-      setCsvText('');
-      setParseResult(null);
-    }
-  }, [isOpen]);
+  const handleClose = () => {
+    setCsvText('');
+    setParseResult(null);
+    onClose();
+  };
+
+  const modalRef = useFocusTrap(isOpen, handleClose);
 
   const handleTextChange = (text: string) => {
     setCsvText(text);
@@ -78,7 +70,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
       spread: 70,
       origin: { y: 0.6 },
     });
-    onClose();
+    handleClose();
   };
 
   if (!isOpen) return null;
@@ -113,7 +105,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close CSV Import Modal"
             className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
@@ -194,12 +186,24 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
               <table className="w-full text-left text-xs text-slate-300">
                 <thead className="bg-slate-800/80 text-slate-200 text-xs font-semibold uppercase sticky top-0">
                   <tr>
-                    <th scope="col" className="py-2 px-3">Status</th>
-                    <th scope="col" className="py-2 px-3">Guest</th>
-                    <th scope="col" className="py-2 px-3">Group</th>
-                    <th scope="col" className="py-2 px-3">RSVP</th>
-                    <th scope="col" className="py-2 px-3">Dietary</th>
-                    <th scope="col" className="py-2 px-3">Table</th>
+                    <th scope="col" className="py-2 px-3">
+                      Status
+                    </th>
+                    <th scope="col" className="py-2 px-3">
+                      Guest
+                    </th>
+                    <th scope="col" className="py-2 px-3">
+                      Group
+                    </th>
+                    <th scope="col" className="py-2 px-3">
+                      RSVP
+                    </th>
+                    <th scope="col" className="py-2 px-3">
+                      Dietary
+                    </th>
+                    <th scope="col" className="py-2 px-3">
+                      Table
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
@@ -210,8 +214,8 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                         row.guest
                           ? 'hover:bg-slate-900/60'
                           : row.isDuplicate
-                          ? 'bg-amber-950/20 text-amber-300'
-                          : 'bg-rose-950/20 text-rose-300'
+                            ? 'bg-amber-950/20 text-amber-300'
+                            : 'bg-rose-950/20 text-rose-300'
                       }
                     >
                       <td className="py-2 px-3">
@@ -241,18 +245,10 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
                           <span className="text-xs">{row.error}</span>
                         )}
                       </td>
-                      <td className="py-2 px-3 capitalize">
-                        {row.guest?.group || '—'}
-                      </td>
-                      <td className="py-2 px-3 capitalize">
-                        {row.guest?.rsvpStatus || '—'}
-                      </td>
-                      <td className="py-2 px-3">
-                        {row.guest?.dietaryRestrictions || 'None'}
-                      </td>
-                      <td className="py-2 px-3">
-                        {row.guest?.tableNumber || '—'}
-                      </td>
+                      <td className="py-2 px-3 capitalize">{row.guest?.group || '—'}</td>
+                      <td className="py-2 px-3 capitalize">{row.guest?.rsvpStatus || '—'}</td>
+                      <td className="py-2 px-3">{row.guest?.dietaryRestrictions || 'None'}</td>
+                      <td className="py-2 px-3">{row.guest?.tableNumber || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -265,7 +261,7 @@ export const CsvImportModal: React.FC<CsvImportModalProps> = ({
         <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer"
           >
             Cancel

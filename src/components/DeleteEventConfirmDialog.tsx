@@ -22,10 +22,12 @@ export const DeleteEventConfirmDialog: React.FC<DeleteEventConfirmDialogProps> =
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        aria-hidden="true"
+        onClick={onClose}
+      />
       <div
         ref={modalRef}
         role="alertdialog"
@@ -33,8 +35,7 @@ export const DeleteEventConfirmDialog: React.FC<DeleteEventConfirmDialogProps> =
         aria-labelledby="delete-event-dialog-title"
         aria-describedby="delete-event-dialog-description"
         tabIndex={-1}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative text-slate-100"
+        className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative text-slate-100 z-10"
       >
         <button
           type="button"
@@ -57,7 +58,10 @@ export const DeleteEventConfirmDialog: React.FC<DeleteEventConfirmDialogProps> =
             <h2 id="delete-event-dialog-title" className="text-base font-bold text-white">
               {canDelete ? `Delete "${eventTitle}"?` : 'Cannot Delete Last Event'}
             </h2>
-            <p id="delete-event-dialog-description" className="text-xs text-slate-300 leading-relaxed">
+            <p
+              id="delete-event-dialog-description"
+              className="text-xs text-slate-300 leading-relaxed"
+            >
               {canDelete
                 ? `Are you sure you want to permanently delete this event? All associated budget items, timeline milestones, vendor contacts, and guest lists will be removed.`
                 : `Planora requires at least one active event. You cannot delete the only remaining event. To replace it, please create a new event first or reset demo data.`}

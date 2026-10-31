@@ -18,10 +18,12 @@ export const ResetConfirmDialog: React.FC<ResetConfirmDialogProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        aria-hidden="true"
+        onClick={onClose}
+      />
       <div
         ref={modalRef}
         role="alertdialog"
@@ -29,8 +31,7 @@ export const ResetConfirmDialog: React.FC<ResetConfirmDialogProps> = ({
         aria-labelledby="reset-dialog-title"
         aria-describedby="reset-dialog-description"
         tabIndex={-1}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative text-slate-100"
+        className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700 p-6 shadow-2xl space-y-4 focus:outline-none relative text-slate-100 z-10"
       >
         <button
           type="button"

@@ -22,11 +22,31 @@ if (!globalThis.window) {
     { url: 'http://localhost:3000', pretendToBeVisual: true }
   );
 
-  Object.defineProperty(globalThis, 'window', { value: dom.window, configurable: true, writable: true });
-  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true, writable: true });
-  Object.defineProperty(globalThis, 'HTMLElement', { value: dom.window.HTMLElement, configurable: true, writable: true });
-  Object.defineProperty(globalThis, 'HTMLInputElement', { value: dom.window.HTMLInputElement, configurable: true, writable: true });
-  Object.defineProperty(globalThis, 'HTMLButtonElement', { value: dom.window.HTMLButtonElement, configurable: true, writable: true });
+  Object.defineProperty(globalThis, 'window', {
+    value: dom.window,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, 'document', {
+    value: dom.window.document,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, 'HTMLElement', {
+    value: dom.window.HTMLElement,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, 'HTMLInputElement', {
+    value: dom.window.HTMLInputElement,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(globalThis, 'HTMLButtonElement', {
+    value: dom.window.HTMLButtonElement,
+    configurable: true,
+    writable: true,
+  });
   (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 }
 
@@ -72,7 +92,10 @@ test('behavior: EventOverviewTab renders event title, date, location and guest c
     assert.ok(text.includes(event.title), 'Should display event title');
     assert.ok(text.includes(event.location), 'Should display event location');
     assert.ok(text.includes(String(event.guestCount)), 'Should display guest count');
-    assert.ok(text.includes('booked or signed'), 'Should display "booked or signed" to match Vendors tab');
+    assert.ok(
+      text.includes('booked or signed'),
+      'Should display "booked or signed" to match Vendors tab'
+    );
   } finally {
     cleanupComponent();
   }
@@ -80,12 +103,7 @@ test('behavior: EventOverviewTab renders event title, date, location and guest c
 
 test('behavior: BudgetTab displays financial totals and category breakdown', () => {
   const event = SAMPLE_EVENTS[0];
-  const rendered = renderComponent(
-    <BudgetTab
-      plan={event}
-      onUpdatePlan={() => {}}
-    />
-  );
+  const rendered = renderComponent(<BudgetTab plan={event} onUpdatePlan={() => {}} />);
 
   try {
     const text = rendered.textContent || '';
@@ -101,16 +119,14 @@ test('behavior: BudgetTab displays financial totals and category breakdown', () 
 
 test('behavior: GuestsTab renders guest count and RSVP summary', () => {
   const event = SAMPLE_EVENTS[0];
-  const rendered = renderComponent(
-    <GuestsTab
-      plan={event}
-      onUpdatePlan={() => {}}
-    />
-  );
+  const rendered = renderComponent(<GuestsTab plan={event} onUpdatePlan={() => {}} />);
 
   try {
     const text = rendered.textContent || '';
-    assert.ok(text.includes('Guests & RSVPs') || text.includes('Guest'), 'Should display guest tab heading');
+    assert.ok(
+      text.includes('Guests & RSVPs') || text.includes('Guest'),
+      'Should display guest tab heading'
+    );
     assert.ok(text.includes('Attending'), 'Should show Attending counter');
     assert.ok(text.includes(event.guests[0].name), 'Should display first guest name');
   } finally {
@@ -121,17 +137,19 @@ test('behavior: GuestsTab renders guest count and RSVP summary', () => {
 test('behavior: TimelineTab renders milestones and phases', () => {
   const event = SAMPLE_EVENTS[0];
   const rendered = renderComponent(
-    <TimelineTab
-      plan={event}
-      onUpdatePlan={() => {}}
-      onOpenAiChat={() => {}}
-    />
+    <TimelineTab plan={event} onUpdatePlan={() => {}} onOpenAiChat={() => {}} />
   );
 
   try {
     const text = rendered.textContent || '';
-    assert.ok(text.includes('Timeline & Schedule') || text.includes('Milestones'), 'Should display timeline heading');
-    assert.ok(text.includes(event.timelineItems[0].title), 'Should display first timeline milestone title');
+    assert.ok(
+      text.includes('Timeline & Schedule') || text.includes('Milestones'),
+      'Should display timeline heading'
+    );
+    assert.ok(
+      text.includes(event.timelineItems[0].title),
+      'Should display first timeline milestone title'
+    );
   } finally {
     cleanupComponent();
   }
@@ -139,22 +157,19 @@ test('behavior: TimelineTab renders milestones and phases', () => {
 
 test('behavior: VendorsTab renders vendor cards and quotes', () => {
   const event = SAMPLE_EVENTS[0];
-  const rendered = renderComponent(
-    <VendorsTab
-      plan={event}
-      onUpdatePlan={() => {}}
-    />
-  );
+  const rendered = renderComponent(<VendorsTab plan={event} onUpdatePlan={() => {}} />);
 
   try {
     const text = rendered.textContent || '';
-    assert.ok(text.includes('Vendor Management') || text.includes('Vendors'), 'Should display vendors heading');
+    assert.ok(
+      text.includes('Vendor Management') || text.includes('Vendors'),
+      'Should display vendors heading'
+    );
     assert.ok(text.includes(event.vendors[0].name), 'Should display first vendor name');
   } finally {
     cleanupComponent();
   }
 });
-
 
 test('behavior: IdeasTab renders 3 returned ideas as 3 distinct cards', () => {
   const event = {
@@ -164,14 +179,16 @@ test('behavior: IdeasTab renders 3 returned ideas as 3 distinct cards', () => {
         id: 'idea-1',
         title: 'Acoustic Sunset Prelude',
         category: 'entertainment' as const,
-        description: 'Live guitarist performing indie acoustic covers as the sun sets over the ocean.',
+        description:
+          'Live guitarist performing indie acoustic covers as the sun sets over the ocean.',
         tags: ['Music', 'Sunset'],
       },
       {
         id: 'idea-2',
         title: 'Local Honeycomb Grazing Table',
         category: 'food_beverage' as const,
-        description: 'Fresh honeycomb dripping over artisan goat cheese and crusty sourdough loaves.',
+        description:
+          'Fresh honeycomb dripping over artisan goat cheese and crusty sourdough loaves.',
         tags: ['Gourmet', 'Honey'],
       },
       {
@@ -185,11 +202,7 @@ test('behavior: IdeasTab renders 3 returned ideas as 3 distinct cards', () => {
   };
 
   const rendered = renderComponent(
-    <IdeasTab
-      plan={event}
-      onUpdatePlan={() => {}}
-      onOpenAiChat={() => {}}
-    />
+    <IdeasTab plan={event} onUpdatePlan={() => {}} onOpenAiChat={() => {}} />
   );
 
   try {
@@ -231,7 +244,9 @@ test('behavior: ResetConfirmDialog handles cancel vs confirm', () => {
 
     const desc = rendered.querySelector('#reset-dialog-description');
     assert.ok(
-      desc?.textContent?.includes('This will erase all saved events in this browser and restore the sample events.'),
+      desc?.textContent?.includes(
+        'This will erase all saved events in this browser and restore the sample events.'
+      ),
       'Must contain exact warning description'
     );
 
@@ -280,7 +295,9 @@ test('behavior: Navbar brand logo button triggers onNavigateHome', () => {
   );
 
   try {
-    const brandButton = rendered.querySelector('button[aria-label="Planora - Back to Home Overview"]');
+    const brandButton = rendered.querySelector(
+      'button[aria-label="Planora - Back to Home Overview"]'
+    );
     assert.ok(brandButton, 'Brand button with Back to Home Overview must exist');
     act(() => {
       (brandButton as HTMLButtonElement).click();
@@ -298,7 +315,10 @@ test('behavior: App renders Back to Home bar and breadcrumb on non-overview page
   try {
     const backBtn = rendered.querySelector('button[aria-label="Back to Home Overview"]');
     assert.ok(backBtn, 'Back to Home button must exist on budget page');
-    assert.ok(backBtn.textContent?.includes('Back to Home'), 'Button text should include Back to Home');
+    assert.ok(
+      backBtn.textContent?.includes('Back to Home'),
+      'Button text should include Back to Home'
+    );
 
     const breadcrumb = rendered.querySelector('nav[aria-label="Breadcrumb"]');
     assert.ok(breadcrumb, 'Breadcrumb navigation must exist');

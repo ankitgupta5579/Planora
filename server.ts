@@ -8,7 +8,13 @@ import { isTimeoutError } from './src/utils/withTimeout';
 import { FallbackReason } from './src/utils/fallbackMessages';
 import { generateHeuristicEventPlan } from './src/utils/fallbackGenerator';
 import { normalizeBudgetItems } from './src/utils/eventCalculators';
-import { EventPlan, BudgetItem, TimelineItem, VendorItem, PersonalizedIdea } from './src/types/event';
+import {
+  EventPlan,
+  BudgetItem,
+  TimelineItem,
+  VendorItem,
+  PersonalizedIdea,
+} from './src/types/event';
 import {
   validatePlanInput,
   validateChatInput,
@@ -44,6 +50,7 @@ import {
   GeminiClientLike,
 } from './src/server/geminiClient';
 import { parseChatReply } from './src/server/parseChatReply';
+import { logger } from './src/server/logger';
 
 // Re-export core Gemini helpers for backward compatibility with tests
 export {
@@ -62,7 +69,11 @@ export {
 };
 
 dotenv.config();
-if (process.env.NO_API_KEY === '1' || process.env.GEMINI_API_KEY === 'none' || process.env.GEMINI_API_KEY === '') {
+if (
+  process.env.NO_API_KEY === '1' ||
+  process.env.GEMINI_API_KEY === 'none' ||
+  process.env.GEMINI_API_KEY === ''
+) {
   delete process.env.GEMINI_API_KEY;
 }
 
@@ -70,7 +81,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Auto-detect production mode when run via "npm start" or hosted on Render/cloud platforms
-if (!process.env.NODE_ENV && (process.env.RENDER === 'true' || process.env.npm_lifecycle_event === 'start')) {
+if (
+  !process.env.NODE_ENV &&
+  (process.env.RENDER === 'true' || process.env.npm_lifecycle_event === 'start')
+) {
   process.env.NODE_ENV = 'production';
 }
 
@@ -243,13 +257,20 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
         guestCount: input.guestCount,
         totalBudget: input.totalBudget,
         currency: input.currency,
-        themeDescription: parsed.themeDescription || 'A memorable celebration tailored to your vision.',
+        themeDescription:
+          parsed.themeDescription || 'A memorable celebration tailored to your vision.',
         colorPalette: parsed.colorPalette || [],
         budgetItems: normalizedBudgetItems,
         timelineItems: (parsed.timelineItems || []).map((t, i) => ({
           ...t,
           id: t.id || `t-${i + 1}`,
-          phase: (['planning_early', 'planning_mid', 'planning_final', 'week_of', 'day_of'].includes(t.phase)
+          phase: ([
+            'planning_early',
+            'planning_mid',
+            'planning_final',
+            'week_of',
+            'day_of',
+          ].includes(t.phase)
             ? t.phase
             : 'planning_mid') as TimelineItem['phase'],
           completed: Boolean(t.completed),
@@ -259,7 +280,9 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
           id: v.id || `v-${i + 1}`,
           quoteAmount: Number(v.quoteAmount) || 0,
           depositPaid: Number(v.depositPaid) || 0,
-          status: (['researching', 'contacted', 'booked', 'contract_signed', 'declined'].includes(v.status)
+          status: (['researching', 'contacted', 'booked', 'contract_signed', 'declined'].includes(
+            v.status
+          )
             ? v.status
             : 'researching') as VendorItem['status'],
           checklist: Array.isArray(v.checklist) ? v.checklist : [],
@@ -267,14 +290,34 @@ app.post('/api/ai/generate-plan', async (req: Request, res: Response) => {
         ideas: (parsed.ideas || []).map((idea, i) => ({
           ...idea,
           id: idea.id || `idea-${i + 1}`,
-          category: (['theme_decor', 'food_beverage', 'entertainment', 'guest_experience', 'sustainable_tip'].includes(idea.category)
+          category: ([
+            'theme_decor',
+            'food_beverage',
+            'entertainment',
+            'guest_experience',
+            'sustainable_tip',
+          ].includes(idea.category)
             ? idea.category
             : 'guest_experience') as PersonalizedIdea['category'],
           tags: Array.isArray(idea.tags) ? idea.tags : [],
         })),
         guests: [
-          { id: 'g-1', name: 'VIP Guest / Family Lead', group: 'vip', rsvpStatus: 'attending', plusOnes: 1, dietaryRestrictions: 'None' },
-          { id: 'g-2', name: 'Key Supporter / Friend', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegetarian' },
+          {
+            id: 'g-1',
+            name: 'VIP Guest / Family Lead',
+            group: 'vip',
+            rsvpStatus: 'attending',
+            plusOnes: 1,
+            dietaryRestrictions: 'None',
+          },
+          {
+            id: 'g-2',
+            name: 'Key Supporter / Friend',
+            group: 'friends',
+            rsvpStatus: 'attending',
+            plusOnes: 0,
+            dietaryRestrictions: 'Vegetarian',
+          },
         ],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -434,7 +477,9 @@ Event Planning Team`;
 
       // Safety check: Ensure the generated draft is a complete email with body content, not just a subject line
       if (draft.split(/\s+/).length < 25 || !draft.includes('\n')) {
-        const subjectLine = draft.startsWith('Subject:') ? draft : `Subject: Inquiry regarding ${vendor.category || 'services'} for ${event?.title || 'our event'}`;
+        const subjectLine = draft.startsWith('Subject:')
+          ? draft
+          : `Subject: Inquiry regarding ${vendor.category || 'services'} for ${event?.title || 'our event'}`;
         draft = `${subjectLine}
 
 Dear ${vendor.contactName || vendor.name || 'Events Team'},
@@ -464,7 +509,13 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
   }
 
   const input = validation.data;
-  const validCategories = ['theme_decor', 'food_beverage', 'entertainment', 'guest_experience', 'sustainable_tip'];
+  const validCategories = [
+    'theme_decor',
+    'food_beverage',
+    'entertainment',
+    'guest_experience',
+    'sustainable_tip',
+  ];
 
   return handleAiRoute(
     'generate-ideas',
@@ -514,9 +565,14 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
             id: `idea-ai-${Date.now()}-${idx + 1}`,
             title: item.title!.trim().slice(0, 100),
             category: cat,
-            description: (item.description || 'Fun creative touch tailored for your event.').trim().slice(0, 500),
+            description: (item.description || 'Fun creative touch tailored for your event.')
+              .trim()
+              .slice(0, 500),
             tags: Array.isArray(item.tags)
-              ? item.tags.filter((t) => typeof t === 'string').map((t) => t.trim().slice(0, 30)).slice(0, 4)
+              ? item.tags
+                  .filter((t) => typeof t === 'string')
+                  .map((t) => t.trim().slice(0, 30))
+                  .slice(0, 4)
               : ['Creative', 'Personalized'],
           };
         });
@@ -540,7 +596,7 @@ app.post('/api/ai/generate-ideas', async (req: Request, res: Response) => {
 // Dev vs Production Server
 // -------------------------------------------------------------
 export async function startServer(portOverride?: number) {
-  const listenPort = portOverride || Number(process.env.PORT) || 3000;
+  const listenPort = portOverride || PORT;
 
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
@@ -557,15 +613,18 @@ export async function startServer(portOverride?: number) {
   }
 
   return app.listen(listenPort, '0.0.0.0', () => {
-    console.log(`Planora server running on http://0.0.0.0:${listenPort}`);
+    logger.info(`Planora server running on http://0.0.0.0:${listenPort}`);
     const { ai, apiKey } = getGeminiClient();
     const isAiEnabled = Boolean(apiKey && ai);
-    console.log(`Planner Mode: ${isAiEnabled ? `AI mode active (${GEMINI_MODEL})` : 'Offline-fallback mode active'}`);
+    logger.info(
+      `Planner Mode: ${isAiEnabled ? `AI mode active (${GEMINI_MODEL})` : 'Offline-fallback mode active'}`
+    );
   });
 }
 
 const isMainModule = Boolean(
-  process.argv[1] && (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))
+  process.argv[1] &&
+  (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js'))
 );
 
 if (isMainModule && process.env.NODE_ENV !== 'test') {

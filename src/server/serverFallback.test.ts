@@ -4,7 +4,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { AddressInfo } from 'node:net';
-import { app, setCustomGeminiClient, generateContentWithRetry, CHAT_THINKING_LEVEL } from '../../server';
+import {
+  app,
+  setCustomGeminiClient,
+  generateContentWithRetry,
+  CHAT_THINKING_LEVEL,
+} from '../../server';
 import { SAMPLE_EVENTS } from '../utils/sampleData';
 
 function startTestServer(): Promise<{ server: http.Server; baseUrl: string }> {
@@ -232,7 +237,9 @@ test('generateContentWithRetry: retries ONCE without thinkingConfig when model r
       generateContent: async (params: any) => {
         calls.push(params);
         if (calls.length === 1) {
-          const err: any = new Error('Invalid thinkingConfig: Thinking is not supported for this model');
+          const err: any = new Error(
+            'Invalid thinkingConfig: Thinking is not supported for this model'
+          );
           err.status = 400;
           throw err;
         }
@@ -255,9 +262,21 @@ test('generateContentWithRetry: retries ONCE without thinkingConfig when model r
   const result = await generateContentWithRetry(mockAi, initialParams, 5000);
 
   assert.equal(calls.length, 2, 'generateContent should be called exactly twice');
-  assert.equal(Boolean(calls[0].config.thinkingConfig), true, 'First call must include thinkingConfig');
-  assert.equal(Boolean(calls[1].config.thinkingConfig), false, 'Second call must omit thinkingConfig');
-  assert.equal(calls[1].config.maxOutputTokens, 800, 'Second call must preserve other configuration properties');
+  assert.equal(
+    Boolean(calls[0].config.thinkingConfig),
+    true,
+    'First call must include thinkingConfig'
+  );
+  assert.equal(
+    Boolean(calls[1].config.thinkingConfig),
+    false,
+    'Second call must omit thinkingConfig'
+  );
+  assert.equal(
+    calls[1].config.maxOutputTokens,
+    800,
+    'Second call must preserve other configuration properties'
+  );
   assert.equal(result.text, '{"reply":"Success on retry","suggestions":[]}');
 });
 
@@ -268,7 +287,9 @@ test('server: /api/ai/chat retries ONCE without thinkingConfig on HTTP 400 think
       generateContent: async (params: any) => {
         calls.push(params);
         if (calls.length === 1) {
-          const err: any = new Error('HTTP 400: thinkingConfig is not supported for requested model');
+          const err: any = new Error(
+            'HTTP 400: thinkingConfig is not supported for requested model'
+          );
           err.status = 400;
           throw err;
         }
@@ -327,18 +348,53 @@ test('server: /api/ai/generate-plan AI-success maps output and enforces exact bu
               { name: 'Indigo Accent', hex: '#6366f1' },
             ],
             budgetItems: [
-              { id: 'b-1', category: 'venue', title: 'Main Hall', allocatedAmount: 10000, actualAmount: 0, isPaid: false },
-              { id: 'b-2', category: 'catering', title: 'Buffet', allocatedAmount: 9000, actualAmount: 0, isPaid: false },
+              {
+                id: 'b-1',
+                category: 'venue',
+                title: 'Main Hall',
+                allocatedAmount: 10000,
+                actualAmount: 0,
+                isPaid: false,
+              },
+              {
+                id: 'b-2',
+                category: 'catering',
+                title: 'Buffet',
+                allocatedAmount: 9000,
+                actualAmount: 0,
+                isPaid: false,
+              },
               // Note: 10000 + 9000 = 19000, but target totalBudget is 20000. Normalizer must rebalance to 20000!
             ],
             timelineItems: [
-              { id: 't-1', phase: 'planning_early', timeLabel: '3 Months Prior', title: 'Secure keynote speaker', description: 'Confirm bio and topic', completed: true },
+              {
+                id: 't-1',
+                phase: 'planning_early',
+                timeLabel: '3 Months Prior',
+                title: 'Secure keynote speaker',
+                description: 'Confirm bio and topic',
+                completed: true,
+              },
             ],
             vendors: [
-              { id: 'v-1', category: 'Catering', name: 'Gourmet Co', quoteAmount: 9000, depositPaid: 2000, status: 'booked', checklist: ['Menu tasting'] },
+              {
+                id: 'v-1',
+                category: 'Catering',
+                name: 'Gourmet Co',
+                quoteAmount: 9000,
+                depositPaid: 2000,
+                status: 'booked',
+                checklist: ['Menu tasting'],
+              },
             ],
             ideas: [
-              { id: 'idea-1', category: 'theme_decor', title: 'LED Wall Backing', description: 'Dynamic visuals during transitions', tags: ['Modern', 'Tech'] },
+              {
+                id: 'idea-1',
+                category: 'theme_decor',
+                title: 'LED Wall Backing',
+                description: 'Dynamic visuals during transitions',
+                tags: ['Modern', 'Tech'],
+              },
             ],
           }),
         };
@@ -388,7 +444,6 @@ test('server: /api/ai/generate-plan AI-success maps output and enforces exact bu
     server.close();
   }
 });
-
 
 test('server: /api/ai/generate-ideas returns offline fallback response with 3 ideas when no API key', async () => {
   const { server, baseUrl } = await startTestServer();

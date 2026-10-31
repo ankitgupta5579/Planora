@@ -3,6 +3,7 @@ dotenv.config();
 
 import { GoogleGenAI, ThinkingLevel, GenerateContentParameters } from '@google/genai';
 import { withTimeout, isTimeoutError } from '../utils/withTimeout';
+import { logger } from './logger';
 
 export const DEPRECATED_MODELS = [
   'gemini-2.0-flash',
@@ -101,13 +102,13 @@ export function sanitizeGeminiErrorMessage(err: unknown): string {
  */
 export function logGeminiError(context: string, err: unknown) {
   if (isTimeoutError(err)) {
-    console.error(`[Gemini Error] ${context} timed out after ${GEMINI_TIMEOUT_MS}ms`);
+    logger.error(`[Gemini Error] ${context} timed out after ${GEMINI_TIMEOUT_MS}ms`);
     return;
   }
   const { status } = getErrorInfo(err);
   const statusDisplay = status ?? 'UNKNOWN_STATUS';
   const message = sanitizeGeminiErrorMessage(err);
-  console.error(`[Gemini Error] ${context} failed (status: ${statusDisplay}): ${message}`);
+  logger.error(`[Gemini Error] ${context} failed (status: ${statusDisplay}): ${message}`);
 }
 
 /**
@@ -127,9 +128,21 @@ export function classifyGeminiError(err: unknown): GeminiErrorClassification {
     return 'bad-thinking';
   }
 
-  const is404 = status === 404 || statusStr === '404' || /404\b/.test(message) || /no longer available|not found/i.test(message);
-  const is503 = status === 503 || statusStr === '503' || /503\b/.test(message) || /high demand|unavailable/i.test(message);
-  const is429 = status === 429 || statusStr === '429' || /429\b/.test(message) || /quota|resource_exhausted|resource exhausted/i.test(message);
+  const is404 =
+    status === 404 ||
+    statusStr === '404' ||
+    /404\b/.test(message) ||
+    /no longer available|not found/i.test(message);
+  const is503 =
+    status === 503 ||
+    statusStr === '503' ||
+    /503\b/.test(message) ||
+    /high demand|unavailable/i.test(message);
+  const is429 =
+    status === 429 ||
+    statusStr === '429' ||
+    /429\b/.test(message) ||
+    /quota|resource_exhausted|resource exhausted/i.test(message);
 
   if (is404 || is503 || is429) {
     return 'model-unavailable';
@@ -154,13 +167,16 @@ export async function tryFallbackModels(
   if (activeCandidates.length > 0) {
     candidates = activeCandidates;
   }
-  const { thinkingConfig, ...configWithoutThinking } = (params.config || {}) as Record<string, unknown>;
+  const { thinkingConfig: _thinkingConfig, ...configWithoutThinking } = (params.config ||
+    {}) as Record<string, unknown>;
 
   const candidateTimeout = Math.min(timeoutMs, 8000);
   let lastError: unknown = null;
   for (const altModel of candidates) {
     try {
-      console.warn(`[Gemini Warning] Model ${failedModel} unavailable, retrying with fallback model ${altModel}...`);
+      logger.warn(
+        `[Gemini Warning] Model ${failedModel} unavailable, retrying with fallback model ${altModel}...`
+      );
       return await withTimeout(
         ai.models.generateContent({
           ...params,
@@ -175,7 +191,9 @@ export async function tryFallbackModels(
       if (cStatus === 429 || /quota|resource_exhausted/i.test(cMsg)) {
         markModelQuotaExhausted(altModel);
       }
-      console.warn(`[Gemini Warning] Fallback candidate ${altModel} failed with status ${cStatus ?? 'UNKNOWN'}`);
+      logger.warn(
+        `[Gemini Warning] Fallback candidate ${altModel} failed with status ${cStatus ?? 'UNKNOWN'}`
+      );
     }
   }
 
@@ -205,10 +223,11 @@ export async function generateContentWithRetry(
 
     if (errorType === 'bad-thinking' && params?.config?.thinkingConfig) {
       const cleanMsg = sanitizeGeminiErrorMessage(err);
-      console.warn(
+      logger.warn(
         `[Gemini Warning] Model rejected thinkingConfig (HTTP 400), retrying once without thinkingConfig: ${cleanMsg}`
       );
-      const { thinkingConfig, ...configWithoutThinking } = (params.config || {}) as Record<string, unknown>;
+      const { thinkingConfig: _thinkingConfig, ...configWithoutThinking } = (params.config ||
+        {}) as Record<string, unknown>;
       try {
         return await withTimeout(
           ai.models.generateContent({
@@ -219,7 +238,11 @@ export async function generateContentWithRetry(
         );
       } catch (retryErr: unknown) {
         if (classifyGeminiError(retryErr) === 'model-unavailable') {
-          return await tryFallbackModels(ai, { ...params, config: configWithoutThinking as GenerateContentParameters['config'] }, timeoutMs);
+          return await tryFallbackModels(
+            ai,
+            { ...params, config: configWithoutThinking as GenerateContentParameters['config'] },
+            timeoutMs
+          );
         }
         throw retryErr;
       }
@@ -247,7 +270,7 @@ export function getGeminiClient(): { ai: GoogleGenAI | GeminiClientLike | null; 
   try {
     return { ai: new GoogleGenAI({ apiKey: key }), apiKey: key };
   } catch (err) {
-    console.error('Failed to initialize GoogleGenAI client:', sanitizeGeminiErrorMessage(err));
+    logger.error('Failed to initialize GoogleGenAI client:', sanitizeGeminiErrorMessage(err));
     return { ai: null, apiKey: undefined };
   }
 }

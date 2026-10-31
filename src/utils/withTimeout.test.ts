@@ -29,7 +29,9 @@ test('withTimeout: rejects if the underlying promise rejects before timeout', as
   await assert.rejects(
     async () => {
       await withTimeout(
-        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('underlying failure')), 20)),
+        new Promise<string>((_, reject) =>
+          setTimeout(() => reject(new Error('underlying failure')), 20)
+        ),
         200
       );
     },

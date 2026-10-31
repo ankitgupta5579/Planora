@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { EventPlan, PersonalizedIdea } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { generateHeuristicIdeas } from '../utils/ideaGenerator';
-import { 
-  Sparkles, 
-  Plus, 
-  Trash2, 
-  Tag, 
-  Palette, 
-  Utensils, 
-  Music, 
-  Heart, 
-  Leaf, 
-  Copy, 
-  Check, 
-  X 
+import {
+  Sparkles,
+  Plus,
+  Trash2,
+  Tag,
+  Palette,
+  Utensils,
+  Music,
+  Heart,
+  Leaf,
+  Copy,
+  Check,
+  X,
 } from 'lucide-react';
 
 interface IdeasTabProps {
@@ -23,7 +23,11 @@ interface IdeasTabProps {
   onOpenAiChat: () => void;
 }
 
-export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAiChat }) => {
+export const IdeasTab: React.FC<IdeasTabProps> = ({
+  plan,
+  onUpdatePlan,
+  onOpenAiChat: _onOpenAiChat,
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSparkingAi, setIsSparkingAi] = useState(false);
@@ -42,10 +46,26 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
 
   const categories: { id: PersonalizedIdea['category']; label: string; icon: React.ReactNode }[] = [
     { id: 'theme_decor', label: 'Theme & Decor', icon: <Palette className="w-3.5 h-3.5" /> },
-    { id: 'food_beverage', label: 'Food & Signature Drinks', icon: <Utensils className="w-3.5 h-3.5" /> },
-    { id: 'entertainment', label: 'Entertainment & Games', icon: <Music className="w-3.5 h-3.5" /> },
-    { id: 'guest_experience', label: 'Guest Experience & Keepsakes', icon: <Heart className="w-3.5 h-3.5" /> },
-    { id: 'sustainable_tip', label: 'Eco-Friendly & Zero Waste', icon: <Leaf className="w-3.5 h-3.5" /> },
+    {
+      id: 'food_beverage',
+      label: 'Food & Signature Drinks',
+      icon: <Utensils className="w-3.5 h-3.5" />,
+    },
+    {
+      id: 'entertainment',
+      label: 'Entertainment & Games',
+      icon: <Music className="w-3.5 h-3.5" />,
+    },
+    {
+      id: 'guest_experience',
+      label: 'Guest Experience & Keepsakes',
+      icon: <Heart className="w-3.5 h-3.5" />,
+    },
+    {
+      id: 'sustainable_tip',
+      label: 'Eco-Friendly & Zero Waste',
+      icon: <Leaf className="w-3.5 h-3.5" />,
+    },
   ];
 
   const copyHex = (hex: string) => {
@@ -106,7 +126,9 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
       }
 
       if (data.isFallback) {
-        setFallbackNotice('Showing offline suggestions: ' + (data.message || 'AI service unavailable.'));
+        setFallbackNotice(
+          'Showing offline suggestions: ' + (data.message || 'AI service unavailable.')
+        );
       }
     } catch {
       // Local offline heuristic fallback
@@ -176,8 +198,8 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
               {isSparkingAi
                 ? 'Brainstorming...'
                 : selectedCategory === 'all'
-                ? 'Spark All Section Ideas'
-                : `Spark ${currentCategoryLabel} Ideas`}
+                  ? 'Spark All Section Ideas'
+                  : `Spark ${currentCategoryLabel} Ideas`}
             </span>
           </button>
 
@@ -230,7 +252,11 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
       </div>
 
       {/* Category Filter Pills */}
-      <div role="radiogroup" aria-label="Filter ideas by category" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+      <div
+        role="radiogroup"
+        aria-label="Filter ideas by category"
+        className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin"
+      >
         <button
           onClick={() => setSelectedCategory('all')}
           role="radio"
@@ -410,7 +436,10 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
               </div>
 
               <div>
-                <label htmlFor="idea-category-select" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="idea-category-select"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Category
                 </label>
                 <select
@@ -420,13 +449,18 @@ export const IdeasTab: React.FC<IdeasTabProps> = ({ plan, onUpdatePlan, onOpenAi
                   className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.label}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label htmlFor="idea-description-textarea" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="idea-description-textarea"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Description *
                 </label>
                 <textarea

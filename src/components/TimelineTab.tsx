@@ -3,15 +3,7 @@ import { EventPlan, TimelineItem } from '../types/event';
 import { calculateTimelineProgress } from '../utils/eventCalculators';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
-import { 
-  CheckCircle2, 
-  Circle, 
-  Plus, 
-  Clock, 
-  User, 
-  Trash2, 
-  X 
-} from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Clock, User, Trash2, X } from 'lucide-react';
 
 interface TimelineTabProps {
   plan: EventPlan;
@@ -19,7 +11,11 @@ interface TimelineTabProps {
   onOpenAiChat: () => void;
 }
 
-export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, onOpenAiChat }) => {
+export const TimelineTab: React.FC<TimelineTabProps> = ({
+  plan,
+  onUpdatePlan,
+  onOpenAiChat: _onOpenAiChat,
+}) => {
   const [selectedPhase, setSelectedPhase] = useState<string>('all');
   const [isDayOfOnly, setIsDayOfOnly] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -322,7 +318,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
 
             <form onSubmit={handleSaveItem} className="space-y-4 text-xs">
               <div>
-                <label htmlFor="milestone-title-input" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="milestone-title-input"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Title *
                 </label>
                 <input
@@ -338,7 +337,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="milestone-phase-select" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="milestone-phase-select"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Phase
                   </label>
                   <select
@@ -348,13 +350,18 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {phases.map((p) => (
-                      <option key={p.id} value={p.id}>{p.label}</option>
+                      <option key={p.id} value={p.id}>
+                        {p.label}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="milestone-time-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="milestone-time-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Time / Date Label
                   </label>
                   <input
@@ -369,7 +376,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
               </div>
 
               <div>
-                <label htmlFor="milestone-assignee-input" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="milestone-assignee-input"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Assigned Person / Role
                 </label>
                 <input
@@ -383,7 +393,10 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan, on
               </div>
 
               <div>
-                <label htmlFor="milestone-details-textarea" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="milestone-details-textarea"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Details & Instructions
                 </label>
                 <textarea

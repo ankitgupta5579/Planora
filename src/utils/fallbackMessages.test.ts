@@ -30,7 +30,11 @@ test('getFallbackMessage: returns empty string when no reason or unknown reason 
 });
 
 test('AiAssistantDrawer message prefix: no notice when isFallback is false, correct notice when true', () => {
-  function formatAssistantMessage(data: { isFallback: boolean; fallbackReason?: FallbackReason | null; reply: string }) {
+  function formatAssistantMessage(data: {
+    isFallback: boolean;
+    fallbackReason?: FallbackReason | null;
+    reply: string;
+  }) {
     const fallbackNote = data.isFallback ? getFallbackMessage(data.fallbackReason || 'error') : '';
     const prefix = fallbackNote ? `${fallbackNote}\n\n` : '';
     return `${prefix}${data.reply}`;
@@ -66,5 +70,8 @@ test('AiAssistantDrawer message prefix: no notice when isFallback is false, corr
     fallbackReason: 'error',
     reply: 'Check vendor contracts 48 hours before.',
   });
-  assert.match(errorMsg, /^The assistant is unavailable right now, so this is an offline answer\.\n\n/);
+  assert.match(
+    errorMsg,
+    /^The assistant is unavailable right now, so this is an offline answer\.\n\n/
+  );
 });

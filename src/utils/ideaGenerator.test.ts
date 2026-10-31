@@ -27,9 +27,18 @@ test('generateHeuristicIdeas: generates exactly 3 distinct ideas with valid cate
       assert.ok(idea.title && idea.title.length > 3, 'Idea must have a descriptive title');
       assert.ok(!idea.title.includes('AI Curated'), 'Title must not include AI Curated prefix');
       assert.ok(!idea.title.includes('BESPOKE'), 'Title must not be in ALL CAPS');
-      assert.ok(validCategories.has(idea.category), `Category ${idea.category} must be in whitelist`);
-      assert.ok(idea.description && idea.description.length > 10, 'Description must be informative');
-      assert.ok(Array.isArray(idea.tags) && idea.tags.length >= 2, 'Tags must have at least 2 items');
+      assert.ok(
+        validCategories.has(idea.category),
+        `Category ${idea.category} must be in whitelist`
+      );
+      assert.ok(
+        idea.description && idea.description.length > 10,
+        'Description must be informative'
+      );
+      assert.ok(
+        Array.isArray(idea.tags) && idea.tags.length >= 2,
+        'Tags must have at least 2 items'
+      );
     }
   }
 });
@@ -53,12 +62,21 @@ test('generateHeuristicIdeas: avoids duplicate existing titles', () => {
 
   assert.equal(ideas.length, 3);
   for (const idea of ideas) {
-    assert.ok(!existing.includes(idea.title), `Idea title ${idea.title} should not be in existing list`);
+    assert.ok(
+      !existing.includes(idea.title),
+      `Idea title ${idea.title} should not be in existing list`
+    );
   }
 });
 
 test('generateHeuristicIdeas: generates ideas covering all 5 sections when allSections is true', () => {
-  const expectedCategories = ['theme_decor', 'food_beverage', 'entertainment', 'guest_experience', 'sustainable_tip'];
+  const expectedCategories = [
+    'theme_decor',
+    'food_beverage',
+    'entertainment',
+    'guest_experience',
+    'sustainable_tip',
+  ];
 
   for (const type of EVENT_TYPES) {
     const ideas = generateHeuristicIdeas({
@@ -73,11 +91,20 @@ test('generateHeuristicIdeas: generates ideas covering all 5 sections when allSe
     }
 
     // Verify simple language (no pompous jargon)
-    const bannedJargon = ['sonic backdrop', 'curated vignette', 'natural acoustics', 'epicurean', 'artisan prelude'];
+    const bannedJargon = [
+      'sonic backdrop',
+      'curated vignette',
+      'natural acoustics',
+      'epicurean',
+      'artisan prelude',
+    ];
     for (const idea of ideas) {
       const lowerDesc = idea.description.toLowerCase();
       for (const jargon of bannedJargon) {
-        assert.ok(!lowerDesc.includes(jargon), `Description should not contain pretentious jargon: ${jargon}`);
+        assert.ok(
+          !lowerDesc.includes(jargon),
+          `Description should not contain pretentious jargon: ${jargon}`
+        );
       }
     }
   }

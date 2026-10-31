@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
 import { EventPlan } from '../types/event';
 import { PlannerInsights } from './PlannerInsights';
-import { 
-  calculateBudgetMetrics, 
-  calculateTimelineProgress, 
-  calculateVendorFinancials, 
+import {
+  calculateBudgetMetrics,
+  calculateTimelineProgress,
+  calculateVendorFinancials,
   calculateGuestStats,
   calculateDaysRemaining,
   formatLocalDate,
 } from '../utils/eventCalculators';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  DollarSign, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles, 
-  Copy, 
-  Check, 
+import {
+  Calendar,
+  MapPin,
+  Users,
+  DollarSign,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  Copy,
+  Check,
   ArrowRight,
   TrendingUp,
-  AlertTriangle,
   FileText,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 
 interface EventOverviewTabProps {
@@ -59,12 +58,18 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
 
   const getVibeBadgeColor = (vibe: string) => {
     switch (vibe) {
-      case 'elegant': return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
-      case 'bohemian': return 'bg-orange-500/10 text-orange-300 border-orange-500/30';
-      case 'rustic': return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
-      case 'festive': return 'bg-rose-500/10 text-rose-300 border-rose-500/30';
-      case 'modern': return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
-      default: return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30';
+      case 'elegant':
+        return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+      case 'bohemian':
+        return 'bg-orange-500/10 text-orange-300 border-orange-500/30';
+      case 'rustic':
+        return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+      case 'festive':
+        return 'bg-rose-500/10 text-rose-300 border-rose-500/30';
+      case 'modern':
+        return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
+      default:
+        return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30';
     }
   };
 
@@ -80,7 +85,9 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider rounded-full border ${getVibeBadgeColor(plan.vibe)}`}>
+              <span
+                className={`px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider rounded-full border ${getVibeBadgeColor(plan.vibe)}`}
+              >
                 {plan.vibe} Vibe
               </span>
               <span className="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider rounded-full bg-slate-800 text-slate-300 border border-slate-700">
@@ -149,7 +156,9 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
               <button
                 onClick={onOpenDeleteEvent}
                 disabled={canDelete === false}
-                title={canDelete === false ? "Cannot delete the only event" : `Delete ${plan.title}`}
+                title={
+                  canDelete === false ? 'Cannot delete the only event' : `Delete ${plan.title}`
+                }
                 aria-label={`Delete event ${plan.title}`}
                 className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-600/80 border border-slate-700 hover:border-rose-500/50 text-slate-300 hover:text-white text-sm font-medium flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800/80 disabled:hover:text-slate-300"
               >
@@ -164,9 +173,10 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
       {/* 4 Mission Control Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Budget */}
-        <div 
+        <button
+          type="button"
           onClick={() => onNavigateTab('budget')}
-          className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm"
+          className="text-left w-full p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Budget Spent</span>
@@ -175,29 +185,38 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
             </div>
           </div>
           <div className="text-2xl font-bold text-white mb-1">
-            {plan.currency}{budgetMetrics.totalSpent.toLocaleString()}
+            {plan.currency}
+            {budgetMetrics.totalSpent.toLocaleString()}
             <span className="text-xs font-normal text-slate-400 ml-1.5">
-              / {plan.currency}{budgetMetrics.totalBudget.toLocaleString()}
+              / {plan.currency}
+              {budgetMetrics.totalBudget.toLocaleString()}
             </span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden mb-2">
-            <div 
-              className={`h-full rounded-full ${budgetMetrics.isOverBudget ? 'bg-rose-500' : 'bg-emerald-500'}`} 
+            <div
+              className={`h-full rounded-full ${budgetMetrics.isOverBudget ? 'bg-rose-500' : 'bg-emerald-500'}`}
               style={{ width: `${Math.min(100, budgetMetrics.spendPercentage)}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>{budgetMetrics.spendPercentage}% utilized</span>
-            <span className={budgetMetrics.remainingCash < 0 ? 'text-rose-400 font-semibold' : 'text-slate-400'}>
-              {budgetMetrics.remainingCash >= 0 ? `${plan.currency}${budgetMetrics.remainingCash.toLocaleString()} left` : 'Over budget'}
+            <span
+              className={
+                budgetMetrics.remainingCash < 0 ? 'text-rose-400 font-semibold' : 'text-slate-400'
+              }
+            >
+              {budgetMetrics.remainingCash >= 0
+                ? `${plan.currency}${budgetMetrics.remainingCash.toLocaleString()} left`
+                : 'Over budget'}
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Metric 2: Milestones Progress */}
-        <div 
+        <button
+          type="button"
           onClick={() => onNavigateTab('timeline')}
-          className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm"
+          className="text-left w-full p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Milestones</span>
@@ -212,8 +231,8 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
             </span>
           </div>
           <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden mb-2">
-            <div 
-              className="h-full rounded-full bg-indigo-500" 
+            <div
+              className="h-full rounded-full bg-indigo-500"
               style={{ width: `${timelineProgress.percentage}%` }}
             />
           </div>
@@ -223,12 +242,13 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
               View Schedule <ArrowRight className="w-3 h-3" />
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Metric 3: Vendors */}
-        <div 
+        <button
+          type="button"
           onClick={() => onNavigateTab('vendors')}
-          className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm"
+          className="text-left w-full p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">Vendors & Team</span>
@@ -243,20 +263,25 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 mb-2">
-            Deposits paid: {plan.currency}{vendorFinancials.totalDepositsPaid.toLocaleString()}
+            Deposits paid: {plan.currency}
+            {vendorFinancials.totalDepositsPaid.toLocaleString()}
           </p>
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>Bal: {plan.currency}{vendorFinancials.totalRemainingBalance.toLocaleString()}</span>
+            <span>
+              Bal: {plan.currency}
+              {vendorFinancials.totalRemainingBalance.toLocaleString()}
+            </span>
             <span className="text-purple-400 flex items-center gap-1">
               Manage <ArrowRight className="w-3 h-3" />
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Metric 4: Guests & RSVPs */}
-        <div 
+        <button
+          type="button"
           onClick={() => onNavigateTab('guests')}
-          className="p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm"
+          className="text-left w-full p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 transition cursor-pointer group shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
         >
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider">RSVP Attendance</span>
@@ -279,7 +304,7 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
               Guestlist <ArrowRight className="w-3 h-3" />
             </span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Planner Insights Card */}
@@ -322,11 +347,13 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
                     aria-label={`Copy color ${color.name} hex code ${color.hex}`}
                     className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-slate-500 transition cursor-pointer group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                   >
-                    <div 
+                    <div
                       className="w-full h-10 rounded-lg shadow-inner mb-2 transition-transform group-hover:scale-105"
                       style={{ backgroundColor: color.hex }}
                     />
-                    <div className="text-xs font-semibold text-slate-200 truncate">{color.name}</div>
+                    <div className="text-xs font-semibold text-slate-200 truncate">
+                      {color.name}
+                    </div>
                     <div className="flex items-center justify-between text-xs text-slate-200 font-mono">
                       <span>{color.hex}</span>
                       {copiedHex === color.hex ? (
@@ -348,7 +375,10 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {plan.ideas.slice(0, 2).map((idea) => (
-                <div key={idea.id} className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 space-y-1.5">
+                <div
+                  key={idea.id}
+                  className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 space-y-1.5"
+                >
                   <div className="text-xs font-semibold text-indigo-200">{idea.title}</div>
                   <p className="text-xs text-slate-300 line-clamp-2">{idea.description}</p>
                 </div>
@@ -380,7 +410,7 @@ export const EventOverviewTab: React.FC<EventOverviewTabProps> = ({
             ) : (
               <div className="space-y-3">
                 {upcomingTasks.map((task) => (
-                  <div 
+                  <div
                     key={task.id}
                     className="p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-1"
                   >

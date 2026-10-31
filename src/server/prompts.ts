@@ -1,7 +1,10 @@
 import { Type } from '@google/genai';
 import { ValidatedPlanInput, EventSummaryContext, ValidatedIdeasInput } from './validate';
 
-export const esc = (s: unknown) => String(s ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+export const esc = (s: unknown) =>
+  String(s ?? '')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 
 export const planResponseSchema = {
   type: Type.OBJECT,
@@ -91,7 +94,14 @@ export const planResponseSchema = {
       },
     },
   },
-  required: ['themeDescription', 'colorPalette', 'budgetItems', 'timelineItems', 'vendors', 'ideas'],
+  required: [
+    'themeDescription',
+    'colorPalette',
+    'budgetItems',
+    'timelineItems',
+    'vendors',
+    'ideas',
+  ],
 };
 
 export const chatResponseSchema = {
@@ -210,7 +220,10 @@ ${esc(customDetails || 'Standard celebration')}
 Return an emotionally resonant, polished, ready-to-use text formatted with clear sections and paragraphs.`;
 }
 
-export function buildVendorInquiryPrompt(vendor: PromptVendorContext, event?: EventSummaryContext): string {
+export function buildVendorInquiryPrompt(
+  vendor: PromptVendorContext,
+  event?: EventSummaryContext
+): string {
   return `<system_instruction>
 Write a polite, professional, and complete vendor inquiry email.
 You must provide the full email draft including:
@@ -242,7 +255,6 @@ Location: ${esc(event?.location || 'Local area')}
 
 Write the complete ready-to-send inquiry email now (Subject line, greeting, 2-3 detailed paragraphs with questions, and closing):`;
 }
-
 
 export const ideasResponseSchema = {
   type: Type.OBJECT,

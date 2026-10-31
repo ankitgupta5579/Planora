@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { EventPlan, EventType, EventVibe } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
 import { generateHeuristicEventPlan } from '../utils/fallbackGenerator';
-import { 
-  Sparkles, 
-  Heart, 
-  Cake, 
-  Users, 
-  Briefcase, 
-  Check, 
-  ArrowRight, 
-  ArrowLeft 
+import {
+  Sparkles,
+  Heart,
+  Cake,
+  Users,
+  Briefcase,
+  Check,
+  ArrowRight,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface EventWizardModalProps {
@@ -40,24 +40,27 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   const [vibe, setVibe] = useState<EventVibe>('elegant');
   const [specialRequests, setSpecialRequests] = useState('');
 
-  const modalRef = useFocusTrap(isOpen, onClose);
+  const resetForm = () => {
+    setStep(1);
+    setIsGenerating(false);
+    setGenerationStepMessage('');
+    setEventType('wedding');
+    setTitle('Dream Garden & Sunset Wedding');
+    setDate('2026-12-15');
+    setLocation('Grand Botanical Pavilion, Napa Valley');
+    setGuestCount('100');
+    setTotalBudget('15000');
+    setCurrency('$');
+    setVibe('elegant');
+    setSpecialRequests('');
+  };
 
-  useEffect(() => {
-    if (isOpen) {
-      setStep(1);
-      setIsGenerating(false);
-      setGenerationStepMessage('');
-      setEventType('wedding');
-      setTitle('Dream Garden & Sunset Wedding');
-      setDate('2026-12-15');
-      setLocation('Grand Botanical Pavilion, Napa Valley');
-      setGuestCount('100');
-      setTotalBudget('15000');
-      setCurrency('$');
-      setVibe('elegant');
-      setSpecialRequests('');
-    }
-  }, [isOpen]);
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  const modalRef = useFocusTrap(isOpen, handleClose);
 
   if (!isOpen) return null;
 
@@ -166,9 +169,8 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         origin: { y: 0.6 },
       });
       onPlanCreated(resolvedPlan);
-      onClose();
-    } catch (err) {
-      console.warn('API generation encountered error; synthesizing master plan directly:', err);
+      handleClose();
+    } catch {
       clearInterval(interval);
 
       const fallbackPlan = generateHeuristicEventPlan(planPayload);
@@ -178,7 +180,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         origin: { y: 0.6 },
       });
       onPlanCreated(fallbackPlan);
-      onClose();
+      handleClose();
     } finally {
       setIsGenerating(false);
     }
@@ -199,7 +201,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         {/* Close Button */}
         {!isGenerating && (
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close dialog"
             className="absolute top-6 right-6 text-slate-400 hover:text-white text-sm cursor-pointer p-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
@@ -215,15 +217,9 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
               </div>
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white">
-                Designing Your Master Event Plan
-              </h3>
-              <p className="text-sm text-indigo-300 font-medium">
-                {generationStepMessage}
-              </p>
-              <p className="text-xs text-slate-400">
-                Powered by Planora with structured schemas
-              </p>
+              <h3 className="text-xl font-bold text-white">Designing Your Master Event Plan</h3>
+              <p className="text-sm text-indigo-300 font-medium">{generationStepMessage}</p>
+              <p className="text-xs text-slate-400">Powered by Planora with structured schemas</p>
             </div>
           </div>
         ) : (
@@ -246,7 +242,11 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
             {/* STEP 1: Event Type */}
             {step === 1 && (
               <div className="space-y-3">
-                <div role="radiogroup" aria-label="Celebration Type" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  role="radiogroup"
+                  aria-label="Celebration Type"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                >
                   {eventTypes.map((et) => {
                     const isSelected = eventType === et.type;
                     return (
@@ -298,7 +298,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
             {step === 2 && (
               <div className="space-y-4 text-xs">
                 <div>
-                  <label htmlFor="wizard-title-input" className="block text-slate-200 font-semibold mb-1">
+                  <label
+                    htmlFor="wizard-title-input"
+                    className="block text-slate-200 font-semibold mb-1"
+                  >
                     Celebration Title *
                   </label>
                   <input
@@ -315,7 +318,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="wizard-date-input" className="block text-slate-200 font-semibold mb-1">
+                    <label
+                      htmlFor="wizard-date-input"
+                      className="block text-slate-200 font-semibold mb-1"
+                    >
                       Event Date *
                     </label>
                     <input
@@ -329,7 +335,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                   </div>
 
                   <div>
-                    <label htmlFor="wizard-guest-count-input" className="block text-slate-200 font-semibold mb-1">
+                    <label
+                      htmlFor="wizard-guest-count-input"
+                      className="block text-slate-200 font-semibold mb-1"
+                    >
                       Target Guest Count (1-5000) *
                     </label>
                     <input
@@ -347,7 +356,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                 </div>
 
                 <div>
-                  <label htmlFor="wizard-location-input" className="block text-slate-200 font-semibold mb-1">
+                  <label
+                    htmlFor="wizard-location-input"
+                    className="block text-slate-200 font-semibold mb-1"
+                  >
                     City / Venue Location *
                   </label>
                   <input
@@ -364,7 +376,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-1">
-                    <label htmlFor="wizard-currency-select" className="block text-slate-200 font-semibold mb-1">
+                    <label
+                      htmlFor="wizard-currency-select"
+                      className="block text-slate-200 font-semibold mb-1"
+                    >
                       Currency
                     </label>
                     <select
@@ -383,7 +398,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                   </div>
 
                   <div className="col-span-2">
-                    <label htmlFor="wizard-budget-input" className="block text-slate-200 font-semibold mb-1">
+                    <label
+                      htmlFor="wizard-budget-input"
+                      className="block text-slate-200 font-semibold mb-1"
+                    >
                       Total Target Budget ({currency}) *
                     </label>
                     <input
@@ -428,7 +446,11 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                   <div id="vibe-group-label" className="block text-slate-200 font-semibold mb-2">
                     Select Aesthetic / Atmosphere *
                   </div>
-                  <div role="radiogroup" aria-labelledby="vibe-group-label" className="grid grid-cols-3 gap-2">
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="vibe-group-label"
+                    className="grid grid-cols-3 gap-2"
+                  >
                     {vibes.map((v) => {
                       const isSelected = vibe === v.id;
                       return (
@@ -456,7 +478,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                 </div>
 
                 <div>
-                  <label htmlFor="wizard-special-requests" className="block text-slate-200 font-semibold mb-1">
+                  <label
+                    htmlFor="wizard-special-requests"
+                    className="block text-slate-200 font-semibold mb-1"
+                  >
                     Special Requests, Dietary Constraints or Specific Ideas
                   </label>
                   <textarea

@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadSavedEvents, saveAllEvents, getActiveEventId, setActiveEventId, resetToSampleEvents } from './storage';
+import {
+  loadSavedEvents,
+  saveAllEvents,
+  getActiveEventId,
+  setActiveEventId,
+  resetToSampleEvents,
+} from './storage';
 import { SAMPLE_EVENTS } from './sampleData';
 import { EventPlan } from '../types/event';
 

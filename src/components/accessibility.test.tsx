@@ -27,12 +27,36 @@ const dom = new JSDOM(
   { url: 'http://localhost:3000', pretendToBeVisual: true }
 );
 
-Object.defineProperty(globalThis, 'window', { value: dom.window, configurable: true, writable: true });
-Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true, writable: true });
-Object.defineProperty(globalThis, 'HTMLElement', { value: dom.window.HTMLElement, configurable: true, writable: true });
-Object.defineProperty(globalThis, 'HTMLInputElement', { value: dom.window.HTMLInputElement, configurable: true, writable: true });
-Object.defineProperty(globalThis, 'HTMLButtonElement', { value: dom.window.HTMLButtonElement, configurable: true, writable: true });
-Object.defineProperty(globalThis, 'KeyboardEvent', { value: dom.window.KeyboardEvent, configurable: true, writable: true });
+Object.defineProperty(globalThis, 'window', {
+  value: dom.window,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'document', {
+  value: dom.window.document,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'HTMLElement', {
+  value: dom.window.HTMLElement,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'HTMLInputElement', {
+  value: dom.window.HTMLInputElement,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'HTMLButtonElement', {
+  value: dom.window.HTMLButtonElement,
+  configurable: true,
+  writable: true,
+});
+Object.defineProperty(globalThis, 'KeyboardEvent', {
+  value: dom.window.KeyboardEvent,
+  configurable: true,
+  writable: true,
+});
 Object.defineProperty(globalThis, 'requestAnimationFrame', {
   value: (cb: FrameRequestCallback) => setTimeout(cb, 0),
   configurable: true,
@@ -57,7 +81,9 @@ if (!(dom.window as any).HTMLCanvasElement.prototype.getContext) {
 
 const samplePlan = SAMPLE_EVENTS[0];
 
-async function renderComponent(element: React.ReactElement): Promise<{ container: HTMLDivElement; cleanup: () => void }> {
+async function renderComponent(
+  element: React.ReactElement
+): Promise<{ container: HTMLDivElement; cleanup: () => void }> {
   const container = dom.window.document.createElement('div');
   dom.window.document.body.appendChild(container);
   let root: Root;
@@ -306,11 +332,7 @@ test('a11y dialog: SpeechInviteModal has role="dialog", moves focus inside, clos
 
 test('a11y component: PlannerInsights has accessible heading, list, and zero axe violations', async () => {
   const { container, cleanup } = await renderComponent(
-    <PlannerInsights
-      plan={samplePlan}
-      onNavigateTab={() => {}}
-      today={new Date(2026, 9, 31)}
-    />
+    <PlannerInsights plan={samplePlan} onNavigateTab={() => {}} today={new Date(2026, 9, 31)} />
   );
 
   try {
@@ -318,7 +340,7 @@ test('a11y component: PlannerInsights has accessible heading, list, and zero axe
     assert.ok(section, 'Section must have aria-labelledby="planner-insights-heading"');
     const heading = container.querySelector('#planner-insights-heading');
     assert.ok(heading, 'Heading with matching ID must exist');
-    const list = container.querySelector('ul[role="list"]');
+    const list = container.querySelector('ul');
     assert.ok(list, 'List must exist');
     await checkAxe(container, 'PlannerInsights');
   } finally {

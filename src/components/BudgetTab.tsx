@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
 import { EventPlan, BudgetItem } from '../types/event';
-import { 
-  calculateBudgetMetrics, 
+import {
+  calculateBudgetMetrics,
   rebalanceBudgetItems,
   getBudgetItemVariance,
   calculateUncommittedCash,
-  calculateOutstandingVendorBalances
+  calculateOutstandingVendorBalances,
 } from '../utils/eventCalculators';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { safeConfetti } from '../utils/motion';
-import { 
-  Plus, 
-  Trash2, 
-  AlertCircle, 
-  Wand2, 
-  Search, 
-  Check, 
-  Clock,
-  X 
-} from 'lucide-react';
+import { Plus, Trash2, AlertCircle, Wand2, Search, Check, Clock, X } from 'lucide-react';
 
 interface BudgetTabProps {
   plan: EventPlan;
@@ -154,7 +145,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
   };
 
   const filteredItems = plan.budgetItems.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = selectedCategory === 'all' || item.category === selectedCategory;
     return matchesSearch && matchesCat;
@@ -165,17 +157,23 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
       {/* Top Banner & Financial Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Total Budget Target</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            Total Budget Target
+          </div>
           <div className="text-2xl font-bold text-white">
-            {plan.currency}{plan.totalBudget.toLocaleString()}
+            {plan.currency}
+            {plan.totalBudget.toLocaleString()}
           </div>
           <div className="text-xs text-slate-400 mt-1">Set overall ceiling</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Allocated Planned</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            Allocated Planned
+          </div>
           <div className="text-2xl font-bold text-indigo-400">
-            {plan.currency}{metrics.totalAllocated.toLocaleString()}
+            {plan.currency}
+            {metrics.totalAllocated.toLocaleString()}
           </div>
           <div className="text-xs text-slate-400 mt-1">
             {metrics.allocatedPercentage}% of total budget
@@ -183,54 +181,63 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Actual Spent to Date</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            Actual Spent to Date
+          </div>
           <div className="text-2xl font-bold text-emerald-400">
-            {plan.currency}{metrics.totalSpent.toLocaleString()}
+            {plan.currency}
+            {metrics.totalSpent.toLocaleString()}
           </div>
-          <div className="text-xs text-slate-400 mt-1">
-            {metrics.spendPercentage}% disbursed
-          </div>
+          <div className="text-xs text-slate-400 mt-1">{metrics.spendPercentage}% disbursed</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Unspent budget</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            Unspent budget
+          </div>
           <div className="text-2xl font-bold">
             {metrics.remainingCash >= 0 ? (
               <span className="text-slate-100">
-                {plan.currency}{metrics.remainingCash.toLocaleString()}
+                {plan.currency}
+                {metrics.remainingCash.toLocaleString()}
               </span>
             ) : (
               <span className="text-rose-400 flex items-center gap-1.5">
                 <AlertCircle className="w-5 h-5" aria-hidden="true" />
-                Over limit by {plan.currency}{Math.abs(metrics.remainingCash).toLocaleString()}
+                Over limit by {plan.currency}
+                {Math.abs(metrics.remainingCash).toLocaleString()}
               </span>
             )}
           </div>
           <div className="text-xs text-slate-400 mt-1">
-            {metrics.remainingCash >= 0 ? 'Remaining before commitments' : '⚠️ Exceeds total budget cap'}
+            {metrics.remainingCash >= 0
+              ? 'Remaining before commitments'
+              : '⚠️ Exceeds total budget cap'}
           </div>
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
-          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Uncommitted cash</div>
+          <div className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+            Uncommitted cash
+          </div>
           <div className="text-2xl font-bold">
             {uncommittedCash > 0 ? (
               <span className="text-emerald-400">
-                {plan.currency}{uncommittedCash.toLocaleString()}
+                {plan.currency}
+                {uncommittedCash.toLocaleString()}
               </span>
             ) : uncommittedCash < 0 ? (
               <span className="text-rose-400 flex items-center gap-1.5">
-                <AlertCircle className="w-5 h-5" aria-hidden="true" />
-                -{plan.currency}{Math.abs(uncommittedCash).toLocaleString()}
+                <AlertCircle className="w-5 h-5" aria-hidden="true" />-{plan.currency}
+                {Math.abs(uncommittedCash).toLocaleString()}
               </span>
             ) : (
-              <span className="text-slate-100">
-                {plan.currency}0
-              </span>
+              <span className="text-slate-100">{plan.currency}0</span>
             )}
           </div>
           <div className="text-xs text-slate-400 mt-1">
-            after {plan.currency}{outstandingVendorBalances.toLocaleString()} vendor balances due
+            after {plan.currency}
+            {outstandingVendorBalances.toLocaleString()} vendor balances due
           </div>
         </div>
       </div>
@@ -247,7 +254,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
             <div>
               <h4 className="text-sm font-semibold text-rose-200">Budget Limit Exceeded</h4>
               <p className="text-xs text-rose-300">
-                Current expenses or allocations exceed your total budget cap of {plan.currency}{plan.totalBudget.toLocaleString()}.
+                Current expenses or allocations exceed your total budget cap of {plan.currency}
+                {plan.totalBudget.toLocaleString()}.
               </p>
             </div>
           </div>
@@ -326,13 +334,27 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
         <table className="w-full text-left text-xs text-slate-200">
           <thead className="bg-slate-800/80 text-slate-200 uppercase text-xs font-semibold tracking-wider border-b border-slate-700">
             <tr>
-              <th scope="col" className="py-3 px-4">Status</th>
-              <th scope="col" className="py-3 px-4">Item & Details</th>
-              <th scope="col" className="py-3 px-4">Category</th>
-              <th scope="col" className="py-3 px-4 text-right">Allocated</th>
-              <th scope="col" className="py-3 px-4 text-right">Actual Spent</th>
-              <th scope="col" className="py-3 px-4 text-right">Variance</th>
-              <th scope="col" className="py-3 px-4 text-center">Actions</th>
+              <th scope="col" className="py-3 px-4">
+                Status
+              </th>
+              <th scope="col" className="py-3 px-4">
+                Item & Details
+              </th>
+              <th scope="col" className="py-3 px-4">
+                Category
+              </th>
+              <th scope="col" className="py-3 px-4 text-right">
+                Allocated
+              </th>
+              <th scope="col" className="py-3 px-4 text-right">
+                Actual Spent
+              </th>
+              <th scope="col" className="py-3 px-4 text-right">
+                Variance
+              </th>
+              <th scope="col" className="py-3 px-4 text-center">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800">
@@ -344,9 +366,6 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
               </tr>
             ) : (
               filteredItems.map((item) => {
-                const variance = item.allocatedAmount - item.actualAmount;
-                const isOver = item.actualAmount > item.allocatedAmount;
-
                 return (
                   <tr key={item.id} className="hover:bg-slate-800/40 transition">
                     <td className="py-3 px-4">
@@ -375,7 +394,9 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
                     <td className="py-3 px-4">
                       <div className="font-semibold text-slate-100">{item.title}</div>
-                      {item.notes && <div className="text-xs text-slate-300 line-clamp-1">{item.notes}</div>}
+                      {item.notes && (
+                        <div className="text-xs text-slate-300 line-clamp-1">{item.notes}</div>
+                      )}
                     </td>
 
                     <td className="py-3 px-4">
@@ -385,11 +406,13 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                     </td>
 
                     <td className="py-3 px-4 text-right font-medium text-slate-100">
-                      {plan.currency}{item.allocatedAmount.toLocaleString()}
+                      {plan.currency}
+                      {item.allocatedAmount.toLocaleString()}
                     </td>
 
                     <td className="py-3 px-4 text-right font-medium text-slate-100">
-                      {plan.currency}{item.actualAmount.toLocaleString()}
+                      {plan.currency}
+                      {item.actualAmount.toLocaleString()}
                     </td>
 
                     <td className="py-3 px-4 text-right font-medium">
@@ -398,7 +421,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                         if (v.status === 'over') {
                           return (
                             <span className="text-rose-400 font-bold inline-flex items-center gap-1">
-                              Over by {plan.currency}{v.amount.toLocaleString()}
+                              Over by {plan.currency}
+                              {v.amount.toLocaleString()}
                             </span>
                           );
                         }
@@ -406,7 +430,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                           return (
                             <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                               <Check className="w-3.5 h-3.5" aria-hidden="true" />
-                              Under by {plan.currency}{v.amount.toLocaleString()}
+                              Under by {plan.currency}
+                              {v.amount.toLocaleString()}
                             </span>
                           );
                         }
@@ -414,7 +439,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                           return (
                             <span className="text-amber-400 font-semibold inline-flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" aria-hidden="true" />
-                              Balance due {plan.currency}{v.amount.toLocaleString()}
+                              Balance due {plan.currency}
+                              {v.amount.toLocaleString()}
                             </span>
                           );
                         }
@@ -481,7 +507,10 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
             <form onSubmit={handleSaveItem} className="space-y-4 text-xs">
               <div>
-                <label htmlFor="expense-title-input" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="expense-title-input"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Item Title *
                 </label>
                 <input
@@ -497,7 +526,10 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="expense-category-select" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="expense-category-select"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Category
                   </label>
                   <select
@@ -507,13 +539,18 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {categories.map((c) => (
-                      <option key={c} value={c}>{c.toUpperCase()}</option>
+                      <option key={c} value={c}>
+                        {c.toUpperCase()}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label htmlFor="expense-allocated-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="expense-allocated-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Allocated ({plan.currency})
                   </label>
                   <input
@@ -530,7 +567,10 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="expense-actual-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="expense-actual-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Actual Spent ({plan.currency})
                   </label>
                   <input
@@ -545,7 +585,10 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
                 </div>
 
                 <div className="flex items-center pt-5">
-                  <label htmlFor="expense-paid-checkbox" className="flex items-center gap-2 cursor-pointer text-slate-200">
+                  <label
+                    htmlFor="expense-paid-checkbox"
+                    className="flex items-center gap-2 cursor-pointer text-slate-200"
+                  >
                     <input
                       id="expense-paid-checkbox"
                       type="checkbox"
@@ -559,7 +602,10 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ plan, onUpdatePlan }) => {
               </div>
 
               <div>
-                <label htmlFor="expense-notes-textarea" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="expense-notes-textarea"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Notes / Vendor References
                 </label>
                 <textarea

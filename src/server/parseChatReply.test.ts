@@ -31,7 +31,8 @@ test('parseChatReply: caps suggestions at 4', () => {
 });
 
 test('parseChatReply: salvages reply from truncated JSON', () => {
-  const truncated = '{"reply":"Here is a detailed breakdown of contract questions:\\n1. Confirm arrival windows.\\n2. Check cleanup fees.';
+  const truncated =
+    '{"reply":"Here is a detailed breakdown of contract questions:\\n1. Confirm arrival windows.\\n2. Check cleanup fees.';
   const result = parseChatReply(truncated);
   assert.equal(
     result.reply,
@@ -41,12 +42,9 @@ test('parseChatReply: salvages reply from truncated JSON', () => {
 });
 
 test('parseChatReply: throws on garbage text without recoverable reply', () => {
-  assert.throws(
-    () => {
-      parseChatReply('Something completely unformatted and broken');
-    },
-    /Failed to parse chat response/
-  );
+  assert.throws(() => {
+    parseChatReply('Something completely unformatted and broken');
+  }, /Failed to parse chat response/);
 });
 
 test('parseChatReply: throws on empty, null, or whitespace-only inputs', () => {

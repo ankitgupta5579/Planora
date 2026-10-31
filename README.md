@@ -19,11 +19,13 @@
 ## 1. Chosen Vertical
 
 ### Celebration & Event Planning
-Event and celebration planning is a high-stakes, multi-variable domain involving financial constraints, hard chronological deadlines, vendor negotiations, guest dietary risks, and creative direction. 
+
+Event and celebration planning is a high-stakes, multi-variable domain involving financial constraints, hard chronological deadlines, vendor negotiations, guest dietary risks, and creative direction.
 
 Hosts, couples, families, and community coordinators frequently struggle with fragmented tools (spreadsheets, chat apps, note-taking apps, calendars) that cannot talk to one another. A budget overrun in catering often goes unnoticed until vendor deposits are due; a guest's severe nut allergy is easily buried in a spreadsheet row; and vendor inquiry emails consume hours of repetitive drafting.
 
 **Planora** solves this by unifying every dimension of event coordination into a single, cohesive, context-aware system:
+
 - **Milestone Weddings & Anniversaries**: Ceremony logistics, cocktail hours, seating charts, and delicate timelines.
 - **Birthday & Milestone Parties**: Themes, entertainment, custom drink bars, and photo backdrops.
 - **Community Festivals & 5K Runs**: Crowd permits, sanitation, volunteer coordination, and large-scale safety.
@@ -65,6 +67,7 @@ Planora implements a **dual-engine hybrid architecture**:
 ```
 
 ### Core Architectural Principles:
+
 1. **Server-Side GenAI Planning**: Event parameters (type, vibe, date, venue location, guest headcount, budget cap, and special requests) are processed by Express API endpoints. Google Gemini returns strictly typed JSON schemas (`responseSchema`), returning categorized budget line items, chronological milestones, vendor checklists, and themed ideas.
 2. **Deterministic Budget Normalization**: All AI-generated budget items pass through a server-side normalizer (`normalizeBudgetItems`) that enforces exact dollar-for-dollar budget equality with zero penny drift.
 3. **Proactive Planner Insights (Rule-Based Decision Making)**: Rather than relying on LLMs for financial risk detection, a deterministic rules engine (`src/utils/plannerInsights.ts`) evaluates real-time event health:
@@ -94,33 +97,39 @@ Planora guides the user through the complete event lifecycle across 6 dedicated 
 ```
 
 ### 1. AI Planning Wizard Modal (`EventWizardModal.tsx`)
+
 - Three-step modal gathering event title, event type (wedding, birthday, corporate, community, anniversary), date, location, guest headcount, total budget, currency, aesthetic atmosphere (9 distinct vibes), and custom dietary/logistical requests.
 - Submits to `/api/ai/generate-plan`, generating an exhaustive plan or using the heuristic fallback generator.
 
 ### 2. Overview Dashboard & Planner Insights (`EventOverviewTab.tsx` & `PlannerInsights.tsx`)
+
 - Mission Control displays days-to-go, budget utilization %, confirmed headcount, and unbooked vendors.
 - Color palette story with one-click HEX color code copying.
 - Proactive insights ranked by severity (Alert, Warning, Info) with actionable guidance.
 
 ### 3. Budget Management & Auto-Rebalancer (`BudgetTab.tsx`)
+
 - Visual budget breakdown across categories (Venue, Catering, Decor, Photography, Entertainment, Logistics, Favors, Contingency).
 - Tracks allocation vs. actual spent, payment statuses (Paid, Deposit Paid, Unpaid), and uncommitted cash remaining.
 - One-click **Auto-Rebalance Budget** tool rescales line items proportionally to maintain the ceiling.
 
 ### 4. Timeline & Schedule Coordinator (`TimelineTab.tsx`)
+
 - Chronological milestone tracker spanning 5 event phases:
-  1. *Early Planning* (Months out)
-  2. *Mid Planning* (Weeks out)
-  3. *Final Month* (Confirmations)
-  4. *Week-Of* (Rehearsals & Packing)
-  5. *Day-Of Schedule* (Minute-by-minute run of show)
+  1. _Early Planning_ (Months out)
+  2. _Mid Planning_ (Weeks out)
+  3. _Final Month_ (Confirmations)
+  4. _Week-Of_ (Rehearsals & Packing)
+  5. _Day-Of Schedule_ (Minute-by-minute run of show)
 - Supports task completion toggles, phase filtering, and person-responsible assignment tags.
 
 ### 5. Vendor Directory & Inquiry Email Studio (`VendorsTab.tsx`)
+
 - Tracks quotes, deposit milestones, balance due dates, contact info, and custom action checklists.
 - **AI Vendor Inquiry Email Drafter**: Automatically drafts complete, ready-to-send inquiry emails with event context, questions on availability, package pricing, setup timing, and sign-offs.
 
 ### 6. Personalized Ideas & Moodboard (`IdeasTab.tsx`)
+
 - Delivers creative concepts across **all 5 sections**:
   1. `Theme & Decor`
   2. `Food & Signature Drinks`
@@ -131,15 +140,18 @@ Planora guides the user through the complete event lifecycle across 6 dedicated 
 - Filter pills show live category item counts; context-aware Spark button brainstorms across all sections or for a targeted category.
 
 ### 7. Guests & RSVPs Coordinator (`GuestsTab.tsx`)
+
 - Tracks confirmed guest headcount (accounting for plus-ones), attending parties, pending responses, and seating assignments.
 - Dietary restriction tracking with high-contrast allergy callouts and alert icons.
 - **RFC 4180 CSV Import Modal**: Bulk-imports guest lists with live parse previews, column auto-mapping, and duplicate detection.
 
 ### 8. Contextual AI Planning Consultant Drawer (`AiAssistantDrawer.tsx`)
+
 - Slide-over assistant drawer aware of the active event's real-time state (title, budget, tasks, vendors, headcount).
 - Answers queries with domain advice (e.g. bad weather contingencies, contract checklists, catering cost savings) and provides clickable quick-prompt suggestions.
 
 ### 9. Speech & Invite Studio and Export Studio (`SpeechInviteModal.tsx` & `ExportModal.tsx`)
+
 - Generates bespoke invitations and speeches across customizable tones (Warm, Formal, Humorous, Romantic).
 - Exports plans to JSON, structured Markdown, or clean printable HTML summaries.
 
@@ -160,11 +172,13 @@ Planora guides the user through the complete event lifecycle across 6 dedicated 
 ## 5. Evaluation Focus Areas Alignment
 
 ### A. Code Quality — Structure, Readability, Maintainability
+
 - **Decoupled Architecture**: Clear boundary between UI components (`src/components/`), domain math (`src/utils/eventCalculators.ts`), date algorithms (`src/utils/dates.ts`), rules engine (`src/utils/plannerInsights.ts`), and server logic (`src/server/`).
 - **Strict TypeScript**: 100% typed codebase with strict typechecking (`npm run lint` passes with 0 errors). Zero `any` casts in production application code.
 - **Maintainable Standards**: Comprehensive inline documentation, JSDoc annotations, single-responsibility modules, and clean formatting.
 
 ### B. Security — Safe and Responsible Implementation
+
 - **Prompt Injection Defense (Prompt Wars Aligned)**:
   - System prompts clearly delineate developer instructions from untrusted user content.
   - User parameters are wrapped inside isolated XML delimiter tags (`<event_parameters>`, `<event_context>`, `<user_input>`, `<ideas_focus>`) with XML escaping (`esc()`).
@@ -176,13 +190,16 @@ Planora guides the user through the complete event lifecycle across 6 dedicated 
 - **Zero Dangerous HTML Injection**: React JSX escapes all dynamic text; zero use of `dangerouslySetInnerHTML`.
 
 ### C. Efficiency — Optimal Use of Resources
+
 - **Minimal Token Consumption**: AI calls use bounded `maxOutputTokens` and strict `responseSchema` JSON structures, eliminating preamble fluff.
 - **Instant Client Computation**: Budget variance, uncommitted cash, timeline progress, insight rules, and guest tallies execute locally in microseconds without network trips.
 - **Lightweight Production Bundle**: Built with Vite tree-shaking (~462 kB JS, ~64 kB CSS, gzip total ~128 kB).
 - **Fast Resiliency Cascade**: Multi-model cascade (`gemini-flash-lite-latest` → `gemini-3-flash-preview` → `gemini-3.5-flash` → `gemini-3.1-flash-lite`) with in-memory quota-exhaustion caching and bounded tokens delivering live responses in 1–2 seconds.
 
 ### D. Testing — Validation of Functionality
+
 Automated test suite of **137 tests** executed via Node's native test runner (`npm test`):
+
 - **Dates & Midnights (`dates.test.ts`)**: Timezone-safe arithmetic across IST, US Pacific, NZDT, and UTC; DST transitions; leap years.
 - **Domain Calculators (`eventCalculators.test.ts`)**: Budget totals, variances, vendor balance tracking, uncommitted cash, plus-one headcount, and auto-rebalancing.
 - **Planner Insights (`plannerInsights.test.ts`)**: Cash commitment buffers, RSVP deadlines, allergy warnings, contingency drawdowns, and singular/plural grammar.
@@ -196,6 +213,7 @@ Automated test suite of **137 tests** executed via Node's native test runner (`n
 - **Accessibility (`accessibility.test.tsx`)**: Automated axe-core audits across all 6 tabs, 5 dialogs, and 2 alert dialogs (**0 violations**).
 
 ### E. Accessibility — Inclusive and Usable Design (WCAG 2.1 AA)
+
 - **Zero Axe-Core Violations**: All 6 tabs, 5 dialog modals, and 2 alert dialogs achieve **0 axe violations**.
 - **Keyboard Navigation & Focus Traps**: Accessible Tab/Shift+Tab focus cycling via `useFocusTrap.ts`, `Escape` key dismissal, and trigger focus restoration.
 - **Tab Navigation & History Synchronization**: ARIA `role="tablist"` with arrow key navigation (`ArrowLeft`, `ArrowRight`, `Home`, `End`) synced to browser URL hash (`#overview`, `#budget`, `#timeline`, etc.) and `popstate` history.
@@ -205,6 +223,7 @@ Automated test suite of **137 tests** executed via Node's native test runner (`n
 - **Reduced Motion**: Disables celebratory confetti when `prefers-reduced-motion` is detected.
 
 ### F. Problem Statement Alignment — Relevance to the Stated Problem
+
 Planora directly addresses the end-to-end reality of event coordination. It unites creative inspiration with quantitative rigor, delivering an intuitive, accessible, and resilient planning assistant suitable for any celebration.
 
 ---
@@ -212,16 +231,21 @@ Planora directly addresses the end-to-end reality of event coordination. It unit
 ## 6. How to Run & Verify
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 2. Configure Environment (Optional)
+
 The app runs 100% offline without an API key. To enable live Gemini AI generation:
+
 ```bash
 cp .env.example .env
 ```
+
 Add your Gemini API key in `.env`:
+
 ```env
 GEMINI_API_KEY="your-gemini-api-key"
 GEMINI_MODEL="gemini-3-flash-preview"
@@ -230,25 +254,33 @@ PORT=3000
 ```
 
 ### 3. Start Development Server
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 4. Run Automated Tests
+
 ```bash
 npm test
 ```
-*Expected output: `137 passed, 0 failed, 0 skipped`.*
+
+_Expected output: `137 passed, 0 failed, 0 skipped`._
 
 ### 5. Typecheck & Lint
+
 ```bash
 npm run lint
 ```
-*Expected output: TypeScript check passes with 0 errors.*
+
+_Expected output: TypeScript check passes with 0 errors._
 
 ### 6. Build Production Bundle
+
 ```bash
 npm run build
 ```
-*Expected output: Vite build succeeds with ~462 kB production bundle.*
+
+_Expected output: Vite build succeeds with ~462 kB production bundle._

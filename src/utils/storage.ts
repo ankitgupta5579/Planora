@@ -75,10 +75,14 @@ export function setActiveEventId(id: string): void {
 }
 
 export function exportPlanAsJson(plan: EventPlan): void {
-  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(plan, null, 2));
+  const dataStr =
+    'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(plan, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `${plan.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_plan.json`);
+  downloadAnchor.setAttribute(
+    'download',
+    `${plan.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_plan.json`
+  );
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -120,7 +124,8 @@ export function exportPlanAsMarkdown(plan: EventPlan): string {
   md += `### 🤝 Vendor Directory\n`;
   for (const v of plan.vendors) {
     md += `#### ${v.category}: ${v.name} (${v.status.replace('_', ' ').toUpperCase()})\n`;
-    if (v.contactName) md += `- **Contact:** ${v.contactName} (${v.phone || ''} ${v.email || ''})\n`;
+    if (v.contactName)
+      md += `- **Contact:** ${v.contactName} (${v.phone || ''} ${v.email || ''})\n`;
     md += `- **Quote:** ${plan.currency}${v.quoteAmount} | **Deposit Paid:** ${plan.currency}${v.depositPaid}\n`;
     if (v.notes) md += `- **Notes:** ${v.notes}\n`;
     if (v.checklist && v.checklist.length > 0) {

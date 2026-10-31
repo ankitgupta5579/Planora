@@ -41,16 +41,117 @@ interface TopicRule {
 }
 
 const TOPIC_RULES: TopicRule[] = [
-  { topic: 'weather', keywords: ['weather', 'rain', 'storm', 'wind', 'heat', 'monsoon', 'contingency', 'backup plan', 'outdoor'] },
-  { topic: 'catering', keywords: ['catering', 'caterer', 'food', 'menu', 'meal', 'dinner', 'buffet', 'drinks', 'bar', 'cake'] },
-  { topic: 'venue', keywords: ['venue', 'contract', 'hall', 'location', 'booking', 'deposit', 'cancellation'] },
-  { topic: 'icebreakers', keywords: ['icebreaker', 'ice breaker', 'game', 'games', 'activity', 'activities', 'mingle'] },
-  { topic: 'timeline', keywords: ['timeline', 'schedule', 'checklist', 'when', 'deadline', 'countdown', 'run of show', 'itinerary'] },
-  { topic: 'budget', keywords: ['budget', 'cost', 'costs', 'save', 'saving', 'cheap', 'afford', 'price', 'expensive', 'spend', 'cut'] },
-  { topic: 'vendors', keywords: ['vendor', 'photographer', 'florist', 'dj', 'planner', 'decorator', 'videographer', 'hire'] },
-  { topic: 'guests', keywords: ['guest', 'guests', 'seating', 'rsvp', 'invite', 'invitation', 'headcount', 'accessibility', 'dietary'] },
-  { topic: 'decor', keywords: ['decor', 'decoration', 'flowers', 'florals', 'theme', 'lighting', 'centerpiece', 'color', 'colour'] },
-  { topic: 'entertainment', keywords: ['music', 'band', 'playlist', 'entertainment', 'dance', 'speech', 'toast'] },
+  {
+    topic: 'weather',
+    keywords: [
+      'weather',
+      'rain',
+      'storm',
+      'wind',
+      'heat',
+      'monsoon',
+      'contingency',
+      'backup plan',
+      'outdoor',
+    ],
+  },
+  {
+    topic: 'catering',
+    keywords: [
+      'catering',
+      'caterer',
+      'food',
+      'menu',
+      'meal',
+      'dinner',
+      'buffet',
+      'drinks',
+      'bar',
+      'cake',
+    ],
+  },
+  {
+    topic: 'venue',
+    keywords: ['venue', 'contract', 'hall', 'location', 'booking', 'deposit', 'cancellation'],
+  },
+  {
+    topic: 'icebreakers',
+    keywords: ['icebreaker', 'ice breaker', 'game', 'games', 'activity', 'activities', 'mingle'],
+  },
+  {
+    topic: 'timeline',
+    keywords: [
+      'timeline',
+      'schedule',
+      'checklist',
+      'when',
+      'deadline',
+      'countdown',
+      'run of show',
+      'itinerary',
+    ],
+  },
+  {
+    topic: 'budget',
+    keywords: [
+      'budget',
+      'cost',
+      'costs',
+      'save',
+      'saving',
+      'cheap',
+      'afford',
+      'price',
+      'expensive',
+      'spend',
+      'cut',
+    ],
+  },
+  {
+    topic: 'vendors',
+    keywords: [
+      'vendor',
+      'photographer',
+      'florist',
+      'dj',
+      'planner',
+      'decorator',
+      'videographer',
+      'hire',
+    ],
+  },
+  {
+    topic: 'guests',
+    keywords: [
+      'guest',
+      'guests',
+      'seating',
+      'rsvp',
+      'invite',
+      'invitation',
+      'headcount',
+      'accessibility',
+      'dietary',
+    ],
+  },
+  {
+    topic: 'decor',
+    keywords: [
+      'decor',
+      'decoration',
+      'flowers',
+      'florals',
+      'theme',
+      'lighting',
+      'centerpiece',
+      'color',
+      'colour',
+    ],
+  },
+  {
+    topic: 'entertainment',
+    keywords: ['music', 'band', 'playlist', 'entertainment', 'dance', 'speech', 'toast'],
+  },
 ];
 
 /** Picks the topic whose keywords appear most often in the message. */
@@ -98,7 +199,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '6. Tell the guests: prepare a short message for guests about the new location, parking and dress suggestions.',
           '7. Check insurance and contracts for weather clauses and rescheduling terms.',
         ].join('\n'),
-        suggestions: ['Draft questions to ask before signing a venue contract', 'How can I cut budget costs?', 'Build a day-of timeline'],
+        suggestions: [
+          'Draft questions to ask before signing a venue contract',
+          'How can I cut budget costs?',
+          'Build a day-of timeline',
+        ],
       };
     case 'catering':
       return {
@@ -111,7 +216,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Ask every caterer for a tasting, a per-head price in writing, staffing ratios, and what is included (rentals, service charge, tax).',
           '5. Collect dietary needs on the RSVP form early (vegetarian, vegan, allergies, halal, kosher).',
         ].join('\n'),
-        suggestions: ['What questions should I ask my caterer?', 'How can I cut budget costs?', 'Suggest 3 icebreaker games suitable for our guests'],
+        suggestions: [
+          'What questions should I ask my caterer?',
+          'How can I cut budget costs?',
+          'Suggest 3 icebreaker games suitable for our guests',
+        ],
       };
     case 'venue':
       return {
@@ -127,7 +236,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '7. Is the venue accessible (step-free entry, accessible restrooms, parking)?',
           '8. Ask for proof of insurance and a written copy of every promise made verbally.',
         ].join('\n'),
-        suggestions: ['What should our bad weather contingency checklist be?', 'How can I cut budget costs?', 'Build a day-of timeline'],
+        suggestions: [
+          'What should our bad weather contingency checklist be?',
+          'How can I cut budget costs?',
+          'Build a day-of timeline',
+        ],
       };
     case 'icebreakers':
       return {
@@ -139,7 +252,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '3. Story Table Cards: each table gets a card with a question like "best advice you have ever received" to answer in turn.',
           'Tip: keep games optional, short (10 to 15 minutes) and away from the meal service.',
         ].join('\n'),
-        suggestions: ['Suggest music and entertainment ideas', 'Build a day-of timeline', 'How can I cut budget costs?'],
+        suggestions: [
+          'Suggest music and entertainment ideas',
+          'Build a day-of timeline',
+          'How can I cut budget costs?',
+        ],
       };
     case 'timeline':
       return {
@@ -154,7 +271,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '6. 48 hours before: reconfirm every vendor and share the run-of-show with your helpers.',
           'Day of: build in a 15-minute buffer between big moments such as speeches and dinner.',
         ].join('\n'),
-        suggestions: ['What should our bad weather contingency checklist be?', 'What questions should I ask my caterer?', 'How can I cut budget costs?'],
+        suggestions: [
+          'What should our bad weather contingency checklist be?',
+          'What questions should I ask my caterer?',
+          'How can I cut budget costs?',
+        ],
       };
     case 'budget': {
       const total = ctx.totalBudget && ctx.totalBudget > 0 ? ctx.totalBudget : undefined;
@@ -174,7 +295,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Keep a contingency of 5 to 10% for surprises.',
           '5. Ask each vendor for itemized quotes and compare at least three.',
         ].join('\n'),
-        suggestions: ['How to cut 15% from catering without sacrificing quality?', 'What questions should I ask my caterer?', 'Draft questions to ask before signing a venue contract'],
+        suggestions: [
+          'How to cut 15% from catering without sacrificing quality?',
+          'What questions should I ask my caterer?',
+          'Draft questions to ask before signing a venue contract',
+        ],
       };
     }
     case 'vendors':
@@ -188,7 +313,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Get everything in writing: services, hours, arrival time, overtime fees and travel costs.',
           '5. Share one run-of-show with all vendors and reconfirm 48 hours before the event.',
         ].join('\n'),
-        suggestions: ['Draft questions to ask before signing a venue contract', 'What questions should I ask my caterer?', 'Build a day-of timeline'],
+        suggestions: [
+          'Draft questions to ask before signing a venue contract',
+          'What questions should I ask my caterer?',
+          'Build a day-of timeline',
+        ],
       };
     case 'guests':
       return {
@@ -201,7 +330,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Provide clear directions, parking and accessibility details in the invitation.',
           '5. Plan for about 5 to 10% late changes in your final headcount.',
         ].join('\n'),
-        suggestions: ['Suggest 3 icebreaker games suitable for our guests', 'Build a day-of timeline', 'How can I cut budget costs?'],
+        suggestions: [
+          'Suggest 3 icebreaker games suitable for our guests',
+          'Build a day-of timeline',
+          'How can I cut budget costs?',
+        ],
       };
     case 'decor':
       return {
@@ -214,7 +347,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Add one memorable focal point, such as an entrance arch, photo wall or a styled dessert table.',
           '5. Test everything in the venue lighting and plan setup and teardown times.',
         ].join('\n'),
-        suggestions: ['How can I cut budget costs?', 'What should our bad weather contingency checklist be?', 'Suggest music and entertainment ideas'],
+        suggestions: [
+          'How can I cut budget costs?',
+          'What should our bad weather contingency checklist be?',
+          'Suggest music and entertainment ideas',
+        ],
       };
     case 'entertainment':
       return {
@@ -227,7 +364,11 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Confirm the sound system, microphones and power needs with the venue.',
           '5. Prepare a short playlist backup in case equipment fails.',
         ].join('\n'),
-        suggestions: ['Suggest 3 icebreaker games suitable for our guests', 'Build a day-of timeline', 'How can I cut budget costs?'],
+        suggestions: [
+          'Suggest 3 icebreaker games suitable for our guests',
+          'Build a day-of timeline',
+          'How can I cut budget costs?',
+        ],
       };
     default:
       return {
@@ -240,12 +381,19 @@ function buildReply(topic: ChatFallbackTopic, ctx: ChatFallbackContext): ChatFal
           '4. Confirm vendor arrival windows 48 hours before the event.',
           'Ask me about weather plans, catering, venue contracts, budget, timeline, guests or decor for more detail.',
         ].join('\n'),
-        suggestions: ['What should our bad weather contingency checklist be?', 'How can I cut budget costs?', 'Draft questions to ask before signing a venue contract'],
+        suggestions: [
+          'What should our bad weather contingency checklist be?',
+          'How can I cut budget costs?',
+          'Draft questions to ask before signing a venue contract',
+        ],
       };
   }
 }
 
 /** Builds a useful offline answer for the user's question and event context. */
-export function generateOfflineChatReply(message: string, context?: ChatFallbackContext): ChatFallbackReply {
+export function generateOfflineChatReply(
+  message: string,
+  context?: ChatFallbackContext
+): ChatFallbackReply {
   return buildReply(detectTopic(message || ''), context || {});
 }

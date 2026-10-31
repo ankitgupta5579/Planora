@@ -197,7 +197,6 @@ test('validateVendorInquiryInput: validates vendor name and caps', () => {
   assert.equal(missing.valid, false);
 });
 
-
 test('validateIdeasInput: accepts valid event context and focus category', () => {
   const valid = validateIdeasInput({
     eventContext: {

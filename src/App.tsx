@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { EventPlan } from './types/event';
-import { 
-  loadSavedEvents, 
-  saveAllEvents, 
-  getActiveEventId, 
+import {
+  loadSavedEvents,
+  saveAllEvents,
+  getActiveEventId,
   setActiveEventId,
-  resetToSampleEvents
+  resetToSampleEvents,
 } from './utils/storage';
 import { Navbar } from './components/Navbar';
 import { EventOverviewTab } from './components/EventOverviewTab';
@@ -20,15 +20,15 @@ import { SpeechInviteModal } from './components/SpeechInviteModal';
 import { ExportModal } from './components/ExportModal';
 import { ResetConfirmDialog } from './components/ResetConfirmDialog';
 import { DeleteEventConfirmDialog } from './components/DeleteEventConfirmDialog';
-import { 
-  LayoutDashboard, 
-  DollarSign, 
-  Clock, 
-  Building2, 
-  Sparkles, 
+import {
+  LayoutDashboard,
+  DollarSign,
+  Clock,
+  Building2,
+  Sparkles,
   Users,
   RotateCcw,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react';
 
 type TabKey = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests';
@@ -38,12 +38,19 @@ const VALID_TABS: TabKey[] = ['overview', 'budget', 'timeline', 'vendors', 'idea
 function getTabFromHash(): TabKey {
   if (typeof window === 'undefined') return 'overview';
   const raw = window.location.hash.replace(/^#/, '').toLowerCase().trim();
-  return (VALID_TABS.includes(raw as TabKey) ? (raw as TabKey) : 'overview');
+  return VALID_TABS.includes(raw as TabKey) ? (raw as TabKey) : 'overview';
 }
 
 export default function App() {
-  const [events, setEvents] = useState<EventPlan[]>([]);
-  const [activeId, setActiveId] = useState<string>('');
+  const [events, setEvents] = useState<EventPlan[]>(() => {
+    if (typeof window === 'undefined') return [];
+    return loadSavedEvents();
+  });
+  const [activeId, setActiveId] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    const loaded = loadSavedEvents();
+    return getActiveEventId(loaded);
+  });
   const [activeTab, setActiveTab] = useState<TabKey>(() => getTabFromHash());
 
   // Modals state
@@ -56,13 +63,8 @@ export default function App() {
 
   const tabListRef = useRef<HTMLDivElement>(null);
 
-  // Initialize and synchronize browser history
+  // Synchronize browser history and hash navigation
   useEffect(() => {
-    const loaded = loadSavedEvents();
-    setEvents(loaded);
-    const initialId = getActiveEventId(loaded);
-    setActiveId(initialId);
-
     // Browser back/forward navigation support
     const handlePopState = () => {
       const currentTab = getTabFromHash();
@@ -72,12 +74,8 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('hashchange', handlePopState);
 
-    // Initial hash sync
-    const initialTab = getTabFromHash();
-    if (initialTab !== 'overview') {
-      setActiveTab(initialTab);
-    } else if (typeof window !== 'undefined' && !window.location.hash) {
-      // Set default hash on initial landing so back button from other tabs returns here
+    // Initial hash sync if landing on root without hash
+    if (typeof window !== 'undefined' && !window.location.hash) {
       window.history.replaceState({ tab: 'overview' }, '', '#overview');
     }
 
@@ -138,14 +136,36 @@ export default function App() {
     }
   };
 
-  const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = activeEvent ? [
-    { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { key: 'budget', label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
-    { key: 'timeline', label: 'Timeline & Schedule', icon: <Clock className="w-4 h-4" />, count: activeEvent.timelineItems.length },
-    { key: 'vendors', label: 'Vendors', icon: <Building2 className="w-4 h-4" />, count: activeEvent.vendors.length },
-    { key: 'ideas', label: 'Ideas & Themes', icon: <Sparkles className="w-4 h-4" />, count: activeEvent.ideas.length },
-    { key: 'guests', label: 'Guests & RSVPs', icon: <Users className="w-4 h-4" />, count: activeEvent.guests.length },
-  ] : [];
+  const tabs: { key: TabKey; label: string; icon: React.ReactNode; count?: number }[] = activeEvent
+    ? [
+        { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+        { key: 'budget', label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
+        {
+          key: 'timeline',
+          label: 'Timeline & Schedule',
+          icon: <Clock className="w-4 h-4" />,
+          count: activeEvent.timelineItems.length,
+        },
+        {
+          key: 'vendors',
+          label: 'Vendors',
+          icon: <Building2 className="w-4 h-4" />,
+          count: activeEvent.vendors.length,
+        },
+        {
+          key: 'ideas',
+          label: 'Ideas & Themes',
+          icon: <Sparkles className="w-4 h-4" />,
+          count: activeEvent.ideas.length,
+        },
+        {
+          key: 'guests',
+          label: 'Guests & RSVPs',
+          icon: <Users className="w-4 h-4" />,
+          count: activeEvent.guests.length,
+        },
+      ]
+    : [];
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const currentIndex = tabs.findIndex((t) => t.key === activeTab);
@@ -218,6 +238,7 @@ export default function App() {
         <div
           ref={tabListRef}
           role="tablist"
+          tabIndex={0}
           aria-label="Event sections"
           onKeyDown={handleTabKeyDown}
           className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin border-b border-slate-800"
@@ -279,7 +300,10 @@ export default function App() {
                 </span>
               </button>
 
-              <nav aria-label="Breadcrumb" className="text-xs text-slate-400 flex items-center gap-1.5 pr-1">
+              <nav
+                aria-label="Breadcrumb"
+                className="text-xs text-slate-400 flex items-center gap-1.5 pr-1"
+              >
                 <button
                   type="button"
                   onClick={() => handleNavigateTab('overview')}
@@ -287,7 +311,9 @@ export default function App() {
                 >
                   Home
                 </button>
-                <span aria-hidden="true" className="text-slate-600">/</span>
+                <span aria-hidden="true" className="text-slate-600">
+                  /
+                </span>
                 <span className="text-indigo-300 capitalize font-semibold">
                   {tabs.find((t) => t.key === activeTab)?.label || activeTab}
                 </span>
@@ -307,10 +333,7 @@ export default function App() {
           )}
 
           {activeTab === 'budget' && (
-            <BudgetTab
-              plan={activeEvent}
-              onUpdatePlan={handleUpdatePlan}
-            />
+            <BudgetTab plan={activeEvent} onUpdatePlan={handleUpdatePlan} />
           )}
 
           {activeTab === 'timeline' && (
@@ -322,10 +345,7 @@ export default function App() {
           )}
 
           {activeTab === 'vendors' && (
-            <VendorsTab
-              plan={activeEvent}
-              onUpdatePlan={handleUpdatePlan}
-            />
+            <VendorsTab plan={activeEvent} onUpdatePlan={handleUpdatePlan} />
           )}
 
           {activeTab === 'ideas' && (
@@ -337,10 +357,7 @@ export default function App() {
           )}
 
           {activeTab === 'guests' && (
-            <GuestsTab
-              plan={activeEvent}
-              onUpdatePlan={handleUpdatePlan}
-            />
+            <GuestsTab plan={activeEvent} onUpdatePlan={handleUpdatePlan} />
           )}
 
           {/* Bottom Back to Home Button for convenient return on long pages */}
@@ -367,11 +384,10 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-400">
-        <p className="font-medium text-slate-300">
-          Planora · Plan today, celebrate tomorrow
-        </p>
+        <p className="font-medium text-slate-300">Planora · Plan today, celebrate tomorrow</p>
         <p className="mt-1 text-slate-400">
-          GenAI-powered planning for weddings, birthdays and community events: budgets, timelines & vendors.
+          GenAI-powered planning for weddings, birthdays and community events: budgets, timelines &
+          vendors.
         </p>
         <div className="mt-3">
           <button

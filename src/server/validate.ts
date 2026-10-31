@@ -60,7 +60,18 @@ export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlan
   }
 
   const b = body as Record<string, unknown>;
-  const { title, type, vibe, date, location, guestCount, totalBudget, currency, specialRequests, rsvpDeadline } = b;
+  const {
+    title,
+    type,
+    vibe,
+    date,
+    location,
+    guestCount,
+    totalBudget,
+    currency,
+    specialRequests,
+    rsvpDeadline,
+  } = b;
 
   if (typeof title !== 'string' || title.trim().length === 0) {
     return { valid: false, error: 'Event title is required' };
@@ -85,12 +96,21 @@ export function validatePlanInput(body: unknown): ValidationResult<ValidatedPlan
     return { valid: false, error: 'Event date is required and must not exceed 50 characters' };
   }
 
-  if (typeof location !== 'string' || location.trim().length === 0 || location.trim().length > 200) {
+  if (
+    typeof location !== 'string' ||
+    location.trim().length === 0 ||
+    location.trim().length > 200
+  ) {
     return { valid: false, error: 'Location is required and must not exceed 200 characters' };
   }
 
   const numericGuests = Number(guestCount);
-  if (isNaN(numericGuests) || !Number.isInteger(numericGuests) || numericGuests < 1 || numericGuests > 5000) {
+  if (
+    isNaN(numericGuests) ||
+    !Number.isInteger(numericGuests) ||
+    numericGuests < 1 ||
+    numericGuests > 5000
+  ) {
     return { valid: false, error: 'Guest count must be an integer between 1 and 5000' };
   }
 
@@ -178,7 +198,8 @@ export function validateChatInput(body: unknown): ValidationResult<ValidatedChat
       guestCount: typeof ec.guestCount === 'number' ? Math.max(0, ec.guestCount) : undefined,
       totalBudget: typeof ec.totalBudget === 'number' ? Math.max(0, ec.totalBudget) : undefined,
       currency: typeof ec.currency === 'string' ? ec.currency.slice(0, 5) : '$',
-      totalAllocated: typeof ec.totalAllocated === 'number' ? Math.max(0, ec.totalAllocated) : undefined,
+      totalAllocated:
+        typeof ec.totalAllocated === 'number' ? Math.max(0, ec.totalAllocated) : undefined,
       totalSpent: typeof ec.totalSpent === 'number' ? Math.max(0, ec.totalSpent) : undefined,
       rsvpDeadline: typeof ec.rsvpDeadline === 'string' ? ec.rsvpDeadline.slice(0, 50) : undefined,
     };
@@ -201,7 +222,9 @@ export interface ValidatedInviteSpeechInput {
   event?: EventSummaryContext;
 }
 
-export function validateInviteSpeechInput(body: unknown): ValidationResult<ValidatedInviteSpeechInput> {
+export function validateInviteSpeechInput(
+  body: unknown
+): ValidationResult<ValidatedInviteSpeechInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
@@ -213,8 +236,12 @@ export function validateInviteSpeechInput(body: unknown): ValidationResult<Valid
     return { valid: false, error: 'requestType must be either "invitation" or "speech"' };
   }
 
-  const safeTone = typeof tone === 'string' && tone.trim().length > 0 ? tone.trim().slice(0, 50) : 'heartfelt';
-  const safeRecipient = typeof recipient === 'string' && recipient.trim().length > 0 ? recipient.trim().slice(0, 100) : 'Honored Guests';
+  const safeTone =
+    typeof tone === 'string' && tone.trim().length > 0 ? tone.trim().slice(0, 50) : 'heartfelt';
+  const safeRecipient =
+    typeof recipient === 'string' && recipient.trim().length > 0
+      ? recipient.trim().slice(0, 100)
+      : 'Honored Guests';
 
   let safeCustom: string | undefined = undefined;
   if (customDetails !== undefined && customDetails !== null) {
@@ -250,7 +277,9 @@ export interface ValidatedVendorInquiryInput {
   event: EventSummaryContext;
 }
 
-export function validateVendorInquiryInput(body: unknown): ValidationResult<ValidatedVendorInquiryInput> {
+export function validateVendorInquiryInput(
+  body: unknown
+): ValidationResult<ValidatedVendorInquiryInput> {
   if (!body || typeof body !== 'object') {
     return { valid: false, error: 'Request body must be a JSON object' };
   }
@@ -275,7 +304,8 @@ export function validateVendorInquiryInput(body: unknown): ValidationResult<Vali
       vendor: {
         name: v.name.trim(),
         category: typeof v.category === 'string' ? v.category.trim().slice(0, 100) : 'Vendor',
-        contactName: typeof v.contactName === 'string' ? v.contactName.trim().slice(0, 100) : undefined,
+        contactName:
+          typeof v.contactName === 'string' ? v.contactName.trim().slice(0, 100) : undefined,
         quoteAmount: typeof v.quoteAmount === 'number' ? Math.max(0, v.quoteAmount) : undefined,
         email: typeof v.email === 'string' ? v.email.trim().slice(0, 100) : undefined,
       },
@@ -283,7 +313,6 @@ export function validateVendorInquiryInput(body: unknown): ValidationResult<Vali
     },
   };
 }
-
 
 export const ALLOWED_IDEA_CATEGORIES = [
   'theme_decor',

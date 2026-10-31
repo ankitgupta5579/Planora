@@ -1,4 +1,12 @@
-import { EventPlan, EventType, EventVibe, BudgetItem, TimelineItem, VendorItem, PersonalizedIdea } from '../types/event';
+import {
+  EventPlan,
+  EventType,
+  EventVibe,
+  BudgetItem,
+  TimelineItem,
+  VendorItem,
+  PersonalizedIdea,
+} from '../types/event';
 
 export interface PlanGenerationInput {
   title: string;
@@ -88,42 +96,157 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
   const colorPalette = paletteMap[input.vibe] || paletteMap.modern;
 
   // Allocate budget based on event type
-  let budgetAllocations: { cat: BudgetItem['category']; title: string; pct: number; notes: string }[] = [];
+  let budgetAllocations: {
+    cat: BudgetItem['category'];
+    title: string;
+    pct: number;
+    notes: string;
+  }[] = [];
 
   if (input.type === 'wedding') {
     budgetAllocations = [
-      { cat: 'venue', title: 'Ceremony & Reception Venue Rental', pct: 0.30, notes: 'Includes table/chair setup & security' },
-      { cat: 'catering', title: 'Dinner, Hors d’oeuvres & Bar Package', pct: 0.35, notes: `Buffet or plated dining for ${guestCount} guests` },
-      { cat: 'photography', title: 'Photographer & Cinematic Video', pct: 0.12, notes: '8 hours coverage + digital gallery' },
-      { cat: 'decor', title: 'Florals, Arches & Lighting', pct: 0.10, notes: `${input.vibe} floral arrangements and warm bistro lights` },
-      { cat: 'entertainment', title: 'DJ / Live Music & MC', pct: 0.06, notes: 'Ceremony acoustic sound + reception dance set' },
-      { cat: 'contingency', title: 'Emergency Buffer & Overrun Reserve', pct: 0.07, notes: 'Covers unforeseen weather, transport, or tips' },
+      {
+        cat: 'venue',
+        title: 'Ceremony & Reception Venue Rental',
+        pct: 0.3,
+        notes: 'Includes table/chair setup & security',
+      },
+      {
+        cat: 'catering',
+        title: 'Dinner, Hors d’oeuvres & Bar Package',
+        pct: 0.35,
+        notes: `Buffet or plated dining for ${guestCount} guests`,
+      },
+      {
+        cat: 'photography',
+        title: 'Photographer & Cinematic Video',
+        pct: 0.12,
+        notes: '8 hours coverage + digital gallery',
+      },
+      {
+        cat: 'decor',
+        title: 'Florals, Arches & Lighting',
+        pct: 0.1,
+        notes: `${input.vibe} floral arrangements and warm bistro lights`,
+      },
+      {
+        cat: 'entertainment',
+        title: 'DJ / Live Music & MC',
+        pct: 0.06,
+        notes: 'Ceremony acoustic sound + reception dance set',
+      },
+      {
+        cat: 'contingency',
+        title: 'Emergency Buffer & Overrun Reserve',
+        pct: 0.07,
+        notes: 'Covers unforeseen weather, transport, or tips',
+      },
     ];
   } else if (input.type === 'birthday') {
     budgetAllocations = [
-      { cat: 'venue', title: 'Private Party Space / Lounge Rental', pct: 0.30, notes: '4-5 hour evening space reservation' },
-      { cat: 'catering', title: 'Food Platters, Mocktails & Custom Cake', pct: 0.35, notes: `Bespoke theme cake & appetizers for ${guestCount}` },
-      { cat: 'entertainment', title: 'DJ, Arcade/VR Games or Live Performer', pct: 0.15, notes: 'Interactive entertainment for guests' },
-      { cat: 'decor', title: 'Balloons, Photo Backdrop & LED Sign', pct: 0.10, notes: `${input.vibe} aesthetic photo zone` },
-      { cat: 'favors', title: 'Personalized Keepsakes & Goodie Bags', pct: 0.05, notes: 'Custom themed treats' },
-      { cat: 'contingency', title: 'Reserve Buffer', pct: 0.05, notes: 'Covers last minute additions' },
+      {
+        cat: 'venue',
+        title: 'Private Party Space / Lounge Rental',
+        pct: 0.3,
+        notes: '4-5 hour evening space reservation',
+      },
+      {
+        cat: 'catering',
+        title: 'Food Platters, Mocktails & Custom Cake',
+        pct: 0.35,
+        notes: `Bespoke theme cake & appetizers for ${guestCount}`,
+      },
+      {
+        cat: 'entertainment',
+        title: 'DJ, Arcade/VR Games or Live Performer',
+        pct: 0.15,
+        notes: 'Interactive entertainment for guests',
+      },
+      {
+        cat: 'decor',
+        title: 'Balloons, Photo Backdrop & LED Sign',
+        pct: 0.1,
+        notes: `${input.vibe} aesthetic photo zone`,
+      },
+      {
+        cat: 'favors',
+        title: 'Personalized Keepsakes & Goodie Bags',
+        pct: 0.05,
+        notes: 'Custom themed treats',
+      },
+      {
+        cat: 'contingency',
+        title: 'Reserve Buffer',
+        pct: 0.05,
+        notes: 'Covers last minute additions',
+      },
     ];
   } else if (input.type === 'community') {
     budgetAllocations = [
-      { cat: 'permits', title: 'City Park Permits, Police & Sound Waiver', pct: 0.10, notes: 'Municipal permit filings and sanitation' },
-      { cat: 'logistics', title: 'Canopies, Staging, Tables & Restrooms', pct: 0.30, notes: 'Tent rental, trash bins, handwashing' },
-      { cat: 'catering', title: 'Community Refreshments & Food Truck Staging', pct: 0.20, notes: 'Water stations, bulk snacks, food truck hookups' },
-      { cat: 'entertainment', title: 'Local Bands, Stage Audio & MC', pct: 0.18, notes: 'PA system, sound engineer, performer honorariums' },
-      { cat: 'marketing', title: 'Posters, Banners, Social Ads & Flyers', pct: 0.12, notes: 'Promoting festival across neighborhoods' },
-      { cat: 'contingency', title: 'First Aid & Safety Supplies', pct: 0.10, notes: 'EMS kit, extra hydration, volunteers support' },
+      {
+        cat: 'permits',
+        title: 'City Park Permits, Police & Sound Waiver',
+        pct: 0.1,
+        notes: 'Municipal permit filings and sanitation',
+      },
+      {
+        cat: 'logistics',
+        title: 'Canopies, Staging, Tables & Restrooms',
+        pct: 0.3,
+        notes: 'Tent rental, trash bins, handwashing',
+      },
+      {
+        cat: 'catering',
+        title: 'Community Refreshments & Food Truck Staging',
+        pct: 0.2,
+        notes: 'Water stations, bulk snacks, food truck hookups',
+      },
+      {
+        cat: 'entertainment',
+        title: 'Local Bands, Stage Audio & MC',
+        pct: 0.18,
+        notes: 'PA system, sound engineer, performer honorariums',
+      },
+      {
+        cat: 'marketing',
+        title: 'Posters, Banners, Social Ads & Flyers',
+        pct: 0.12,
+        notes: 'Promoting festival across neighborhoods',
+      },
+      {
+        cat: 'contingency',
+        title: 'First Aid & Safety Supplies',
+        pct: 0.1,
+        notes: 'EMS kit, extra hydration, volunteers support',
+      },
     ];
   } else {
     budgetAllocations = [
-      { cat: 'venue', title: 'Main Event Space & AV Setup', pct: 0.35, notes: 'Venue rental with high-speed internet & screens' },
-      { cat: 'catering', title: 'Catered Buffet & Beverage Station', pct: 0.30, notes: `Food service for ${guestCount} attendees` },
-      { cat: 'entertainment', title: 'Guest Speakers / MC / Team Building', pct: 0.15, notes: 'Keynote audio & presentation support' },
-      { cat: 'decor', title: 'Branding, Badges & Scenic Decor', pct: 0.10, notes: 'Stage backdrop and registration desk' },
-      { cat: 'contingency', title: 'Logistics Buffer', pct: 0.10, notes: 'Reserve funds' },
+      {
+        cat: 'venue',
+        title: 'Main Event Space & AV Setup',
+        pct: 0.35,
+        notes: 'Venue rental with high-speed internet & screens',
+      },
+      {
+        cat: 'catering',
+        title: 'Catered Buffet & Beverage Station',
+        pct: 0.3,
+        notes: `Food service for ${guestCount} attendees`,
+      },
+      {
+        cat: 'entertainment',
+        title: 'Guest Speakers / MC / Team Building',
+        pct: 0.15,
+        notes: 'Keynote audio & presentation support',
+      },
+      {
+        cat: 'decor',
+        title: 'Branding, Badges & Scenic Decor',
+        pct: 0.1,
+        notes: 'Stage backdrop and registration desk',
+      },
+      { cat: 'contingency', title: 'Logistics Buffer', pct: 0.1, notes: 'Reserve funds' },
     ];
   }
 
@@ -252,7 +375,11 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
       depositPaid: Math.round(totalBudget * 0.15),
       status: 'contract_signed',
       notes: 'Tables, chairs, and AV access included in contract.',
-      checklist: ['Insurance certificate filed', 'Load-in timing confirmed', 'Restroom access verified'],
+      checklist: [
+        'Insurance certificate filed',
+        'Load-in timing confirmed',
+        'Restroom access verified',
+      ],
     },
     {
       id: 'v-2',
@@ -295,28 +422,32 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
       id: 'idea-2',
       title: 'Self-Serve Drink & Mocktail Station',
       category: 'food_beverage',
-      description: 'A colorful drink station with dispensers of fruit-infused water, iced tea, and a custom event mocktail that guests can easily pour themselves.',
+      description:
+        'A colorful drink station with dispensers of fruit-infused water, iced tea, and a custom event mocktail that guests can easily pour themselves.',
       tags: ['Signature Drink', 'Mocktail', 'Self-Serve'],
     },
     {
       id: 'idea-3',
       title: 'Live Acoustic Music & Guest Song Requests',
       category: 'entertainment',
-      description: 'A friendly local acoustic musician playing popular cover songs everyone knows, with request cards on tables so guests can hear their favorite tunes.',
+      description:
+        'A friendly local acoustic musician playing popular cover songs everyone knows, with request cards on tables so guests can hear their favorite tunes.',
       tags: ['Live Music', 'Acoustic', 'Song Requests'],
     },
     {
       id: 'idea-4',
       title: 'Instant Photo & Voice Note Guestbook',
       category: 'guest_experience',
-      description: 'A simple QR code on each table where guests can scan with their phones to instantly share photos, toasts, and sweet voice notes into a shared album.',
+      description:
+        'A simple QR code on each table where guests can scan with their phones to instantly share photos, toasts, and sweet voice notes into a shared album.',
       tags: ['Guest Photos', 'QR Guestbook', 'Keepsake'],
     },
     {
       id: 'idea-5',
       title: 'Take-Home Mini Potted Herb Plants',
       category: 'sustainable_tip',
-      description: 'Give each guest a cute little potted basil, rosemary, or mint plant to take home. It is zero-waste, eco-friendly, and something they will use in their kitchen.',
+      description:
+        'Give each guest a cute little potted basil, rosemary, or mint plant to take home. It is zero-waste, eco-friendly, and something they will use in their kitchen.',
       tags: ['Eco-Friendly', 'Potted Herbs', 'Zero Waste'],
     },
   ];
@@ -338,9 +469,33 @@ export function generateHeuristicEventPlan(input: PlanGenerationInput): EventPla
     vendors,
     ideas,
     guests: [
-      { id: 'g-1', name: 'Alex Morgan', email: 'alex@example.com', group: 'family', rsvpStatus: 'attending', plusOnes: 1, dietaryRestrictions: 'Vegetarian' },
-      { id: 'g-2', name: 'Taylor Swift', email: 'taylor@example.com', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'None' },
-      { id: 'g-3', name: 'Jordan Bell', email: 'jordan@example.com', group: 'colleagues', rsvpStatus: 'pending', plusOnes: 1, dietaryRestrictions: 'Gluten-Free' },
+      {
+        id: 'g-1',
+        name: 'Alex Morgan',
+        email: 'alex@example.com',
+        group: 'family',
+        rsvpStatus: 'attending',
+        plusOnes: 1,
+        dietaryRestrictions: 'Vegetarian',
+      },
+      {
+        id: 'g-2',
+        name: 'Taylor Swift',
+        email: 'taylor@example.com',
+        group: 'friends',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'None',
+      },
+      {
+        id: 'g-3',
+        name: 'Jordan Bell',
+        email: 'jordan@example.com',
+        group: 'colleagues',
+        rsvpStatus: 'pending',
+        plusOnes: 1,
+        dietaryRestrictions: 'Gluten-Free',
+      },
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import {
-  generatePlannerInsights,
-  MAX_INSIGHTS_DISPLAYED,
-} from './plannerInsights';
+import { generatePlannerInsights, MAX_INSIGHTS_DISPLAYED } from './plannerInsights';
 import { EventPlan } from '../types/event';
 
 function createBasePlan(overrides: Partial<EventPlan> = {}): EventPlan {
@@ -261,7 +258,11 @@ test('plannerInsights: handles community event with volunteer mobilization rathe
   const insights = generatePlannerInsights(plan, today);
 
   const rsvpLag = insights.find((i) => i.id === 'insight-guest-response-lag');
-  assert.strictEqual(rsvpLag, undefined, 'Should not show rigid 1:1 RSVP lag for open community festivals');
+  assert.strictEqual(
+    rsvpLag,
+    undefined,
+    'Should not show rigid 1:1 RSVP lag for open community festivals'
+  );
 
   const volInsight = insights.find((i) => i.id === 'insight-community-volunteers');
   assert.ok(volInsight, 'Should suggest volunteer roster mobilization instead');
@@ -394,7 +395,11 @@ test('plannerInsights: caps output at MAX_INSIGHTS_DISPLAYED and sorts by severi
   const insights = generatePlannerInsights(plan, today);
 
   assert.ok(insights.length <= MAX_INSIGHTS_DISPLAYED);
-  assert.strictEqual(insights[0].severity, 'critical', 'First item should be highest severity (critical)');
+  assert.strictEqual(
+    insights[0].severity,
+    'critical',
+    'First item should be highest severity (critical)'
+  );
 });
 
 test('plannerInsights: cash commitment rule triggers warning when uncommitted < 10% and days <= 45', () => {
@@ -405,11 +410,33 @@ test('plannerInsights: cash commitment rule triggers warning when uncommitted < 
     date: '2026-11-20',
     totalBudget: 20000,
     budgetItems: [
-      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 12000, actualAmount: 12000, isPaid: true },
-      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 8000, actualAmount: 0, isPaid: false },
+      {
+        id: 'b1',
+        category: 'venue',
+        title: 'Venue',
+        allocatedAmount: 12000,
+        actualAmount: 12000,
+        isPaid: true,
+      },
+      {
+        id: 'b2',
+        category: 'other',
+        title: 'Other',
+        allocatedAmount: 8000,
+        actualAmount: 0,
+        isPaid: false,
+      },
     ],
     vendors: [
-      { id: 'v1', category: 'Catering', name: 'Chef Co', quoteAmount: 10000, depositPaid: 3000, status: 'booked', checklist: [] }, // balance = 7000
+      {
+        id: 'v1',
+        category: 'Catering',
+        name: 'Chef Co',
+        quoteAmount: 10000,
+        depositPaid: 3000,
+        status: 'booked',
+        checklist: [],
+      }, // balance = 7000
     ],
   });
 
@@ -431,29 +458,71 @@ test('plannerInsights: cash commitment rule does NOT trigger when uncommitted >=
     date: '2026-11-20',
     totalBudget: 20000,
     budgetItems: [
-      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 10000, actualAmount: 5000, isPaid: true },
-      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 10000, actualAmount: 0, isPaid: false },
+      {
+        id: 'b1',
+        category: 'venue',
+        title: 'Venue',
+        allocatedAmount: 10000,
+        actualAmount: 5000,
+        isPaid: true,
+      },
+      {
+        id: 'b2',
+        category: 'other',
+        title: 'Other',
+        allocatedAmount: 10000,
+        actualAmount: 0,
+        isPaid: false,
+      },
     ],
     vendors: [
-      { id: 'v1', category: 'Catering', name: 'Chef Co', quoteAmount: 4000, depositPaid: 2000, status: 'booked', checklist: [] },
+      {
+        id: 'v1',
+        category: 'Catering',
+        name: 'Chef Co',
+        quoteAmount: 4000,
+        depositPaid: 2000,
+        status: 'booked',
+        checklist: [],
+      },
     ],
   });
 
   const today = new Date(2026, 10, 1);
   const insights = generatePlannerInsights(planHealthy, today);
-  assert.strictEqual(insights.some((i) => i.id === 'insight-cash-commitment'), false);
+  assert.strictEqual(
+    insights.some((i) => i.id === 'insight-cash-commitment'),
+    false
+  );
 
   // Far out: daysRemaining = 90 (> 45) even if buffer is tight
   const planFar = createBasePlan({
     date: '2027-02-01',
     totalBudget: 20000,
     budgetItems: [
-      { id: 'b1', category: 'venue', title: 'Venue', allocatedAmount: 19500, actualAmount: 19500, isPaid: true },
-      { id: 'b2', category: 'other', title: 'Other', allocatedAmount: 500, actualAmount: 0, isPaid: false },
+      {
+        id: 'b1',
+        category: 'venue',
+        title: 'Venue',
+        allocatedAmount: 19500,
+        actualAmount: 19500,
+        isPaid: true,
+      },
+      {
+        id: 'b2',
+        category: 'other',
+        title: 'Other',
+        allocatedAmount: 500,
+        actualAmount: 0,
+        isPaid: false,
+      },
     ],
   });
   const insightsFar = generatePlannerInsights(planFar, today);
-  assert.strictEqual(insightsFar.some((i) => i.id === 'insight-cash-commitment'), false);
+  assert.strictEqual(
+    insightsFar.some((i) => i.id === 'insight-cash-commitment'),
+    false
+  );
 });
 
 test('plannerInsights: RSVP deadline rule triggers warning when past deadline with pending RSVPs', () => {
@@ -474,7 +543,10 @@ test('plannerInsights: RSVP deadline rule triggers warning when past deadline wi
 
   assert.ok(rsvpInsight, 'Expected RSVP deadline passed insight');
   assert.strictEqual(rsvpInsight.severity, 'warning');
-  assert.strictEqual(rsvpInsight.message, "2 guests haven't responded, 5 days past the RSVP deadline.");
+  assert.strictEqual(
+    rsvpInsight.message,
+    "2 guests haven't responded, 5 days past the RSVP deadline."
+  );
   assert.strictEqual(rsvpInsight.action?.tab, 'guests');
 });
 
@@ -494,7 +566,10 @@ test('plannerInsights: RSVP deadline singular phrasing (1 guest, 1 day)', () => 
   const rsvpInsight = insights.find((i) => i.id === 'insight-rsvp-deadline-passed');
 
   assert.ok(rsvpInsight);
-  assert.strictEqual(rsvpInsight.message, "1 guest hasn't responded, 1 day past the RSVP deadline.");
+  assert.strictEqual(
+    rsvpInsight.message,
+    "1 guest hasn't responded, 1 day past the RSVP deadline."
+  );
 });
 
 test('plannerInsights: RSVP deadline does NOT trigger when before deadline, zero pending, or no deadline', () => {
@@ -517,7 +592,9 @@ test('plannerInsights: RSVP deadline does NOT trigger when before deadline, zero
     guests: [{ id: 'g1', name: 'Bob', group: 'family', rsvpStatus: 'attending', plusOnes: 0 }],
   });
   assert.strictEqual(
-    generatePlannerInsights(planAllResponded, today).some((i) => i.id === 'insight-rsvp-deadline-passed'),
+    generatePlannerInsights(planAllResponded, today).some(
+      (i) => i.id === 'insight-rsvp-deadline-passed'
+    ),
     false
   );
 
@@ -527,7 +604,9 @@ test('plannerInsights: RSVP deadline does NOT trigger when before deadline, zero
     guests: [{ id: 'g1', name: 'Bob', group: 'family', rsvpStatus: 'pending', plusOnes: 0 }],
   });
   assert.strictEqual(
-    generatePlannerInsights(planNoDeadline, today).some((i) => i.id === 'insight-rsvp-deadline-passed'),
+    generatePlannerInsights(planNoDeadline, today).some(
+      (i) => i.id === 'insight-rsvp-deadline-passed'
+    ),
     false
   );
 });
@@ -536,9 +615,30 @@ test('plannerInsights: allergy safety rule triggers info insight for guests with
   const plan = createBasePlan({
     date: '2026-11-28',
     guests: [
-      { id: 'g1', name: 'Sam', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Nut Allergy' },
-      { id: 'g2', name: 'Tara', group: 'family', rsvpStatus: 'attending', plusOnes: 1, dietaryRestrictions: 'Shellfish allergy' },
-      { id: 'g3', name: 'Uma', group: 'family', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegetarian' },
+      {
+        id: 'g1',
+        name: 'Sam',
+        group: 'friends',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'Nut Allergy',
+      },
+      {
+        id: 'g2',
+        name: 'Tara',
+        group: 'family',
+        rsvpStatus: 'attending',
+        plusOnes: 1,
+        dietaryRestrictions: 'Shellfish allergy',
+      },
+      {
+        id: 'g3',
+        name: 'Uma',
+        group: 'family',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'Vegetarian',
+      },
     ],
   });
 
@@ -559,23 +659,63 @@ test('plannerInsights: allergy safety rule does NOT trigger when no allergies pr
   const plan = createBasePlan({
     date: '2026-11-28',
     guests: [
-      { id: 'g1', name: 'Uma', group: 'family', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegetarian' },
-      { id: 'g2', name: 'Vic', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Gluten-Free' },
-      { id: 'g3', name: 'Will', group: 'friends', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'None' },
+      {
+        id: 'g1',
+        name: 'Uma',
+        group: 'family',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'Vegetarian',
+      },
+      {
+        id: 'g2',
+        name: 'Vic',
+        group: 'friends',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'Gluten-Free',
+      },
+      {
+        id: 'g3',
+        name: 'Will',
+        group: 'friends',
+        rsvpStatus: 'attending',
+        plusOnes: 0,
+        dietaryRestrictions: 'None',
+      },
     ],
   });
 
   const today = new Date(2026, 9, 15);
   const insights = generatePlannerInsights(plan, today);
-  assert.strictEqual(insights.some((i) => i.id === 'insight-allergy-safety'), false);
+  assert.strictEqual(
+    insights.some((i) => i.id === 'insight-allergy-safety'),
+    false
+  );
 });
 
 test('plannerInsights: unbooked vendors singular phrasing ("1 vendor remains")', () => {
   const plan = createBasePlan({
     date: '2026-11-20',
     vendors: [
-      { id: 'v1', name: 'Sunset DJ', category: 'Music', status: 'contacted', quoteAmount: 1000, depositPaid: 0, checklist: [] },
-      { id: 'v2', name: 'Grand Venue', category: 'Venue', status: 'contract_signed', quoteAmount: 5000, depositPaid: 5000, checklist: [] },
+      {
+        id: 'v1',
+        name: 'Sunset DJ',
+        category: 'Music',
+        status: 'contacted',
+        quoteAmount: 1000,
+        depositPaid: 0,
+        checklist: [],
+      },
+      {
+        id: 'v2',
+        name: 'Grand Venue',
+        category: 'Venue',
+        status: 'contract_signed',
+        quoteAmount: 5000,
+        depositPaid: 5000,
+        checklist: [],
+      },
     ],
   });
 
@@ -584,5 +724,7 @@ test('plannerInsights: unbooked vendors singular phrasing ("1 vendor remains")',
   const vendorInsight = insights.find((i) => i.id === 'insight-unbooked-vendors');
 
   assert.ok(vendorInsight);
-  assert.ok(vendorInsight.message.includes('1 vendor (Sunset DJ) remains uncontracted with 19 days to go.'));
+  assert.ok(
+    vendorInsight.message.includes('1 vendor (Sunset DJ) remains uncontracted with 19 days to go.')
+  );
 });

@@ -59,11 +59,15 @@ test('calculateDaysRemaining: accurate across multiple timezones and DST boundar
 test('formatLocalDate: preserves exact day without UTC shifting in any zone', () => {
   for (const zone of TEST_ZONES) {
     process.env.TZ = zone;
-    const formatted = formatLocalDate('2026-11-28', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    }, 'en-US');
+    const formatted = formatLocalDate(
+      '2026-11-28',
+      {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+      },
+      'en-US'
+    );
     assert.equal(formatted, '11/28/2026', `Formatted date shifted in zone ${zone}: ${formatted}`);
   }
 });

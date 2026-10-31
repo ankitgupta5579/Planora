@@ -6,7 +6,6 @@ import {
   sanitizeGeminiErrorMessage,
   resolveGeminiModel,
   DEPRECATED_MODELS,
-  FALLBACK_MODELS,
   DEFAULT_GEMINI_MODEL,
   CHAT_THINKING_LEVEL,
 } from './geminiClient';
@@ -19,7 +18,11 @@ test('resolveGeminiModel: defaults to gemini-3-flash-preview and maps deprecated
 
     for (const dep of DEPRECATED_MODELS) {
       process.env.GEMINI_MODEL = dep;
-      assert.equal(resolveGeminiModel(), DEFAULT_GEMINI_MODEL, `Model ${dep} should map to default`);
+      assert.equal(
+        resolveGeminiModel(),
+        DEFAULT_GEMINI_MODEL,
+        `Model ${dep} should map to default`
+      );
     }
 
     process.env.GEMINI_MODEL = 'gemini-3.5-flash';
@@ -55,7 +58,8 @@ test('classifyGeminiError: correctly classifies errors', () => {
 });
 
 test('sanitizeGeminiErrorMessage: strips API keys from query strings and headers', () => {
-  const rawMsg = 'Failed request: https://generativelanguage.googleapis.com?key=AIzaSySecretKey123&other=param with API_key: SecretKey456';
+  const rawMsg =
+    'Failed request: https://generativelanguage.googleapis.com?key=AIzaSySecretKey123&other=param with API_key: SecretKey456';
   const clean = sanitizeGeminiErrorMessage(rawMsg);
   assert.equal(clean.includes('AIzaSySecretKey123'), false);
   assert.equal(clean.includes('SecretKey456'), false);
@@ -73,11 +77,15 @@ test('generateContentWithRetry: success on first try', async () => {
     },
   };
 
-  const res = await generateContentWithRetry(mockAi, {
-    model: 'gemini-3-flash-preview',
-    contents: 'Hello',
-    config: { maxOutputTokens: 100 },
-  }, 1000);
+  const res = await generateContentWithRetry(
+    mockAi,
+    {
+      model: 'gemini-3-flash-preview',
+      contents: 'Hello',
+      config: { maxOutputTokens: 100 },
+    },
+    1000
+  );
 
   assert.equal(calls.length, 1);
   assert.equal(res.text, '{"reply":"All good"}');
@@ -93,12 +101,13 @@ test('generateContentWithRetry: timeout rejects with TimeoutError', async () => 
     },
   };
 
-  await assert.rejects(
-    async () => {
-      await generateContentWithRetry(mockAi, { model: 'gemini-3-flash-preview', contents: 'Hello' }, 20);
-    },
-    /timed out/i
-  );
+  await assert.rejects(async () => {
+    await generateContentWithRetry(
+      mockAi,
+      { model: 'gemini-3-flash-preview', contents: 'Hello' },
+      20
+    );
+  }, /timed out/i);
 });
 
 test('generateContentWithRetry: 400-thinking retry without thinkingConfig', async () => {
@@ -198,7 +207,11 @@ test('generateContentWithRetry: 503 and 429 paths trigger fallback', async () =>
       },
     },
   };
-  const res503 = await generateContentWithRetry(mockAi503, { model: 'gemini-3-flash-preview', contents: 'Hi' }, 1000);
+  const res503 = await generateContentWithRetry(
+    mockAi503,
+    { model: 'gemini-3-flash-preview', contents: 'Hi' },
+    1000
+  );
   assert.equal(calls503.length, 2);
   assert.equal(res503.text, '{"reply":"503 recovered"}');
 
@@ -217,7 +230,11 @@ test('generateContentWithRetry: 503 and 429 paths trigger fallback', async () =>
       },
     },
   };
-  const res429 = await generateContentWithRetry(mockAi429, { model: 'gemini-3-flash-preview', contents: 'Hi' }, 1000);
+  const res429 = await generateContentWithRetry(
+    mockAi429,
+    { model: 'gemini-3-flash-preview', contents: 'Hi' },
+    1000
+  );
   assert.equal(calls429.length, 2);
   assert.equal(res429.text, '{"reply":"429 recovered"}');
 });
@@ -296,7 +313,11 @@ test('generateContentWithRetry: all models failing throws last error', async () 
 
   await assert.rejects(
     async () => {
-      await generateContentWithRetry(mockAi, { model: 'gemini-3-flash-preview', contents: 'Test' }, 1000);
+      await generateContentWithRetry(
+        mockAi,
+        { model: 'gemini-3-flash-preview', contents: 'Test' },
+        1000
+      );
     },
     (err: any) => {
       assert.equal(err.status, 503);

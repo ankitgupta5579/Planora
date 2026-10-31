@@ -3,13 +3,7 @@ import { EventPlan, AiChatMessage } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { getFallbackMessage, FallbackReason } from '../utils/fallbackMessages';
 import { generateOfflineChatReply } from '../utils/chatFallback';
-import { 
-  Send, 
-  User, 
-  X, 
-  Lightbulb, 
-  RefreshCw 
-} from 'lucide-react';
+import { Send, User, X, Lightbulb, RefreshCw } from 'lucide-react';
 
 function renderFormattedContent(text: string): React.ReactNode {
   // Safely renders **bold** segments without dangerouslySetInnerHTML or raw HTML injection
@@ -39,11 +33,7 @@ interface AiAssistantDrawerProps {
  */
 export const CLIENT_CHAT_TIMEOUT_MS = 15000;
 
-export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
-  isOpen,
-  onClose,
-  plan,
-}) => {
+export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({ isOpen, onClose, plan }) => {
   const [messages, setMessages] = useState<AiChatMessage[]>([
     {
       id: 'welcome',
@@ -192,13 +182,14 @@ How can I assist your planning today?`,
               className="w-9 h-9 shrink-0 rounded-xl"
             />
             <div>
-              <div id="ai-drawer-title" className="text-sm font-bold text-white flex items-center gap-2">
+              <div
+                id="ai-drawer-title"
+                className="text-sm font-bold text-white flex items-center gap-2"
+              >
                 <span>AI Planning Consultant</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>
-              <p className="text-xs text-slate-200">
-                Contextual Advisor for {plan.title}
-              </p>
+              <p className="text-xs text-slate-200">Contextual Advisor for {plan.title}</p>
             </div>
           </div>
 
@@ -251,9 +242,7 @@ How can I assist your planning today?`,
                 )}
               </div>
 
-              <span className="text-xs text-slate-300 mt-1 px-1">
-                {msg.timestamp}
-              </span>
+              <span className="text-xs text-slate-300 mt-1 px-1">{msg.timestamp}</span>
 
               {/* Suggestions */}
               {msg.actionSuggestions && msg.actionSuggestions.length > 0 && (

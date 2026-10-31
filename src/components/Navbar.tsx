@@ -1,16 +1,15 @@
 import React from 'react';
 import { EventPlan } from '../types/event';
-import { 
-  Calendar, 
-  Plus, 
-  Download, 
-  MessageSquare, 
-  Heart, 
-  Cake, 
-  Users, 
-  Briefcase, 
+import {
+  Plus,
+  Download,
+  MessageSquare,
+  Heart,
+  Cake,
+  Users,
+  Briefcase,
   Layers,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -38,10 +37,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'wedding': return <Heart className="w-4 h-4 text-rose-500" />;
-      case 'birthday': return <Cake className="w-4 h-4 text-amber-500" />;
-      case 'community': return <Users className="w-4 h-4 text-emerald-500" />;
-      default: return <Briefcase className="w-4 h-4 text-indigo-500" />;
+      case 'wedding':
+        return <Heart className="w-4 h-4 text-rose-500" />;
+      case 'birthday':
+        return <Cake className="w-4 h-4 text-amber-500" />;
+      case 'community':
+        return <Users className="w-4 h-4 text-emerald-500" />;
+      default:
+        return <Briefcase className="w-4 h-4 text-indigo-500" />;
     }
   };
 
@@ -77,7 +80,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Center: Event Selector */}
         <div className="flex items-center gap-1.5 flex-1 max-w-[200px] sm:max-w-[320px] justify-center">
           <div className="relative flex-1 min-w-0">
-            <label htmlFor="event-selector" className="sr-only">Select Active Event</label>
+            <label htmlFor="event-selector" className="sr-only">
+              Select Active Event
+            </label>
             <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
               {getEventIcon(activeEvent.type)}
             </div>
@@ -112,7 +117,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={onOpenDeleteEvent}
               disabled={events.length <= 1}
-              title={events.length <= 1 ? "Cannot delete the only remaining event" : `Delete active event: ${activeEvent.title}`}
+              title={
+                events.length <= 1
+                  ? 'Cannot delete the only remaining event'
+                  : `Delete active event: ${activeEvent.title}`
+              }
               aria-label={`Delete active event ${activeEvent.title}`}
               className="flex items-center justify-center p-1.5 sm:px-2 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-rose-600/80 text-slate-300 hover:text-white border border-slate-700 transition cursor-pointer shrink-0 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-800 disabled:hover:text-slate-300"
             >

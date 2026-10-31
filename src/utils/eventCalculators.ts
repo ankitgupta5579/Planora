@@ -16,7 +16,8 @@ export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number)
   const safeTotalBudget = Math.max(0, totalBudget);
   let totalAllocated = 0;
   let totalSpent = 0;
-  const categoryBreakdown: Record<string, { allocated: number; actual: number; count: number }> = {};
+  const categoryBreakdown: Record<string, { allocated: number; actual: number; count: number }> =
+    {};
 
   for (const item of items) {
     const allocated = Number(item.allocatedAmount) || 0;
@@ -35,8 +36,10 @@ export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number)
 
   const unallocated = Math.max(0, safeTotalBudget - totalAllocated);
   const remainingCash = safeTotalBudget - totalSpent;
-  const spendPercentage = safeTotalBudget > 0 ? Math.min(100, Math.round((totalSpent / safeTotalBudget) * 100)) : 0;
-  const allocatedPercentage = safeTotalBudget > 0 ? Math.min(100, Math.round((totalAllocated / safeTotalBudget) * 100)) : 0;
+  const spendPercentage =
+    safeTotalBudget > 0 ? Math.min(100, Math.round((totalSpent / safeTotalBudget) * 100)) : 0;
+  const allocatedPercentage =
+    safeTotalBudget > 0 ? Math.min(100, Math.round((totalAllocated / safeTotalBudget) * 100)) : 0;
   const isOverBudget = totalSpent > safeTotalBudget || totalAllocated > safeTotalBudget;
 
   return {
@@ -120,7 +123,10 @@ export function normalizeBudgetItems(items: BudgetItem[], totalBudget: number): 
     ];
   }
 
-  const currentTotal = items.reduce((sum, item) => sum + Math.max(0, Number(item.allocatedAmount) || 0), 0);
+  const currentTotal = items.reduce(
+    (sum, item) => sum + Math.max(0, Number(item.allocatedAmount) || 0),
+    0
+  );
 
   if (currentTotal === 0) {
     const count = items.length;
@@ -274,7 +280,13 @@ export function calculateGuestStats(guests: GuestItem[]): {
 
     if (guest.dietaryRestrictions && guest.dietaryRestrictions.trim() !== '') {
       const diet = guest.dietaryRestrictions.trim().toLowerCase();
-      if (diet !== 'none' && diet !== 'no' && diet !== 'n/a' && diet !== 'standard' && diet !== 'nil') {
+      if (
+        diet !== 'none' &&
+        diet !== 'no' &&
+        diet !== 'n/a' &&
+        diet !== 'standard' &&
+        diet !== 'nil'
+      ) {
         dietaryCounts[diet] = (dietaryCounts[diet] || 0) + 1;
       }
     }

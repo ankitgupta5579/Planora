@@ -70,11 +70,7 @@ const SEVERITY_CONFIG: Record<
   },
 };
 
-export const PlannerInsights: React.FC<PlannerInsightsProps> = ({
-  plan,
-  onNavigateTab,
-  today,
-}) => {
+export const PlannerInsights: React.FC<PlannerInsightsProps> = ({ plan, onNavigateTab, today }) => {
   const insights = generatePlannerInsights(plan, today);
 
   if (insights.length === 0) {
@@ -108,7 +104,7 @@ export const PlannerInsights: React.FC<PlannerInsightsProps> = ({
         </span>
       </div>
 
-      <ul className="space-y-3" role="list">
+      <ul className="space-y-3">
         {insights.map((insight: PlannerInsight) => {
           const config = SEVERITY_CONFIG[insight.severity];
           const Icon = config.icon;
@@ -129,13 +125,9 @@ export const PlannerInsights: React.FC<PlannerInsightsProps> = ({
                     >
                       {config.badgeLabel}
                     </span>
-                    <h3 className="text-sm font-semibold text-slate-100">
-                      {insight.title}
-                    </h3>
+                    <h3 className="text-sm font-semibold text-slate-100">{insight.title}</h3>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {insight.message}
-                  </p>
+                  <p className="text-xs text-slate-300 leading-relaxed">{insight.message}</p>
                 </div>
               </div>
 

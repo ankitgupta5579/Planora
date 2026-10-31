@@ -152,9 +152,7 @@ export function parseCsvGuestList(
   const seenEmails = new Set<string>(
     existingGuests.filter((g) => g.email).map((g) => g.email!.toLowerCase().trim())
   );
-  const seenNames = new Set<string>(
-    existingGuests.map((g) => g.name.toLowerCase().trim())
-  );
+  const seenNames = new Set<string>(existingGuests.map((g) => g.name.toLowerCase().trim()));
 
   for (let lineIdx = 1; lineIdx < lines.length; lineIdx++) {
     const rawLine = lines[lineIdx];
@@ -209,7 +207,8 @@ export function parseCsvGuestList(
 
     const rawGroup = headerMap['group'] !== undefined ? fields[headerMap['group']] : undefined;
     const rawRsvp = headerMap['rsvp'] !== undefined ? fields[headerMap['rsvp']] : undefined;
-    const rawPlusOnes = headerMap['plusOnes'] !== undefined ? fields[headerMap['plusOnes']] : undefined;
+    const rawPlusOnes =
+      headerMap['plusOnes'] !== undefined ? fields[headerMap['plusOnes']] : undefined;
     const rawDietary = headerMap['dietary'] !== undefined ? fields[headerMap['dietary']] : '';
     const rawTable = headerMap['table'] !== undefined ? fields[headerMap['table']] : '';
 

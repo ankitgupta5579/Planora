@@ -1,19 +1,31 @@
 export type EventType = 'wedding' | 'birthday' | 'community' | 'corporate' | 'anniversary';
 
-export type EventVibe = 
-  | 'elegant' 
-  | 'rustic' 
-  | 'modern' 
-  | 'bohemian' 
-  | 'festive' 
-  | 'casual' 
-  | 'futuristic' 
-  | 'vintage' 
+export type EventVibe =
+  | 'elegant'
+  | 'rustic'
+  | 'modern'
+  | 'bohemian'
+  | 'festive'
+  | 'casual'
+  | 'futuristic'
+  | 'vintage'
   | 'cozy';
 
 export interface BudgetItem {
   id: string;
-  category: 'venue' | 'catering' | 'decor' | 'photography' | 'entertainment' | 'attire' | 'favors' | 'logistics' | 'marketing' | 'permits' | 'contingency' | 'other';
+  category:
+    | 'venue'
+    | 'catering'
+    | 'decor'
+    | 'photography'
+    | 'entertainment'
+    | 'attire'
+    | 'favors'
+    | 'logistics'
+    | 'marketing'
+    | 'permits'
+    | 'contingency'
+    | 'other';
   title: string;
   allocatedAmount: number;
   actualAmount: number;
@@ -49,7 +61,8 @@ export interface VendorItem {
 export interface PersonalizedIdea {
   id: string;
   title: string;
-  category: 'theme_decor' | 'food_beverage' | 'entertainment' | 'guest_experience' | 'sustainable_tip';
+  category:
+    'theme_decor' | 'food_beverage' | 'entertainment' | 'guest_experience' | 'sustainable_tip';
   description: string;
   tags: string[];
 }

@@ -15,9 +15,30 @@ import { BudgetItem, TimelineItem, VendorItem, GuestItem } from '../types/event'
 
 test('calculateBudgetMetrics correctly computes totals, balances, and percentages', () => {
   const items: BudgetItem[] = [
-    { id: '1', category: 'venue', title: 'Main Hall', allocatedAmount: 5000, actualAmount: 4800, isPaid: true },
-    { id: '2', category: 'catering', title: 'Buffet Dinner', allocatedAmount: 3000, actualAmount: 3200, isPaid: false },
-    { id: '3', category: 'decor', title: 'Floral Arrangements', allocatedAmount: 1000, actualAmount: 800, isPaid: true },
+    {
+      id: '1',
+      category: 'venue',
+      title: 'Main Hall',
+      allocatedAmount: 5000,
+      actualAmount: 4800,
+      isPaid: true,
+    },
+    {
+      id: '2',
+      category: 'catering',
+      title: 'Buffet Dinner',
+      allocatedAmount: 3000,
+      actualAmount: 3200,
+      isPaid: false,
+    },
+    {
+      id: '3',
+      category: 'decor',
+      title: 'Floral Arrangements',
+      allocatedAmount: 1000,
+      actualAmount: 800,
+      isPaid: true,
+    },
   ];
   const totalBudget = 10000;
   const metrics = calculateBudgetMetrics(items, totalBudget);
@@ -36,7 +57,14 @@ test('calculateBudgetMetrics correctly computes totals, balances, and percentage
 
 test('calculateBudgetMetrics flags over budget when expenses exceed total cap', () => {
   const items: BudgetItem[] = [
-    { id: '1', category: 'venue', title: 'Resort', allocatedAmount: 6000, actualAmount: 6500, isPaid: true },
+    {
+      id: '1',
+      category: 'venue',
+      title: 'Resort',
+      allocatedAmount: 6000,
+      actualAmount: 6500,
+      isPaid: true,
+    },
   ];
   const totalBudget = 5000;
   const metrics = calculateBudgetMetrics(items, totalBudget);
@@ -48,8 +76,22 @@ test('calculateBudgetMetrics flags over budget when expenses exceed total cap', 
 
 test('rebalanceBudgetItems proportionally fits items into new target budget', () => {
   const items: BudgetItem[] = [
-    { id: '1', category: 'venue', title: 'Hall', allocatedAmount: 4000, actualAmount: 0, isPaid: false },
-    { id: '2', category: 'catering', title: 'Food', allocatedAmount: 6000, actualAmount: 0, isPaid: false },
+    {
+      id: '1',
+      category: 'venue',
+      title: 'Hall',
+      allocatedAmount: 4000,
+      actualAmount: 0,
+      isPaid: false,
+    },
+    {
+      id: '2',
+      category: 'catering',
+      title: 'Food',
+      allocatedAmount: 6000,
+      actualAmount: 0,
+      isPaid: false,
+    },
   ]; // Total 10,000
   const newBudget = 5000; // Half
   const rebalanced = rebalanceBudgetItems(items, newBudget);
@@ -117,11 +159,46 @@ test('calculateVendorFinancials aggregates quotes, deposits, and balances', () =
 
 test('calculateGuestStats accurately tabulates headcount with plus-ones and dietary preferences', () => {
   const guests: GuestItem[] = [
-    { id: 'g1', name: 'Alice', rsvpStatus: 'attending', plusOnes: 1, dietaryRestrictions: 'Vegetarian', group: 'friends' },
-    { id: 'g2', name: 'Bob', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'Vegan', group: 'family' },
-    { id: 'g3', name: 'Charlie', rsvpStatus: 'declined', plusOnes: 2, dietaryRestrictions: 'Gluten-Free', group: 'colleagues' },
-    { id: 'g4', name: 'Dana', rsvpStatus: 'pending', plusOnes: 0, dietaryRestrictions: 'vegetarian', group: 'friends' },
-    { id: 'g5', name: 'Evan', rsvpStatus: 'attending', plusOnes: 0, dietaryRestrictions: 'None', group: 'friends' },
+    {
+      id: 'g1',
+      name: 'Alice',
+      rsvpStatus: 'attending',
+      plusOnes: 1,
+      dietaryRestrictions: 'Vegetarian',
+      group: 'friends',
+    },
+    {
+      id: 'g2',
+      name: 'Bob',
+      rsvpStatus: 'attending',
+      plusOnes: 0,
+      dietaryRestrictions: 'Vegan',
+      group: 'family',
+    },
+    {
+      id: 'g3',
+      name: 'Charlie',
+      rsvpStatus: 'declined',
+      plusOnes: 2,
+      dietaryRestrictions: 'Gluten-Free',
+      group: 'colleagues',
+    },
+    {
+      id: 'g4',
+      name: 'Dana',
+      rsvpStatus: 'pending',
+      plusOnes: 0,
+      dietaryRestrictions: 'vegetarian',
+      group: 'friends',
+    },
+    {
+      id: 'g5',
+      name: 'Evan',
+      rsvpStatus: 'attending',
+      plusOnes: 0,
+      dietaryRestrictions: 'None',
+      group: 'friends',
+    },
   ];
   const stats = calculateGuestStats(guests);
 
@@ -208,7 +285,14 @@ test('calculateUncommittedCash: zero, partial and overcommitted vendor balance c
   const eventZero = {
     totalBudget: 10000,
     budgetItems: [
-      { id: '1', category: 'venue' as const, title: 'Hall', allocatedAmount: 4000, actualAmount: 4000, isPaid: true },
+      {
+        id: '1',
+        category: 'venue' as const,
+        title: 'Hall',
+        allocatedAmount: 4000,
+        actualAmount: 4000,
+        isPaid: true,
+      },
     ],
     vendors: [
       {
@@ -229,22 +313,126 @@ test('calculateUncommittedCash: zero, partial and overcommitted vendor balance c
   const eventPartial = {
     totalBudget: 28000,
     budgetItems: [
-      { id: 'b1', category: 'venue' as const, title: 'Pavilion', allocatedAmount: 7500, actualAmount: 7500, isPaid: true },
-      { id: 'b2', category: 'catering' as const, title: 'Catering', allocatedAmount: 8500, actualAmount: 4250, isPaid: false },
-      { id: 'b3', category: 'photography' as const, title: 'Photo', allocatedAmount: 3400, actualAmount: 3400, isPaid: true },
-      { id: 'b4', category: 'decor' as const, title: 'Decor', allocatedAmount: 2800, actualAmount: 1400, isPaid: false },
-      { id: 'b5', category: 'entertainment' as const, title: 'Music', allocatedAmount: 2200, actualAmount: 1100, isPaid: false },
-      { id: 'b6', category: 'favors' as const, title: 'Favors', allocatedAmount: 600, actualAmount: 550, isPaid: true },
-      { id: 'b7', category: 'logistics' as const, title: 'Shuttles', allocatedAmount: 1000, actualAmount: 0, isPaid: false },
-      { id: 'b8', category: 'contingency' as const, title: 'Emergency', allocatedAmount: 2000, actualAmount: 300, isPaid: false },
+      {
+        id: 'b1',
+        category: 'venue' as const,
+        title: 'Pavilion',
+        allocatedAmount: 7500,
+        actualAmount: 7500,
+        isPaid: true,
+      },
+      {
+        id: 'b2',
+        category: 'catering' as const,
+        title: 'Catering',
+        allocatedAmount: 8500,
+        actualAmount: 4250,
+        isPaid: false,
+      },
+      {
+        id: 'b3',
+        category: 'photography' as const,
+        title: 'Photo',
+        allocatedAmount: 3400,
+        actualAmount: 3400,
+        isPaid: true,
+      },
+      {
+        id: 'b4',
+        category: 'decor' as const,
+        title: 'Decor',
+        allocatedAmount: 2800,
+        actualAmount: 1400,
+        isPaid: false,
+      },
+      {
+        id: 'b5',
+        category: 'entertainment' as const,
+        title: 'Music',
+        allocatedAmount: 2200,
+        actualAmount: 1100,
+        isPaid: false,
+      },
+      {
+        id: 'b6',
+        category: 'favors' as const,
+        title: 'Favors',
+        allocatedAmount: 600,
+        actualAmount: 550,
+        isPaid: true,
+      },
+      {
+        id: 'b7',
+        category: 'logistics' as const,
+        title: 'Shuttles',
+        allocatedAmount: 1000,
+        actualAmount: 0,
+        isPaid: false,
+      },
+      {
+        id: 'b8',
+        category: 'contingency' as const,
+        title: 'Emergency',
+        allocatedAmount: 2000,
+        actualAmount: 300,
+        isPaid: false,
+      },
     ],
     vendors: [
-      { id: 'v1', category: 'Venue', name: 'Pavilion', quoteAmount: 7500, depositPaid: 7500, status: 'contract_signed' as const, checklist: [] },
-      { id: 'v2', category: 'Catering', name: 'Catering', quoteAmount: 8500, depositPaid: 4250, status: 'booked' as const, checklist: [] },
-      { id: 'v3', category: 'Photo', name: 'Photo', quoteAmount: 3400, depositPaid: 3400, status: 'contract_signed' as const, checklist: [] },
-      { id: 'v4', category: 'Florist', name: 'Florist', quoteAmount: 2800, depositPaid: 1400, status: 'booked' as const, checklist: [] },
-      { id: 'v5', category: 'DJ', name: 'DJ', quoteAmount: 2200, depositPaid: 1100, status: 'booked' as const, checklist: [] },
-      { id: 'v6', category: 'Transit', name: 'Shuttles', quoteAmount: 1000, depositPaid: 0, status: 'contacted' as const, checklist: [] },
+      {
+        id: 'v1',
+        category: 'Venue',
+        name: 'Pavilion',
+        quoteAmount: 7500,
+        depositPaid: 7500,
+        status: 'contract_signed' as const,
+        checklist: [],
+      },
+      {
+        id: 'v2',
+        category: 'Catering',
+        name: 'Catering',
+        quoteAmount: 8500,
+        depositPaid: 4250,
+        status: 'booked' as const,
+        checklist: [],
+      },
+      {
+        id: 'v3',
+        category: 'Photo',
+        name: 'Photo',
+        quoteAmount: 3400,
+        depositPaid: 3400,
+        status: 'contract_signed' as const,
+        checklist: [],
+      },
+      {
+        id: 'v4',
+        category: 'Florist',
+        name: 'Florist',
+        quoteAmount: 2800,
+        depositPaid: 1400,
+        status: 'booked' as const,
+        checklist: [],
+      },
+      {
+        id: 'v5',
+        category: 'DJ',
+        name: 'DJ',
+        quoteAmount: 2200,
+        depositPaid: 1100,
+        status: 'booked' as const,
+        checklist: [],
+      },
+      {
+        id: 'v6',
+        category: 'Transit',
+        name: 'Shuttles',
+        quoteAmount: 1000,
+        depositPaid: 0,
+        status: 'contacted' as const,
+        checklist: [],
+      },
     ],
   };
   // totalSpent = 18500, outstanding = 7750, uncommitted = 28000 - 18500 - 7750 = 1750
@@ -255,10 +443,25 @@ test('calculateUncommittedCash: zero, partial and overcommitted vendor balance c
   const eventOver = {
     totalBudget: 20000,
     budgetItems: [
-      { id: '1', category: 'venue' as const, title: 'Hall', allocatedAmount: 10000, actualAmount: 14000, isPaid: false },
+      {
+        id: '1',
+        category: 'venue' as const,
+        title: 'Hall',
+        allocatedAmount: 10000,
+        actualAmount: 14000,
+        isPaid: false,
+      },
     ],
     vendors: [
-      { id: 'v1', category: 'Venue', name: 'Hall', quoteAmount: 14000, depositPaid: 5000, status: 'booked' as const, checklist: [] },
+      {
+        id: 'v1',
+        category: 'Venue',
+        name: 'Hall',
+        quoteAmount: 14000,
+        depositPaid: 5000,
+        status: 'booked' as const,
+        checklist: [],
+      },
     ],
   };
   // totalSpent = 14000, outstanding = 9000, uncommitted = 20000 - 14000 - 9000 = -3000

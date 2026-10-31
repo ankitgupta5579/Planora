@@ -39,7 +39,10 @@ const SEVERITY_ORDER: Record<PlannerInsightSeverity, number> = {
   success: 3,
 };
 
-export function generatePlannerInsights(event: EventPlan, today: Date = new Date()): PlannerInsight[] {
+export function generatePlannerInsights(
+  event: EventPlan,
+  today: Date = new Date()
+): PlannerInsight[] {
   const insights: PlannerInsight[] = [];
   const daysRemaining = calculateDaysRemaining(event.date, today);
   const currency = event.currency || '$';
@@ -92,7 +95,8 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
       id: 'insight-day-of-celebration',
       severity: 'success',
       title: 'Today is Celebration Day!',
-      message: 'All preparations converge today. Confirm vendor arrivals and guide your guests through a memorable experience.',
+      message:
+        'All preparations converge today. Confirm vendor arrivals and guide your guests through a memorable experience.',
       action: { label: 'Day-Of Schedule', tab: 'timeline' },
     });
 
@@ -167,8 +171,13 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
   // 3c. Contingency Drawdown Check
   const contingencyItem = (event.budgetItems || []).find((b) => b.category === 'contingency');
   if (contingencyItem && contingencyItem.allocatedAmount > 0) {
-    const drawdownPct = Math.round((contingencyItem.actualAmount / contingencyItem.allocatedAmount) * 100);
-    if (drawdownPct >= CONTINGENCY_DRAWDOWN_THRESHOLD_PCT && daysRemaining >= CONTINGENCY_WARNING_DAYS_AHEAD) {
+    const drawdownPct = Math.round(
+      (contingencyItem.actualAmount / contingencyItem.allocatedAmount) * 100
+    );
+    if (
+      drawdownPct >= CONTINGENCY_DRAWDOWN_THRESHOLD_PCT &&
+      daysRemaining >= CONTINGENCY_WARNING_DAYS_AHEAD
+    ) {
       insights.push({
         id: 'insight-contingency-drawdown',
         severity: 'warning',
@@ -253,7 +262,10 @@ export function generatePlannerInsights(event: EventPlan, today: Date = new Date
       (v) => v.status === 'researching' || v.status === 'contacted'
     );
     if (unbooked.length > 0) {
-      const names = unbooked.map((v) => v.name).slice(0, 3).join(', ');
+      const names = unbooked
+        .map((v) => v.name)
+        .slice(0, 3)
+        .join(', ');
       insights.push({
         id: 'insight-unbooked-vendors',
         severity: 'warning',

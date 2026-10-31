@@ -47,12 +47,18 @@ export function useFocusTrap(isOpen: boolean, onClose: () => void) {
         const last = focusables[focusables.length - 1];
 
         if (e.shiftKey) {
-          if (document.activeElement === first || !containerRef.current.contains(document.activeElement)) {
+          if (
+            document.activeElement === first ||
+            !containerRef.current.contains(document.activeElement)
+          ) {
             e.preventDefault();
             last.focus();
           }
         } else {
-          if (document.activeElement === last || !containerRef.current.contains(document.activeElement)) {
+          if (
+            document.activeElement === last ||
+            !containerRef.current.contains(document.activeElement)
+          ) {
             e.preventDefault();
             first.focus();
           }

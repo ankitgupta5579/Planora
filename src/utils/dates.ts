@@ -72,13 +72,19 @@ export function calculateDaysRemaining(targetDate: string, fromDate: Date = new 
     fromDate.getFullYear(),
     fromDate.getMonth(),
     fromDate.getDate(),
-    0, 0, 0, 0
+    0,
+    0,
+    0,
+    0
   );
   const targetMidnight = new Date(
     target.getFullYear(),
     target.getMonth(),
     target.getDate(),
-    0, 0, 0, 0
+    0,
+    0,
+    0,
+    0
   );
 
   const msPerDay = 86400000;

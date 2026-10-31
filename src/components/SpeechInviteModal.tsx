@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { EventPlan } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
-import { 
-  Sparkles, 
-  Copy, 
-  Check, 
-  Mic, 
-  Send 
-} from 'lucide-react';
+import { Sparkles, Copy, Check, Mic, Send } from 'lucide-react';
 
 interface SpeechInviteModalProps {
   isOpen: boolean;
@@ -15,11 +9,7 @@ interface SpeechInviteModalProps {
   plan: EventPlan;
 }
 
-export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
-  isOpen,
-  onClose,
-  plan,
-}) => {
+export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({ isOpen, onClose, plan }) => {
   const [activeType, setActiveType] = useState<'invitation' | 'speech'>('invitation');
   const [tone, setTone] = useState('heartfelt');
   const [recipient, setRecipient] = useState('Family and Cherished Friends');
@@ -103,7 +93,11 @@ export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
         </div>
 
         {/* Mode Selector */}
-        <div role="tablist" aria-label="Content Mode" className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-800 text-xs font-semibold">
+        <div
+          role="tablist"
+          aria-label="Content Mode"
+          className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-800 text-xs font-semibold"
+        >
           <button
             type="button"
             role="tab"
@@ -162,14 +156,21 @@ export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="speech-recipient-input" className="block text-slate-200 font-medium mb-1">
+            <label
+              htmlFor="speech-recipient-input"
+              className="block text-slate-200 font-medium mb-1"
+            >
               {activeType === 'invitation' ? 'Recipient / Audience' : 'Speaker / Role'}
             </label>
             <input
               id="speech-recipient-input"
               type="text"
               maxLength={100}
-              placeholder={activeType === 'invitation' ? 'e.g. Friends & Family' : 'e.g. Host, Maid of Honor, Best Man'}
+              placeholder={
+                activeType === 'invitation'
+                  ? 'e.g. Friends & Family'
+                  : 'e.g. Host, Maid of Honor, Best Man'
+              }
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
               className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -178,7 +179,10 @@ export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
         </div>
 
         <div>
-          <label htmlFor="speech-details-textarea" className="block text-slate-200 font-medium text-xs mb-1">
+          <label
+            htmlFor="speech-details-textarea"
+            className="block text-slate-200 font-medium text-xs mb-1"
+          >
             Personal Details & Inside Stories to Weave In
           </label>
           <textarea
@@ -202,7 +206,11 @@ export const SpeechInviteModal: React.FC<SpeechInviteModalProps> = ({
           className="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-500 hover:to-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-pink-600/20 transition disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <Sparkles className={`w-4 h-4 text-yellow-300 ${isGenerating ? 'animate-spin' : ''}`} />
-          <span>{isGenerating ? 'Crafting with Planora AI...' : `Generate ${activeType === 'invitation' ? 'Invitation' : 'Speech'}`}</span>
+          <span>
+            {isGenerating
+              ? 'Crafting with Planora AI...'
+              : `Generate ${activeType === 'invitation' ? 'Invitation' : 'Speech'}`}
+          </span>
         </button>
 
         {/* Output Area */}

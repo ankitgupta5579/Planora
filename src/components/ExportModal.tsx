@@ -2,13 +2,7 @@ import React, { useState } from 'react';
 import { EventPlan } from '../types/event';
 import { exportPlanAsJson, exportPlanAsMarkdown } from '../utils/storage';
 import { useFocusTrap } from '../utils/useFocusTrap';
-import { 
-  Copy, 
-  Check, 
-  Printer, 
-  FileCode, 
-  X 
-} from 'lucide-react';
+import { Copy, Check, Printer, FileCode, X } from 'lucide-react';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -85,7 +79,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, plan 
             className="p-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left transition cursor-pointer flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
             <div className="p-2.5 rounded-lg bg-pink-500/20 text-pink-400 group-hover:scale-105 transition">
-              {copiedMd ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
+              {copiedMd ? (
+                <Check className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
             </div>
             <div>
               <div className="text-xs font-bold text-white">
@@ -112,7 +110,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, plan 
 
         {/* Markdown Preview */}
         <div className="flex-1 overflow-y-auto space-y-2">
-          <label htmlFor="markdown-export-preview" className="block text-xs font-semibold text-slate-200 uppercase tracking-wider">
+          <label
+            htmlFor="markdown-export-preview"
+            className="block text-xs font-semibold text-slate-200 uppercase tracking-wider"
+          >
             Markdown Document Preview
           </label>
           <textarea

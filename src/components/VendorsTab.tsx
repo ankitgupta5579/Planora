@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import { EventPlan, VendorItem } from '../types/event';
 import { calculateVendorFinancials } from '../utils/eventCalculators';
 import { useFocusTrap } from '../utils/useFocusTrap';
-import { 
-  Phone, 
-  Mail, 
-  CheckSquare, 
-  Square, 
-  Plus, 
-  Sparkles, 
-  Trash2, 
-  Copy, 
-  Check, 
-  Send, 
+import {
+  Phone,
+  Mail,
+  CheckSquare,
+  Square,
+  Plus,
+  Sparkles,
+  Trash2,
+  Copy,
+  Check,
+  Send,
   X,
-  RefreshCw 
+  RefreshCw,
 } from 'lucide-react';
 
 interface VendorsTabProps {
@@ -46,7 +46,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
   const [formChecklistRaw, setFormChecklistRaw] = useState('');
 
   const vendorModalRef = useFocusTrap(showAddModal, () => setShowAddModal(false));
-  const inquiryModalRef = useFocusTrap(Boolean(inquiryModalVendor), () => setInquiryModalVendor(null));
+  const inquiryModalRef = useFocusTrap(Boolean(inquiryModalVendor), () =>
+    setInquiryModalVendor(null)
+  );
 
   const financials = calculateVendorFinancials(plan.vendors);
 
@@ -89,9 +91,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
   };
 
   const handleUpdateStatus = (vendorId: string, newStatus: VendorItem['status']) => {
-    const updated = plan.vendors.map((v) =>
-      v.id === vendorId ? { ...v, status: newStatus } : v
-    );
+    const updated = plan.vendors.map((v) => (v.id === vendorId ? { ...v, status: newStatus } : v));
     onUpdatePlan({ ...plan, vendors: updated, updatedAt: new Date().toISOString() });
   };
 
@@ -111,7 +111,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
     setFormDeposit('');
     setFormStatus('researching');
     setFormNotes('');
-    setFormChecklistRaw('Review package quote\nSchedule initial consultation\nConfirm date availability');
+    setFormChecklistRaw(
+      'Review package quote\nSchedule initial consultation\nConfirm date availability'
+    );
     setShowAddModal(true);
   };
 
@@ -172,7 +174,11 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
         notes: formNotes.trim(),
         checklist,
       };
-      onUpdatePlan({ ...plan, vendors: [...plan.vendors, newVendor], updatedAt: new Date().toISOString() });
+      onUpdatePlan({
+        ...plan,
+        vendors: [...plan.vendors, newVendor],
+        updatedAt: new Date().toISOString(),
+      });
     }
 
     setShowAddModal(false);
@@ -192,7 +198,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
       const data = await res.json();
       setInquiryEmailText(data.email || 'Error generating email.');
     } catch {
-      setInquiryEmailText(`Subject: Inquiry regarding ${vendor.category} services for ${plan.title}\n\nHi ${vendor.name},\nWe would love to discuss availability for our event on ${plan.date}!`);
+      setInquiryEmailText(
+        `Subject: Inquiry regarding ${vendor.category} services for ${plan.title}\n\nHi ${vendor.name},\nWe would love to discuss availability for our event on ${plan.date}!`
+      );
     } finally {
       setIsGeneratingEmail(false);
     }
@@ -218,11 +226,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
             Total Vendor Quotes
           </div>
           <div className="text-2xl font-bold text-white">
-            {plan.currency}{financials.totalQuotes.toLocaleString()}
+            {plan.currency}
+            {financials.totalQuotes.toLocaleString()}
           </div>
-          <div className="text-xs text-slate-400 mt-1">
-            {financials.totalCount} vendors tracked
-          </div>
+          <div className="text-xs text-slate-400 mt-1">{financials.totalCount} vendors tracked</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
@@ -230,7 +237,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
             Deposits Paid
           </div>
           <div className="text-2xl font-bold text-emerald-400">
-            {plan.currency}{financials.totalDepositsPaid.toLocaleString()}
+            {plan.currency}
+            {financials.totalDepositsPaid.toLocaleString()}
           </div>
           <div className="text-xs text-slate-400 mt-1">Secured with contracts</div>
         </div>
@@ -240,7 +248,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
             Outstanding Balance
           </div>
           <div className="text-2xl font-bold text-amber-400">
-            {plan.currency}{financials.totalRemainingBalance.toLocaleString()}
+            {plan.currency}
+            {financials.totalRemainingBalance.toLocaleString()}
           </div>
           <div className="text-xs text-slate-400 mt-1">Due before or day-of</div>
         </div>
@@ -258,7 +267,11 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
 
       {/* Control Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div role="radiogroup" aria-label="Filter vendors by status" className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+        <div
+          role="radiogroup"
+          aria-label="Filter vendors by status"
+          className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin"
+        >
           <button
             onClick={() => setSelectedStatus('all')}
             role="radio"
@@ -334,7 +347,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                     <select
                       id={`vendor-status-${vendor.id}`}
                       value={vendor.status}
-                      onChange={(e) => handleUpdateStatus(vendor.id, e.target.value as VendorItem['status'])}
+                      onChange={(e) =>
+                        handleUpdateStatus(vendor.id, e.target.value as VendorItem['status'])
+                      }
                       className={`text-xs font-semibold px-2.5 py-1 rounded-lg border focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer transition ${getStatusSelectStyle(
                         vendor.status
                       )}`}
@@ -379,19 +394,22 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   <div>
                     <span className="text-xs text-slate-300 uppercase">Quote</span>
                     <div className="font-semibold text-slate-100">
-                      {plan.currency}{vendor.quoteAmount.toLocaleString()}
+                      {plan.currency}
+                      {vendor.quoteAmount.toLocaleString()}
                     </div>
                   </div>
                   <div>
                     <span className="text-xs text-slate-300 uppercase">Deposit</span>
                     <div className="font-semibold text-emerald-400">
-                      {plan.currency}{vendor.depositPaid.toLocaleString()}
+                      {plan.currency}
+                      {vendor.depositPaid.toLocaleString()}
                     </div>
                   </div>
                   <div>
                     <span className="text-xs text-slate-300 uppercase">Balance</span>
                     <div className="font-semibold text-amber-400">
-                      {plan.currency}{balance.toLocaleString()}
+                      {plan.currency}
+                      {balance.toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -496,7 +514,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
             <form onSubmit={handleSaveVendor} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="vendor-category-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-category-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Category *
                   </label>
                   <input
@@ -510,7 +531,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   />
                 </div>
                 <div>
-                  <label htmlFor="vendor-name-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-name-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Company / Vendor Name *
                   </label>
                   <input
@@ -527,7 +551,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label htmlFor="vendor-contact-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-contact-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Contact Rep
                   </label>
                   <input
@@ -540,7 +567,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   />
                 </div>
                 <div>
-                  <label htmlFor="vendor-phone-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-phone-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Phone
                   </label>
                   <input
@@ -553,7 +583,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   />
                 </div>
                 <div>
-                  <label htmlFor="vendor-email-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-email-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Email
                   </label>
                   <input
@@ -569,7 +602,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label htmlFor="vendor-quote-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-quote-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Quote ({plan.currency})
                   </label>
                   <input
@@ -583,7 +619,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   />
                 </div>
                 <div>
-                  <label htmlFor="vendor-deposit-input" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-deposit-input"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Deposit Paid
                   </label>
                   <input
@@ -597,7 +636,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                   />
                 </div>
                 <div>
-                  <label htmlFor="vendor-status-modal-select" className="block text-slate-200 font-medium mb-1">
+                  <label
+                    htmlFor="vendor-status-modal-select"
+                    className="block text-slate-200 font-medium mb-1"
+                  >
                     Status
                   </label>
                   <select
@@ -607,14 +649,19 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
                     className="w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {statuses.map((s) => (
-                      <option key={s.id} value={s.id}>{s.label}</option>
+                      <option key={s.id} value={s.id}>
+                        {s.label}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="vendor-checklist-textarea" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="vendor-checklist-textarea"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Action Checklist (one item per line)
                 </label>
                 <textarea
@@ -628,7 +675,10 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
               </div>
 
               <div>
-                <label htmlFor="vendor-notes-textarea" className="block text-slate-200 font-medium mb-1">
+                <label
+                  htmlFor="vendor-notes-textarea"
+                  className="block text-slate-200 font-medium mb-1"
+                >
                   Notes & Scope Details
                 </label>
                 <textarea
@@ -702,12 +752,19 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
               <div className="space-y-4">
                 <div className="relative">
                   <div className="flex items-center justify-between mb-1.5">
-                    <label htmlFor="inquiry-email-textarea" className="block text-xs font-semibold text-slate-200">
+                    <label
+                      htmlFor="inquiry-email-textarea"
+                      className="block text-xs font-semibold text-slate-200"
+                    >
                       Email Draft Content:
                     </label>
                     <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      Complete ready-to-send draft ({inquiryEmailText ? inquiryEmailText.split(/\s+/).filter(Boolean).length : 0} words)
+                      Complete ready-to-send draft (
+                      {inquiryEmailText
+                        ? inquiryEmailText.split(/\s+/).filter(Boolean).length
+                        : 0}{' '}
+                      words)
                     </span>
                   </div>
                   <textarea
