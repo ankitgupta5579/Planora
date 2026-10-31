@@ -3,9 +3,7 @@ import { EventPlan, AiChatMessage } from '../types/event';
 import { useFocusTrap } from '../utils/useFocusTrap';
 import { getFallbackMessage, FallbackReason } from '../utils/fallbackMessages';
 import { 
-  Sparkles, 
   Send, 
-  Bot, 
   User, 
   X, 
   Lightbulb, 
@@ -49,7 +47,7 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({
     {
       id: 'welcome',
       role: 'assistant',
-      content: `Hello! I'm your dedicated Event Planning Assistant for ${plan.title}. 
+      content: `Hello! I'm your dedicated Planora AI assistant for ${plan.title}. 
 I have real-time visibility into your budget (${plan.currency}${plan.totalBudget.toLocaleString()}), timeline (${plan.timelineItems.length} tasks), and ${plan.vendors.length} vendors. 
 How can I assist your planning today?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -175,9 +173,14 @@ How can I assist your planning today?`,
         {/* Drawer Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-600/30">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
+            <img
+              src="/planora-icon.svg"
+              alt=""
+              aria-hidden="true"
+              width={36}
+              height={36}
+              className="w-9 h-9 shrink-0 rounded-xl"
+            />
             <div>
               <div id="ai-drawer-title" className="text-sm font-bold text-white flex items-center gap-2">
                 <span>AI Planning Consultant</span>
@@ -211,9 +214,14 @@ How can I assist your planning today?`,
             >
               <div className="flex items-start gap-2 max-w-[88%]">
                 {msg.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-4 h-4" />
-                  </div>
+                  <img
+                    src="/planora-icon.svg"
+                    alt=""
+                    aria-hidden="true"
+                    width={28}
+                    height={28}
+                    className="w-7 h-7 shrink-0 rounded-lg mt-0.5"
+                  />
                 )}
 
                 <div
