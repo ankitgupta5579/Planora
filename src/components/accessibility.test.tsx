@@ -20,6 +20,7 @@ import { PlannerInsights } from './PlannerInsights';
 import { CsvImportModal } from './CsvImportModal';
 import { ResetConfirmDialog } from './ResetConfirmDialog';
 import { DeleteEventConfirmDialog } from './DeleteEventConfirmDialog';
+import { shouldReduceMotion, safeConfetti } from '../utils/motion';
 
 // Setup JSDOM environment
 const dom = new JSDOM(
@@ -448,6 +449,45 @@ test('a11y dialog: DeleteEventConfirmDialog has role="alertdialog", moves focus 
     assert.equal(closed, true, 'Escape key must trigger dialog close');
 
     await checkAxe(container, 'DeleteEventConfirmDialog');
+  } finally {
+    cleanup();
+  }
+});
+
+test('a11y: reduced-motion utility suppresses motion when prefers-reduced-motion is active', () => {
+  const originalMatchMedia = dom.window.matchMedia;
+
+  try {
+    // Simulate user preferring reduced motion
+    dom.window.matchMedia = (query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    });
+
+    assert.equal(shouldReduceMotion(), true, 'Must detect prefers-reduced-motion: reduce');
+
+    // safeConfetti must execute cleanly without throwing
+    assert.doesNotThrow(() => safeConfetti({ particleCount: 50 }));
+  } finally {
+    dom.window.matchMedia = originalMatchMedia;
+  }
+});
+
+test('a11y: AiAssistantDrawer contains aria-live="polite" region for dynamic replies', async () => {
+  const { container, cleanup } = await renderComponent(
+    <AiAssistantDrawer isOpen={true} onClose={() => {}} plan={samplePlan} />
+  );
+
+  try {
+    const liveRegion = container.querySelector('[aria-live="polite"]');
+    assert.ok(liveRegion, 'Drawer must have an aria-live="polite" region for screen readers');
+    assert.equal(liveRegion?.getAttribute('aria-relevant'), 'additions text');
   } finally {
     cleanup();
   }
