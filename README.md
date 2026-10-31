@@ -9,9 +9,9 @@
 [![Test Suite](https://img.shields.io/badge/tests-137%20passed-brightgreen.svg)](#testing)
 [![WCAG 2.1 AA](https://img.shields.io/badge/accessibility-WCAG%202.1%20AA-blue.svg)](#accessibility-notes-wcag-21-aa)
 [![TypeScript](https://img.shields.io/badge/typescript-strict-informational.svg)](#code-quality)
-[![GitHub Repository](https://img.shields.io/badge/github-ankitgupta5579%2Fevent--planner-181717.svg?logo=github)](https://github.com/ankitgupta5579/event-planner)
+[![GitHub Repository](https://img.shields.io/badge/github-ankitgupta5579%2FPlanora-181717.svg?logo=github)](https://github.com/ankitgupta5579/Planora)
 
-- **Public Repository**: [https://github.com/ankitgupta5579/event-planner](https://github.com/ankitgupta5579/event-planner)
+- **Public Repository**: [https://github.com/ankitgupta5579/Planora](https://github.com/ankitgupta5579/Planora)
 - **Live Demo Port**: `http://localhost:3000` (runs locally with or without an API key)
 
 ---
