@@ -7,8 +7,12 @@ const STORAGE_KEY_VERSION = 'celebration_storage_version';
 const STORAGE_KEY_EVENTS = 'celebration_events_v5';
 const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v5';
 
+function isStorageAvailable(): boolean {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+}
+
 export function loadSavedEvents(): EventPlan[] {
-  if (typeof window === 'undefined') return SAMPLE_EVENTS;
+  if (!isStorageAvailable()) return SAMPLE_EVENTS;
   try {
     const version = localStorage.getItem(STORAGE_KEY_VERSION);
     if (version !== STORAGE_VERSION) {
@@ -34,7 +38,7 @@ export function loadSavedEvents(): EventPlan[] {
 }
 
 export function resetToSampleEvents(): EventPlan[] {
-  if (typeof window !== 'undefined') {
+  if (isStorageAvailable()) {
     localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
     localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(SAMPLE_EVENTS));
     localStorage.removeItem(STORAGE_KEY_ACTIVE_ID);
@@ -43,7 +47,7 @@ export function resetToSampleEvents(): EventPlan[] {
 }
 
 export function saveAllEvents(events: EventPlan[]): void {
-  if (typeof window === 'undefined') return;
+  if (!isStorageAvailable()) return;
   try {
     localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
     localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(events));
@@ -53,7 +57,7 @@ export function saveAllEvents(events: EventPlan[]): void {
 }
 
 export function getActiveEventId(events: EventPlan[]): string {
-  if (typeof window === 'undefined') return events[0]?.id || '';
+  if (!isStorageAvailable()) return events[0]?.id || '';
   try {
     const saved = localStorage.getItem(STORAGE_KEY_ACTIVE_ID);
     if (saved && events.some((e) => e.id === saved)) {
@@ -66,7 +70,7 @@ export function getActiveEventId(events: EventPlan[]): string {
 }
 
 export function setActiveEventId(id: string): void {
-  if (typeof window === 'undefined') return;
+  if (!isStorageAvailable()) return;
   try {
     localStorage.setItem(STORAGE_KEY_ACTIVE_ID, id);
   } catch {
