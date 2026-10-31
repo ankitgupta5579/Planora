@@ -97,9 +97,7 @@ export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
         spread: 60,
         origin: { y: 0.6 },
       });
-      setFallbackNotice(
-        'Generated fresh creative concepts using curated celebration blueprints.'
-      );
+      setFallbackNotice('Generated fresh creative concepts using curated celebration blueprints.');
     } finally {
       setIsSparkingAi(false);
       setAiStatusMessage('');

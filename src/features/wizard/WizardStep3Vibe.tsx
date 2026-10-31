@@ -42,7 +42,11 @@ export const WizardStep3Vibe: React.FC<WizardStep3VibeProps> = ({
         <div id="vibe-group-label" className="block text-slate-200 font-semibold mb-2">
           Select Aesthetic / Atmosphere *
         </div>
-        <div role="radiogroup" aria-labelledby="vibe-group-label" className="grid grid-cols-3 gap-2">
+        <div
+          role="radiogroup"
+          aria-labelledby="vibe-group-label"
+          className="grid grid-cols-3 gap-2"
+        >
           {VIBES.map((v) => {
             const isSelected = vibe === v.id;
             return (
@@ -70,7 +74,10 @@ export const WizardStep3Vibe: React.FC<WizardStep3VibeProps> = ({
       </div>
 
       <div>
-        <label htmlFor="wizard-special-requests" className="block text-slate-200 font-semibold mb-1">
+        <label
+          htmlFor="wizard-special-requests"
+          className="block text-slate-200 font-semibold mb-1"
+        >
           Special Requests, Dietary Constraints or Specific Ideas
         </label>
         <textarea

@@ -19,10 +19,22 @@ const CATEGORY_TABS: {
 }[] = [
   { id: 'all', label: 'All Concepts', icon: <Sparkles className="w-3.5 h-3.5" /> },
   { id: 'theme_decor', label: 'Theme & Decor', icon: <Palette className="w-3.5 h-3.5" /> },
-  { id: 'food_beverage', label: 'Food & Signature Drinks', icon: <Utensils className="w-3.5 h-3.5" /> },
+  {
+    id: 'food_beverage',
+    label: 'Food & Signature Drinks',
+    icon: <Utensils className="w-3.5 h-3.5" />,
+  },
   { id: 'entertainment', label: 'Entertainment & Games', icon: <Music className="w-3.5 h-3.5" /> },
-  { id: 'guest_experience', label: 'Guest Experience & Keepsakes', icon: <Heart className="w-3.5 h-3.5" /> },
-  { id: 'sustainable_tip', label: 'Eco-Friendly & Zero Waste', icon: <Leaf className="w-3.5 h-3.5" /> },
+  {
+    id: 'guest_experience',
+    label: 'Guest Experience & Keepsakes',
+    icon: <Heart className="w-3.5 h-3.5" />,
+  },
+  {
+    id: 'sustainable_tip',
+    label: 'Eco-Friendly & Zero Waste',
+    icon: <Leaf className="w-3.5 h-3.5" />,
+  },
 ];
 
 /**

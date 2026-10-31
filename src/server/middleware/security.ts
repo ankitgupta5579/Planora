@@ -72,7 +72,11 @@ export function applyErrorMiddleware(app: Express) {
     ) {
       return res.status(413).json({ error: 'Payload too large. Maximum allowed size is 50kb.' });
     }
-    if (err instanceof SyntaxError && 'status' in err && (err as { status: number }).status === 400) {
+    if (
+      err instanceof SyntaxError &&
+      'status' in err &&
+      (err as { status: number }).status === 400
+    ) {
       return res.status(400).json({ error: 'Invalid JSON payload' });
     }
     logger.error('Unhandled server error', {

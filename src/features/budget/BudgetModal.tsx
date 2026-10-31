@@ -94,7 +94,10 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="budget-category-select" className="block text-slate-200 font-medium mb-1">
+            <label
+              htmlFor="budget-category-select"
+              className="block text-slate-200 font-medium mb-1"
+            >
               Category
             </label>
             <select
@@ -132,7 +135,10 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="budget-actual-input" className="block text-slate-200 font-medium mb-1">
+              <label
+                htmlFor="budget-actual-input"
+                className="block text-slate-200 font-medium mb-1"
+              >
                 Actual Spent ({currency})
               </label>
               <input
@@ -170,7 +176,10 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
               onChange={(e) => setFormPaid(e.target.checked)}
               className="w-4 h-4 rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
             />
-            <label htmlFor="budget-paid-checkbox" className="text-slate-200 font-medium cursor-pointer">
+            <label
+              htmlFor="budget-paid-checkbox"
+              className="text-slate-200 font-medium cursor-pointer"
+            >
               Mark this expense as fully paid
             </label>
           </div>

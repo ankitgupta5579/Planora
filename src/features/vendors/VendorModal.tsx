@@ -245,7 +245,10 @@ export const VendorModal: React.FC<VendorModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="vendor-notes-textarea" className="block text-slate-200 font-medium mb-1">
+            <label
+              htmlFor="vendor-notes-textarea"
+              className="block text-slate-200 font-medium mb-1"
+            >
               Notes & Scope Details
             </label>
             <textarea

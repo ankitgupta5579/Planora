@@ -13,8 +13,16 @@ test('security: prompt injection escaper neutralizes delimiter injection', () =>
 
   for (const payload of attackPayloads) {
     const escaped = esc(payload);
-    assert.strictEqual(escaped.includes('<'), false, `Must not contain unescaped '<' for payload: ${payload}`);
-    assert.strictEqual(escaped.includes('>'), false, `Must not contain unescaped '>' for payload: ${payload}`);
+    assert.strictEqual(
+      escaped.includes('<'),
+      false,
+      `Must not contain unescaped '<' for payload: ${payload}`
+    );
+    assert.strictEqual(
+      escaped.includes('>'),
+      false,
+      `Must not contain unescaped '>' for payload: ${payload}`
+    );
     assert.strictEqual(escaped.includes('&lt;'), true, 'Must convert to &lt;');
     assert.strictEqual(escaped.includes('&gt;'), true, 'Must convert to &gt;');
   }
@@ -60,10 +68,16 @@ test('security: input validation rejects malicious, oversized, and invalid input
 });
 
 test('security: input validation prevents prototype pollution', () => {
-  const pollutedPayload = JSON.parse('{"__proto__": {"admin": true}, "title": "Test", "type": "wedding", "date": "2026-12-15", "location": "Napa", "guestCount": 100, "totalBudget": 5000}');
+  const pollutedPayload = JSON.parse(
+    '{"__proto__": {"admin": true}, "title": "Test", "type": "wedding", "date": "2026-12-15", "location": "Napa", "guestCount": 100, "totalBudget": 5000}'
+  );
   const result = validatePlanInput(pollutedPayload);
   assert.strictEqual(result.valid, true);
-  assert.strictEqual(({} as Record<string, unknown>).admin, undefined, 'Prototype pollution must not occur');
+  assert.strictEqual(
+    ({} as Record<string, unknown>).admin,
+    undefined,
+    'Prototype pollution must not occur'
+  );
 });
 
 test('security: health endpoint responds with safe status and zero secret exposure', async () => {
@@ -115,7 +129,10 @@ test('security: CORS allows verified origin and rejects untrusted origins', asyn
     const resAllowed = await fetch(`http://127.0.0.1:${port}/api/health`, {
       headers: { Origin: 'https://planora-njz8.onrender.com' },
     });
-    assert.strictEqual(resAllowed.headers.get('access-control-allow-origin'), 'https://planora-njz8.onrender.com');
+    assert.strictEqual(
+      resAllowed.headers.get('access-control-allow-origin'),
+      'https://planora-njz8.onrender.com'
+    );
 
     // OPTIONS preflight check
     const preflight = await fetch(`http://127.0.0.1:${port}/api/health`, {

@@ -13,7 +13,8 @@ export const AppFooter: React.FC<AppFooterProps> = ({ onOpenResetConfirm }) => {
     <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-400">
       <p className="font-medium text-slate-300">Planora · Plan today, celebrate tomorrow</p>
       <p className="mt-1 text-slate-400">
-        GenAI-powered planning for weddings, birthdays and community events: budgets, timelines & vendors.
+        GenAI-powered planning for weddings, birthdays and community events: budgets, timelines &
+        vendors.
       </p>
       <div className="mt-3">
         <button

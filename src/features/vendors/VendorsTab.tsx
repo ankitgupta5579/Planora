@@ -54,7 +54,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ plan, onUpdatePlan }) =>
               style={{
                 width: `${
                   vendorsState.financials.totalCount > 0
-                    ? (vendorsState.financials.bookedCount / vendorsState.financials.totalCount) * 100
+                    ? (vendorsState.financials.bookedCount / vendorsState.financials.totalCount) *
+                      100
                     : 0
                 }%`,
               }}

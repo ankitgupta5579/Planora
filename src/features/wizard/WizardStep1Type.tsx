@@ -45,7 +45,11 @@ export const WizardStep1Type: React.FC<WizardStep1TypeProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <div role="radiogroup" aria-label="Celebration Type" className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div
+        role="radiogroup"
+        aria-label="Celebration Type"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+      >
         {EVENT_TYPES.map((et) => {
           const isSelected = eventType === et.type;
           return (
@@ -62,7 +66,9 @@ export const WizardStep1Type: React.FC<WizardStep1TypeProps> = ({
               }`}
             >
               <div className="flex items-start justify-between">
-                <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">{et.icon}</div>
+                <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700">
+                  {et.icon}
+                </div>
                 {isSelected && (
                   <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center text-white">
                     <Check className="w-3.5 h-3.5" />

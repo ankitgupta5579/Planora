@@ -81,7 +81,8 @@ export const VendorInquiryModal: React.FC<VendorInquiryModalProps> = ({
                 </label>
                 <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Complete ready-to-send draft ({emailText ? emailText.split(/\s+/).filter(Boolean).length : 0} words)
+                  Complete ready-to-send draft (
+                  {emailText ? emailText.split(/\s+/).filter(Boolean).length : 0} words)
                 </span>
               </div>
               <textarea

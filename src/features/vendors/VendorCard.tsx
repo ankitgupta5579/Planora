@@ -1,13 +1,6 @@
 import React from 'react';
 import { VendorItem } from '../../types/event';
-import {
-  Phone,
-  Mail,
-  CheckSquare,
-  Square,
-  Sparkles,
-  Trash2,
-} from 'lucide-react';
+import { Phone, Mail, CheckSquare, Square, Sparkles, Trash2 } from 'lucide-react';
 
 export interface VendorCardProps {
   vendor: VendorItem;
@@ -55,7 +48,9 @@ export const VendorCard: React.FC<VendorCardProps> = ({
               <p className="text-xs text-slate-300 font-medium">Rep: {vendor.contactName}</p>
             )}
           </div>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.badgeClass}`}>
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.badgeClass}`}
+          >
             {statusInfo.label}
           </span>
         </div>
@@ -133,9 +128,7 @@ export const VendorCard: React.FC<VendorCardProps> = ({
                     ) : (
                       <Square className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-300 shrink-0 mt-0.5" />
                     )}
-                    <span className={isChecked ? 'line-through text-slate-300' : ''}>
-                      {label}
-                    </span>
+                    <span className={isChecked ? 'line-through text-slate-300' : ''}>{label}</span>
                   </button>
                 );
               })}

@@ -31,10 +31,7 @@ const FILTER_PHASES: { id: TimelineItem['phase'] | 'all'; label: string }[] = [
 /**
  * Interactive timeline and day-of schedule orchestrator tab.
  */
-export const TimelineTab: React.FC<TimelineTabProps> = ({
-  plan,
-  onUpdatePlan,
-}) => {
+export const TimelineTab: React.FC<TimelineTabProps> = ({ plan, onUpdatePlan }) => {
   const timelineState = useTimeline({ plan, onUpdatePlan });
 
   return (

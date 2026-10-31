@@ -150,7 +150,10 @@ export default function App() {
                 </span>
               </button>
 
-              <nav aria-label="Breadcrumb" className="text-xs text-slate-400 flex items-center gap-1.5 pr-1">
+              <nav
+                aria-label="Breadcrumb"
+                className="text-xs text-slate-400 flex items-center gap-1.5 pr-1"
+              >
                 <button
                   type="button"
                   onClick={() => handleNavigateTab('overview')}

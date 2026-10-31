@@ -29,11 +29,7 @@ import {
 } from '../prompts';
 import { generateHeuristicIdeas } from '../../utils/ideaGenerator';
 import { generateOfflineChatReply } from '../../utils/chatFallback';
-import {
-  GEMINI_MODEL,
-  GEMINI_TIMEOUT_MS,
-  CHAT_THINKING_LEVEL,
-} from '../config';
+import { GEMINI_MODEL, GEMINI_TIMEOUT_MS, CHAT_THINKING_LEVEL } from '../config';
 import {
   generateContentWithRetry,
   logGeminiError,

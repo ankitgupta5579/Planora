@@ -71,7 +71,10 @@ export const WizardStep2Logistics: React.FC<WizardStep2LogisticsProps> = ({
         </div>
 
         <div>
-          <label htmlFor="wizard-guest-count-input" className="block text-slate-200 font-semibold mb-1">
+          <label
+            htmlFor="wizard-guest-count-input"
+            className="block text-slate-200 font-semibold mb-1"
+          >
             Target Guest Count (1-5000) *
           </label>
           <input
@@ -106,7 +109,10 @@ export const WizardStep2Logistics: React.FC<WizardStep2LogisticsProps> = ({
 
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-1">
-          <label htmlFor="wizard-currency-select" className="block text-slate-200 font-semibold mb-1">
+          <label
+            htmlFor="wizard-currency-select"
+            className="block text-slate-200 font-semibold mb-1"
+          >
             Currency
           </label>
           <select

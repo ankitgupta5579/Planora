@@ -1,6 +1,11 @@
 import React from 'react';
 import { EventPlan } from '../../types/event';
-import { BudgetMetrics, TimelineProgress, VendorFinancials, GuestStats } from '../../utils/eventCalculators';
+import {
+  BudgetMetrics,
+  TimelineProgress,
+  VendorFinancials,
+  GuestStats,
+} from '../../utils/eventCalculators';
 import { DollarSign, CheckCircle2, TrendingUp, Users, ArrowRight } from 'lucide-react';
 
 export interface MissionControlCardsProps {

@@ -7,18 +7,18 @@ import {
   setActiveEventId,
   resetToSampleEvents,
 } from '../../utils/storage';
-import {
-  LayoutDashboard,
-  DollarSign,
-  Clock,
-  Building2,
-  Sparkles,
-  Users,
-} from 'lucide-react';
+import { LayoutDashboard, DollarSign, Clock, Building2, Sparkles, Users } from 'lucide-react';
 
 export type TabKey = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests';
 
-export const VALID_TABS: TabKey[] = ['overview', 'budget', 'timeline', 'vendors', 'ideas', 'guests'];
+export const VALID_TABS: TabKey[] = [
+  'overview',
+  'budget',
+  'timeline',
+  'vendors',
+  'ideas',
+  'guests',
+];
 
 export function getTabFromHash(): TabKey {
   if (typeof window === 'undefined') return 'overview';

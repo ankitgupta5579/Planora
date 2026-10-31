@@ -54,7 +54,10 @@ export const AiAssistantDrawer: React.FC<AiAssistantDrawerProps> = ({ isOpen, on
               className="w-9 h-9 shrink-0 rounded-xl"
             />
             <div>
-              <div id="ai-drawer-title" className="text-sm font-bold text-white flex items-center gap-2">
+              <div
+                id="ai-drawer-title"
+                className="text-sm font-bold text-white flex items-center gap-2"
+              >
                 <span>AI Planning Consultant</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>

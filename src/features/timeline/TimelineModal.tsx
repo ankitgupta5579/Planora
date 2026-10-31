@@ -73,7 +73,10 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
 
         <form onSubmit={onSubmit} className="space-y-4 text-xs">
           <div>
-            <label htmlFor="timeline-phase-select" className="block text-slate-200 font-medium mb-1">
+            <label
+              htmlFor="timeline-phase-select"
+              className="block text-slate-200 font-medium mb-1"
+            >
               Planning Phase
             </label>
             <select
@@ -107,7 +110,10 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="timeline-time-input" className="block text-slate-200 font-medium mb-1">
+              <label
+                htmlFor="timeline-time-input"
+                className="block text-slate-200 font-medium mb-1"
+              >
                 Time / Date Label
               </label>
               <input
@@ -121,7 +127,10 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
             </div>
 
             <div>
-              <label htmlFor="timeline-assignee-input" className="block text-slate-200 font-medium mb-1">
+              <label
+                htmlFor="timeline-assignee-input"
+                className="block text-slate-200 font-medium mb-1"
+              >
                 Assigned Lead
               </label>
               <input
@@ -136,7 +145,10 @@ export const TimelineModal: React.FC<TimelineModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="timeline-desc-textarea" className="block text-slate-200 font-medium mb-1">
+            <label
+              htmlFor="timeline-desc-textarea"
+              className="block text-slate-200 font-medium mb-1"
+            >
               Description & Specifics
             </label>
             <textarea

@@ -28,7 +28,10 @@ export const BudgetCategoryBreakdown: React.FC<BudgetCategoryBreakdownProps> = (
           const percentage = totalBudget > 0 ? Math.round((amount / totalBudget) * 100) : 0;
 
           return (
-            <div key={cat} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-2">
+            <div
+              key={cat}
+              className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-2"
+            >
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-200 capitalize">{cat}</span>
                 <span className="text-slate-400 font-medium">

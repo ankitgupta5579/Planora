@@ -1,6 +1,15 @@
 import React from 'react';
 import { EventPlan } from '../../types/event';
-import { Calendar, MapPin, Users, DollarSign, Clock, Sparkles, FileText, Trash2 } from 'lucide-react';
+import {
+  Calendar,
+  MapPin,
+  Users,
+  DollarSign,
+  Clock,
+  Sparkles,
+  FileText,
+  Trash2,
+} from 'lucide-react';
 
 export interface OverviewHeroProps {
   plan: EventPlan;

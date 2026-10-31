@@ -10,11 +10,23 @@ export interface TimelineItemCardProps {
 }
 
 const PHASE_BADGES: Record<TimelineItem['phase'], { label: string; badgeClass: string }> = {
-  planning_early: { label: 'Months Out', badgeClass: 'bg-blue-500/10 text-blue-300 border-blue-500/20' },
-  planning_mid: { label: 'Weeks Out', badgeClass: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20' },
-  planning_final: { label: 'Final Month', badgeClass: 'bg-purple-500/10 text-purple-300 border-purple-500/20' },
+  planning_early: {
+    label: 'Months Out',
+    badgeClass: 'bg-blue-500/10 text-blue-300 border-blue-500/20',
+  },
+  planning_mid: {
+    label: 'Weeks Out',
+    badgeClass: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
+  },
+  planning_final: {
+    label: 'Final Month',
+    badgeClass: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
+  },
   week_of: { label: 'Week Of', badgeClass: 'bg-amber-500/10 text-amber-300 border-amber-500/20' },
-  day_of: { label: 'Day-Of', badgeClass: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' },
+  day_of: {
+    label: 'Day-Of',
+    badgeClass: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+  },
 };
 
 /**
