@@ -1,18 +1,41 @@
 import { BudgetItem, TimelineItem, VendorItem, GuestItem } from '../types/event';
 
+/**
+ * Aggregated financial summary of all allocated and spent funds.
+ */
 export interface BudgetMetrics {
+  /** Maximum authorized budget cap in event currency. */
   totalBudget: number;
+  /** Total sum of all line item allocations. */
   totalAllocated: number;
+  /** Total sum of actual expenses logged or paid. */
   totalSpent: number;
+  /** Remaining unallocated budget available for new line items. */
   unallocated: number;
+  /** Liquid unspent cash remaining against total budget cap. */
   remainingCash: number;
+  /** Percentage of authorized budget spent (clamped between 0 and 100). */
   spendPercentage: number;
+  /** Percentage of authorized budget allocated (clamped between 0 and 100). */
   allocatedPercentage: number;
+  /** Flag indicating whether spent or allocated funds exceed total budget cap. */
   isOverBudget: boolean;
+  /** Breakdown aggregated by budget category. */
   categoryBreakdown: Record<string, { allocated: number; actual: number; count: number }>;
 }
 
-export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number): BudgetMetrics {
+/**
+ * Calculates deterministic budget metrics across line items.
+ *
+ * @param items - List of budget line items
+ * @param totalBudget - Total authorized event budget
+ * @returns Complete BudgetMetrics summary object
+ * @complexity O(n) where n is the number of budget items
+ */
+export function calculateBudgetMetrics(
+  items: readonly BudgetItem[],
+  totalBudget: number
+): BudgetMetrics {
   const safeTotalBudget = Math.max(0, totalBudget);
   let totalAllocated = 0;
   let totalSpent = 0;
@@ -55,8 +78,14 @@ export function calculateBudgetMetrics(items: BudgetItem[], totalBudget: number)
   };
 }
 
+/**
+ * Status indicator for item-level budget variance.
+ */
 export type BudgetItemVarianceStatus = 'balance_due' | 'under' | 'over' | 'on_target';
 
+/**
+ * Variance result evaluating individual budget line items.
+ */
 export interface BudgetItemVarianceResult {
   status: BudgetItemVarianceStatus;
   amount: number;
@@ -64,12 +93,17 @@ export interface BudgetItemVarianceResult {
 }
 
 /**
- * Evaluates the financial variance of a budget line item.
+ * Evaluates the financial variance of an individual budget line item.
+ *
+ * Logic:
  * - If actual > allocated: 'over' (Over by $X)
  * - If actual < allocated:
- *     - If item is fully paid: 'under' (Under by $X)
- *     - If item is deposit paid / partial (isPaid is false): 'balance_due' (Balance due $X)
+ *     - If item is marked fully paid: 'under' (Under by $X)
+ *     - If item is deposit/partially paid (isPaid === false): 'balance_due' (Balance due $X)
  * - If actual === allocated: 'on_target' (On target ($0))
+ *
+ * @param item - Target budget line item
+ * @returns Status, amount, and human-readable label
  */
 export function getBudgetItemVariance(item: BudgetItem): BudgetItemVarianceResult {
   const allocated = Number(item.allocatedAmount) || 0;
@@ -106,7 +140,18 @@ export function getBudgetItemVariance(item: BudgetItem): BudgetItemVarianceResul
   };
 }
 
-export function normalizeBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
+/**
+ * Normalizes and proportions budget item allocations to match total target budget.
+ * Handles rounding residuals on the final line item to ensure exact integer sum matching.
+ *
+ * @param items - Budget items to rebalance
+ * @param totalBudget - Target total budget to scale toward
+ * @returns New array of rebalanced BudgetItem copies
+ */
+export function normalizeBudgetItems(
+  items: readonly BudgetItem[],
+  totalBudget: number
+): BudgetItem[] {
   const targetBudget = Math.max(0, Math.round(totalBudget));
   if (!items || items.length === 0) {
     if (targetBudget === 0) return [];
@@ -161,10 +206,23 @@ export function normalizeBudgetItems(items: BudgetItem[], totalBudget: number): 
   });
 }
 
-export function rebalanceBudgetItems(items: BudgetItem[], totalBudget: number): BudgetItem[] {
+/**
+ * Rebalances budget items across categories proportionally.
+ *
+ * @param items - Budget items to normalize
+ * @param totalBudget - Target event budget
+ * @returns Proportional budget items
+ */
+export function rebalanceBudgetItems(
+  items: readonly BudgetItem[],
+  totalBudget: number
+): BudgetItem[] {
   return normalizeBudgetItems(items, totalBudget);
 }
 
+/**
+ * Progress tracking aggregate for schedule and milestone completion.
+ */
 export interface TimelineProgress {
   total: number;
   completed: number;
@@ -172,7 +230,13 @@ export interface TimelineProgress {
   byPhase: Record<string, { total: number; completed: number }>;
 }
 
-export function calculateTimelineProgress(items: TimelineItem[]): TimelineProgress {
+/**
+ * Computes milestone and schedule completion statistics.
+ *
+ * @param items - Event timeline items
+ * @returns Aggregated progress by phase and overall percentage
+ */
+export function calculateTimelineProgress(items: readonly TimelineItem[]): TimelineProgress {
   const total = items.length;
   if (total === 0) {
     return { total: 0, completed: 0, percentage: 0, byPhase: {} };
@@ -195,6 +259,9 @@ export function calculateTimelineProgress(items: TimelineItem[]): TimelineProgre
   return { total, completed, percentage, byPhase };
 }
 
+/**
+ * Financial metrics across contracted and prospective vendors.
+ */
 export interface VendorFinancials {
   totalQuotes: number;
   totalDepositsPaid: number;
@@ -203,7 +270,13 @@ export interface VendorFinancials {
   totalCount: number;
 }
 
-export function calculateVendorFinancials(vendors: VendorItem[]): VendorFinancials {
+/**
+ * Aggregates vendor quotes, deposits paid, and pending balances.
+ *
+ * @param vendors - Event vendor list
+ * @returns VendorFinancials breakdown
+ */
+export function calculateVendorFinancials(vendors: readonly VendorItem[]): VendorFinancials {
   let totalQuotes = 0;
   let totalDepositsPaid = 0;
   let bookedCount = 0;
@@ -229,8 +302,13 @@ export function calculateVendorFinancials(vendors: VendorItem[]): VendorFinancia
 
 /**
  * Calculates total outstanding balances owed to vendors (excluding declined vendors).
+ *
+ * @param vendors - Array of vendor items
+ * @returns Total pending balance in currency units
  */
-export function calculateOutstandingVendorBalances(vendors: VendorItem[] = []): number {
+export function calculateOutstandingVendorBalances(
+  vendors: readonly VendorItem[] = []
+): number {
   return vendors.reduce((sum, v) => {
     if (v.status === 'declined') return sum;
     const quote = Number(v.quoteAmount) || 0;
@@ -243,11 +321,14 @@ export function calculateOutstandingVendorBalances(vendors: VendorItem[] = []): 
  * Calculates uncommitted cash:
  * totalBudget - totalSpent - outstandingVendorBalances
  * Never clamped below 0 unless truly overcommitted (returns a negative number so overcommitment can be flagged).
+ *
+ * @param event - Event context with totalBudget, budgetItems, and vendors
+ * @returns Liquid uncommitted balance
  */
 export function calculateUncommittedCash(event: {
   totalBudget: number;
-  budgetItems?: BudgetItem[];
-  vendors?: VendorItem[];
+  budgetItems?: readonly BudgetItem[];
+  vendors?: readonly VendorItem[];
 }): number {
   const safeTotalBudget = Number(event.totalBudget) || 0;
   const totalSpent = (event.budgetItems || []).reduce(
@@ -258,17 +339,27 @@ export function calculateUncommittedCash(event: {
   return safeTotalBudget - totalSpent - outstandingVendorBalances;
 }
 
+/**
+ * RSVP and headcount metrics including dietary restriction breakdown.
+ */
 export interface GuestStats {
   totalInvited: number;
   totalAttending: number;
   totalDeclined: number;
   totalPending: number;
   totalPlusOnes: number;
-  totalHeadcount: number; // including plusOnes
+  totalHeadcount: number;
   dietaryCounts: Record<string, number>;
 }
 
-export function calculateGuestStats(guests: GuestItem[]): GuestStats {
+/**
+ * Computes guest attendance statistics, confirmed headcount including plus-ones,
+ * and aggregated dietary requirement tallies.
+ *
+ * @param guests - List of invited guests
+ * @returns Complete GuestStats summary
+ */
+export function calculateGuestStats(guests: readonly GuestItem[]): GuestStats {
   let totalAttending = 0;
   let totalDeclined = 0;
   let totalPending = 0;

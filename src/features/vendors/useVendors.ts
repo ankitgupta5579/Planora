@@ -1,13 +1,68 @@
-import { useState } from 'react';
-import { EventPlan, VendorItem } from '../../types/event';
-import { calculateVendorFinancials } from '../../utils/eventCalculators';
+import { useState, useMemo } from 'react';
+import { EventPlan, VendorItem, VendorStatus } from '../../types/event';
+import { calculateVendorFinancials, VendorFinancials } from '../../utils/eventCalculators';
 
+/**
+ * Props for useVendors domain hook.
+ */
 export interface UseVendorsProps {
   plan: EventPlan;
   onUpdatePlan: (updatedPlan: EventPlan) => void;
 }
 
-export function useVendors({ plan, onUpdatePlan }: UseVendorsProps) {
+/**
+ * Return contract for useVendors hook.
+ */
+export interface UseVendorsReturn {
+  selectedStatus: string;
+  setSelectedStatus: (s: string) => void;
+  showAddModal: boolean;
+  setShowAddModal: (open: boolean) => void;
+  editVendor: VendorItem | null;
+  inquiryModalVendor: VendorItem | null;
+  setInquiryModalVendor: (v: VendorItem | null) => void;
+  inquiryEmailText: string;
+  setInquiryEmailText: (t: string) => void;
+  isGeneratingEmail: boolean;
+  copiedEmail: boolean;
+  formCategory: string;
+  setFormCategory: (c: string) => void;
+  formName: string;
+  setFormName: (n: string) => void;
+  formContactName: string;
+  setFormContactName: (n: string) => void;
+  formPhone: string;
+  setFormPhone: (p: string) => void;
+  formEmail: string;
+  setFormEmail: (e: string) => void;
+  formQuote: string;
+  setFormQuote: (q: string) => void;
+  formDeposit: string;
+  setFormDeposit: (d: string) => void;
+  formStatus: VendorStatus;
+  setFormStatus: (s: VendorStatus) => void;
+  formNotes: string;
+  setFormNotes: (n: string) => void;
+  formChecklistRaw: string;
+  setFormChecklistRaw: (c: string) => void;
+  financials: VendorFinancials;
+  filteredVendors: VendorItem[];
+  handleOpenAdd: () => void;
+  handleOpenEdit: (vendor: VendorItem) => void;
+  handleSaveVendor: (e: React.FormEvent) => void;
+  handleDeleteVendor: (id: string) => void;
+  handleToggleChecklist: (vendorId: string, itemIdx: number) => void;
+  handleGenerateInquiryEmail: (vendor: VendorItem) => Promise<void>;
+  handleCopyEmail: () => void;
+}
+
+/**
+ * Domain hook managing vendor pipeline, quotes, contract statuses, and AI outreach drafts.
+ *
+ * @param props - Event plan and persistence callback
+ * @returns Fully typed vendor state and actions
+ */
+export function useVendors({ plan, onUpdatePlan }: UseVendorsProps): UseVendorsReturn {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editVendor, setEditVendor] = useState<VendorItem | null>(null);
@@ -26,16 +81,18 @@ export function useVendors({ plan, onUpdatePlan }: UseVendorsProps) {
   const [formEmail, setFormEmail] = useState('');
   const [formQuote, setFormQuote] = useState('');
   const [formDeposit, setFormDeposit] = useState('');
-  const [formStatus, setFormStatus] = useState<VendorItem['status']>('researching');
+  const [formStatus, setFormStatus] = useState<VendorStatus>('researching');
   const [formNotes, setFormNotes] = useState('');
   const [formChecklistRaw, setFormChecklistRaw] = useState('');
 
-  const financials = calculateVendorFinancials(plan.vendors);
+  const financials = useMemo(() => calculateVendorFinancials(plan.vendors), [plan.vendors]);
 
-  const filteredVendors = plan.vendors.filter((v) => {
-    if (selectedStatus === 'all') return true;
-    return v.status === selectedStatus;
-  });
+  const filteredVendors = useMemo(() => {
+    return plan.vendors.filter((v) => {
+      if (selectedStatus === 'all') return true;
+      return v.status === selectedStatus;
+    });
+  }, [plan.vendors, selectedStatus]);
 
   const handleOpenAdd = () => {
     setEditVendor(null);

@@ -1,13 +1,62 @@
-import { useState } from 'react';
-import { EventPlan, GuestItem } from '../../types/event';
-import { calculateGuestStats } from '../../utils/eventCalculators';
+import { useState, useMemo } from 'react';
+import { EventPlan, GuestItem, GuestGroup, GuestRsvpStatus } from '../../types/event';
+import { calculateGuestStats, GuestStats } from '../../utils/eventCalculators';
 
+/**
+ * Props for useGuests domain hook.
+ */
 export interface UseGuestsProps {
   plan: EventPlan;
   onUpdatePlan: (updatedPlan: EventPlan) => void;
 }
 
-export function useGuests({ plan, onUpdatePlan }: UseGuestsProps) {
+/**
+ * Return contract for useGuests hook.
+ */
+export interface UseGuestsReturn {
+  searchTerm: string;
+  setSearchTerm: (s: string) => void;
+  statusFilter: string;
+  setStatusFilter: (f: string) => void;
+  groupFilter: string;
+  setGroupFilter: (g: string) => void;
+  showAddModal: boolean;
+  setShowAddModal: (open: boolean) => void;
+  showCsvModal: boolean;
+  setShowCsvModal: (open: boolean) => void;
+  editGuest: GuestItem | null;
+  formName: string;
+  setFormName: (n: string) => void;
+  formEmail: string;
+  setFormEmail: (e: string) => void;
+  formGroup: GuestGroup;
+  setFormGroup: (g: GuestGroup) => void;
+  formRsvp: GuestRsvpStatus;
+  setFormRsvp: (r: GuestRsvpStatus) => void;
+  formPlusOnes: string;
+  setFormPlusOnes: (p: string) => void;
+  formDiet: string;
+  setFormDiet: (d: string) => void;
+  formTable: string;
+  setFormTable: (t: string) => void;
+  stats: GuestStats;
+  filteredGuests: GuestItem[];
+  handleInlineTableChange: (guestId: string, newTable: string) => void;
+  handleRsvpChange: (guestId: string, newStatus: GuestRsvpStatus) => void;
+  openAddModal: () => void;
+  openEditModal: (guest: GuestItem) => void;
+  handleSaveGuest: (e: React.FormEvent) => void;
+  handleDeleteGuest: (id: string) => void;
+  handleBulkImportCsv: (importedGuests: GuestItem[]) => void;
+}
+
+/**
+ * Domain hook managing guest roster, RSVPs, dietary tags, table assignments, and CSV imports.
+ *
+ * @param props - Event plan and persistence callback
+ * @returns Fully typed guest management state and actions
+ */
+export function useGuests({ plan, onUpdatePlan }: UseGuestsProps): UseGuestsReturn {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [groupFilter, setGroupFilter] = useState<string>('all');
@@ -18,23 +67,27 @@ export function useGuests({ plan, onUpdatePlan }: UseGuestsProps) {
   // Form state
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
-  const [formGroup, setFormGroup] = useState<GuestItem['group']>('friends');
-  const [formRsvp, setFormRsvp] = useState<GuestItem['rsvpStatus']>('pending');
+  const [formGroup, setFormGroup] = useState<GuestGroup>('friends');
+  const [formRsvp, setFormRsvp] = useState<GuestRsvpStatus>('pending');
   const [formPlusOnes, setFormPlusOnes] = useState('0');
   const [formDiet, setFormDiet] = useState('');
   const [formTable, setFormTable] = useState('');
 
-  const stats = calculateGuestStats(plan.guests);
+  const stats = useMemo(() => calculateGuestStats(plan.guests), [plan.guests]);
 
-  const filteredGuests = plan.guests.filter((g) => {
-    const matchesSearch =
-      g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (g.email && g.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (g.tableNumber && g.tableNumber.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || g.rsvpStatus === statusFilter;
-    const matchesGroup = groupFilter === 'all' || g.group === groupFilter;
-    return matchesSearch && matchesStatus && matchesGroup;
-  });
+  const filteredGuests = useMemo(() => {
+    const q = searchTerm.toLowerCase().trim();
+    return plan.guests.filter((g) => {
+      const matchesSearch =
+        !q ||
+        g.name.toLowerCase().includes(q) ||
+        (g.email && g.email.toLowerCase().includes(q)) ||
+        (g.tableNumber && g.tableNumber.toLowerCase().includes(q));
+      const matchesStatus = statusFilter === 'all' || g.rsvpStatus === statusFilter;
+      const matchesGroup = groupFilter === 'all' || g.group === groupFilter;
+      return matchesSearch && matchesStatus && matchesGroup;
+    });
+  }, [plan.guests, searchTerm, statusFilter, groupFilter]);
 
   const handleInlineTableChange = (guestId: string, newTable: string) => {
     const updated = plan.guests.map((g) =>
@@ -43,7 +96,7 @@ export function useGuests({ plan, onUpdatePlan }: UseGuestsProps) {
     onUpdatePlan({ ...plan, guests: updated });
   };
 
-  const handleRsvpChange = (guestId: string, newStatus: GuestItem['rsvpStatus']) => {
+  const handleRsvpChange = (guestId: string, newStatus: GuestRsvpStatus) => {
     const updated = plan.guests.map((g) =>
       g.id === guestId ? { ...g, rsvpStatus: newStatus } : g
     );
@@ -121,6 +174,7 @@ export function useGuests({ plan, onUpdatePlan }: UseGuestsProps) {
   const handleBulkImportCsv = (importedGuests: GuestItem[]) => {
     const updated = [...plan.guests, ...importedGuests];
     onUpdatePlan({ ...plan, guests: updated });
+    setShowCsvModal(false);
   };
 
   return {

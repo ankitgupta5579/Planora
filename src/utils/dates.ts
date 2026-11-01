@@ -1,13 +1,24 @@
 /**
- * Date parsing and formatting utilities designed to prevent timezone and DST off-by-one errors.
+ * Timezone-resilient date parsing and formatting utilities designed to prevent
+ * daylight saving time (DST) and UTC offset off-by-one calendar drift.
+ *
+ * @packageDocumentation
  */
 
 /**
- * Parses a date string into a local Date object set to local midnight.
- * For "YYYY-MM-DD" formatted strings, creates local midnight and verifies that
- * the year, month, and day round-trip correctly (rejecting dates like 2026-02-31).
- * For other strings, falls back to new Date(value).
- * Returns null if the date is invalid.
+ * Parses a date string into a local Date object set to local midnight (00:00:00.000).
+ *
+ * For "YYYY-MM-DD" formatted ISO strings, creates a local midnight Date and verifies
+ * that the year, month, and day round-trip correctly (safely rejecting invalid dates
+ * such as February 31st or month 13).
+ *
+ * @param value - Date string in ISO YYYY-MM-DD or standard parseable string format
+ * @returns Valid local Date instance set to midnight, or null if invalid
+ * @example
+ * ```ts
+ * parseLocalDate("2026-12-25"); // Local Date: Dec 25, 2026 00:00:00
+ * parseLocalDate("2026-02-31"); // null (invalid calendar date)
+ * ```
  */
 export function parseLocalDate(value: string): Date | null {
   if (!value || typeof value !== 'string') return null;
@@ -46,6 +57,11 @@ export function parseLocalDate(value: string): Date | null {
 /**
  * Formats a date string or Date object using local date components so date-only
  * strings ("YYYY-MM-DD") are never shifted by UTC offsets.
+ *
+ * @param dateValue - Target date as string or Date object
+ * @param options - Intl.DateTimeFormatOptions configuration
+ * @param locale - BCP 47 language tag (e.g. 'en-US')
+ * @returns Human-readable localized date string
  */
 export function formatLocalDate(
   dateValue: string | Date,
@@ -60,8 +76,12 @@ export function formatLocalDate(
 }
 
 /**
- * Calculates days remaining between fromDate and targetDate by comparing
+ * Calculates whole days remaining between fromDate and targetDate by comparing
  * their local midnights. Uses Math.round to remain resilient against DST transitions.
+ *
+ * @param targetDate - Future or past date string
+ * @param fromDate - Reference anchor date (defaults to current system time)
+ * @returns Signed integer count of calendar days remaining (>0 future, 0 today, <0 past)
  */
 export function calculateDaysRemaining(targetDate: string, fromDate: Date = new Date()): number {
   if (!targetDate) return 0;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { EventPlan } from '../../types/event';
 import {
   loadSavedEvents,
@@ -11,14 +11,14 @@ import { LayoutDashboard, DollarSign, Clock, Building2, Sparkles, Users } from '
 
 export type TabKey = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests';
 
-export const VALID_TABS: TabKey[] = [
+export const VALID_TABS: readonly TabKey[] = [
   'overview',
   'budget',
   'timeline',
   'vendors',
   'ideas',
   'guests',
-];
+] as const;
 
 export function getTabFromHash(): TabKey {
   if (typeof window === 'undefined') return 'overview';
@@ -34,9 +34,42 @@ export interface TabItem {
 }
 
 /**
- * Custom hook encapsulating core application state, event selection, routing, and dialog states.
+ * Return contract for the usePlanoraApp master hook.
  */
-export function usePlanoraApp() {
+export interface UsePlanoraAppReturn {
+  events: EventPlan[];
+  activeId: string;
+  activeEvent: EventPlan | undefined;
+  activeTab: TabKey;
+  tabs: TabItem[];
+  tabListRef: React.RefObject<HTMLDivElement | null>;
+  isWizardOpen: boolean;
+  setIsWizardOpen: (open: boolean) => void;
+  isAiDrawerOpen: boolean;
+  setIsAiDrawerOpen: (open: boolean) => void;
+  isSpeechModalOpen: boolean;
+  setIsSpeechModalOpen: (open: boolean) => void;
+  isExportOpen: boolean;
+  setIsExportOpen: (open: boolean) => void;
+  isResetConfirmOpen: boolean;
+  setIsResetConfirmOpen: (open: boolean) => void;
+  isDeleteConfirmOpen: boolean;
+  setIsDeleteConfirmOpen: (open: boolean) => void;
+  handleNavigateTab: (tab: TabKey, pushHistory?: boolean) => void;
+  handleSelectEvent: (id: string) => void;
+  handleUpdatePlan: (updatedPlan: EventPlan) => void;
+  handlePlanCreated: (newPlan: EventPlan) => void;
+  handleResetSampleData: () => void;
+  handleDeleteActiveEvent: () => void;
+  handleTabKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+}
+
+/**
+ * Custom hook encapsulating core application state, event selection, routing, and dialog states.
+ *
+ * @returns Fully typed state and actions for the top-level application
+ */
+export function usePlanoraApp(): UsePlanoraAppReturn {
   const [events, setEvents] = useState<EventPlan[]>(() => {
     if (typeof window === 'undefined') return [];
     return loadSavedEvents();
@@ -56,7 +89,7 @@ export function usePlanoraApp() {
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  const tabListRef = useRef<HTMLDivElement>(null);
+  const tabListRef = useRef<HTMLDivElement | null>(null);
 
   // Synchronize browser history and hash navigation
   useEffect(() => {
@@ -129,36 +162,37 @@ export function usePlanoraApp() {
     }
   };
 
-  const tabs: TabItem[] = activeEvent
-    ? [
-        { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-        { key: 'budget', label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
-        {
-          key: 'timeline',
-          label: 'Timeline & Schedule',
-          icon: <Clock className="w-4 h-4" />,
-          count: activeEvent.timelineItems.length,
-        },
-        {
-          key: 'vendors',
-          label: 'Vendors',
-          icon: <Building2 className="w-4 h-4" />,
-          count: activeEvent.vendors.length,
-        },
-        {
-          key: 'ideas',
-          label: 'Ideas & Themes',
-          icon: <Sparkles className="w-4 h-4" />,
-          count: activeEvent.ideas.length,
-        },
-        {
-          key: 'guests',
-          label: 'Guests & RSVPs',
-          icon: <Users className="w-4 h-4" />,
-          count: activeEvent.guests.length,
-        },
-      ]
-    : [];
+  const tabs: TabItem[] = useMemo(() => {
+    if (!activeEvent) return [];
+    return [
+      { key: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { key: 'budget', label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
+      {
+        key: 'timeline',
+        label: 'Timeline & Schedule',
+        icon: <Clock className="w-4 h-4" />,
+        count: activeEvent.timelineItems.length,
+      },
+      {
+        key: 'vendors',
+        label: 'Vendors',
+        icon: <Building2 className="w-4 h-4" />,
+        count: activeEvent.vendors.length,
+      },
+      {
+        key: 'ideas',
+        label: 'Ideas & Themes',
+        icon: <Sparkles className="w-4 h-4" />,
+        count: activeEvent.ideas.length,
+      },
+      {
+        key: 'guests',
+        label: 'Guests & RSVPs',
+        icon: <Users className="w-4 h-4" />,
+        count: activeEvent.guests.length,
+      },
+    ];
+  }, [activeEvent]);
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const currentIndex = tabs.findIndex((t) => t.key === activeTab);

@@ -5,14 +5,31 @@ import { generateOfflineChatReply } from '../../utils/chatFallback';
 
 export const CLIENT_CHAT_TIMEOUT_MS = 15000;
 
-interface UseAiChatProps {
+/**
+ * Props for useAiChat hook.
+ */
+export interface UseAiChatProps {
   plan: EventPlan;
 }
 
 /**
- * Custom hook managing conversational AI state, network calls, timeouts, and offline fallbacks.
+ * Return contract for useAiChat hook.
  */
-export function useAiChat({ plan }: UseAiChatProps) {
+export interface UseAiChatReturn {
+  messages: AiChatMessage[];
+  inputMessage: string;
+  setInputMessage: (msg: string) => void;
+  isLoading: boolean;
+  handleSendMessage: (textToSend?: string) => Promise<void>;
+}
+
+/**
+ * Custom hook managing conversational AI state, network calls, timeouts, and offline fallbacks.
+ *
+ * @param props - Event plan context
+ * @returns Fully typed chat assistant state and actions
+ */
+export function useAiChat({ plan }: UseAiChatProps): UseAiChatReturn {
   const [messages, setMessages] = useState<AiChatMessage[]>([
     {
       id: 'welcome',

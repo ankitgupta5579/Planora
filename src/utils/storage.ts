@@ -1,3 +1,10 @@
+/**
+ * Local persistence and migration manager for celebration plans.
+ * Manages localStorage synchronization, schema migrations, and markdown/json exports.
+ *
+ * @packageDocumentation
+ */
+
 import { EventPlan } from '../types/event';
 import { SAMPLE_EVENTS } from './sampleData';
 import { formatLocalDate } from './dates';
@@ -7,10 +14,19 @@ const STORAGE_KEY_VERSION = 'celebration_storage_version';
 const STORAGE_KEY_EVENTS = 'celebration_events_v5';
 const STORAGE_KEY_ACTIVE_ID = 'celebration_active_event_id_v5';
 
+/**
+ * Checks whether the browser's localStorage API is defined and available.
+ */
 function isStorageAvailable(): boolean {
   return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
 }
 
+/**
+ * Loads all saved celebration events from local browser storage.
+ * Performs automated version upgrade and seeds with sample events if empty or corrupt.
+ *
+ * @returns Array of valid EventPlan records
+ */
 export function loadSavedEvents(): EventPlan[] {
   if (!isStorageAvailable()) return SAMPLE_EVENTS;
   try {
@@ -37,6 +53,11 @@ export function loadSavedEvents(): EventPlan[] {
   }
 }
 
+/**
+ * Restores the event database to fresh sample events and resets the active selection.
+ *
+ * @returns Fresh default sample events
+ */
 export function resetToSampleEvents(): EventPlan[] {
   if (isStorageAvailable()) {
     localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
@@ -46,7 +67,12 @@ export function resetToSampleEvents(): EventPlan[] {
   return SAMPLE_EVENTS;
 }
 
-export function saveAllEvents(events: EventPlan[]): void {
+/**
+ * Persists the complete list of celebration plans into local storage.
+ *
+ * @param events - Complete array of EventPlan objects
+ */
+export function saveAllEvents(events: readonly EventPlan[]): void {
   if (!isStorageAvailable()) return;
   try {
     localStorage.setItem(STORAGE_KEY_VERSION, STORAGE_VERSION);
@@ -56,7 +82,14 @@ export function saveAllEvents(events: EventPlan[]): void {
   }
 }
 
-export function getActiveEventId(events: EventPlan[]): string {
+/**
+ * Retrieves the currently active event ID from local storage.
+ * Validates that the active ID exists in the provided event array.
+ *
+ * @param events - Current list of known events
+ * @returns Active event ID string, or fallback to first available event ID
+ */
+export function getActiveEventId(events: readonly EventPlan[]): string {
   if (!isStorageAvailable()) return events[0]?.id || '';
   try {
     const saved = localStorage.getItem(STORAGE_KEY_ACTIVE_ID);
@@ -69,6 +102,11 @@ export function getActiveEventId(events: EventPlan[]): string {
   return events[0]?.id || '';
 }
 
+/**
+ * Sets and persists the ID of the currently selected event.
+ *
+ * @param id - Selected event unique identifier
+ */
 export function setActiveEventId(id: string): void {
   if (!isStorageAvailable()) return;
   try {
@@ -78,6 +116,11 @@ export function setActiveEventId(id: string): void {
   }
 }
 
+/**
+ * Triggers a client-side download of the celebration plan as formatted JSON.
+ *
+ * @param plan - EventPlan record to serialize
+ */
 export function exportPlanAsJson(plan: EventPlan): void {
   const dataStr =
     'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(plan, null, 2));
@@ -92,6 +135,12 @@ export function exportPlanAsJson(plan: EventPlan): void {
   downloadAnchor.remove();
 }
 
+/**
+ * Generates an executive Markdown summary dossier of the event plan.
+ *
+ * @param plan - EventPlan record
+ * @returns Fully formatted Markdown document string
+ */
 export function exportPlanAsMarkdown(plan: EventPlan): string {
   const dateFormatted = formatLocalDate(plan.date, {
     weekday: 'long',

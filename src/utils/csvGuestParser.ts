@@ -1,5 +1,16 @@
+/**
+ * RFC 4180 compliant CSV parser and guest roster import validator.
+ * Provides resilient column header auto-detection, quoted field handling,
+ * email syntax validation, and duplicate guest rejection.
+ *
+ * @packageDocumentation
+ */
+
 import { GuestItem } from '../types/event';
 
+/**
+ * Validation record for an individual CSV row.
+ */
 export interface CsvGuestRowValidation {
   rowNumber: number;
   guest?: GuestItem;
@@ -8,6 +19,9 @@ export interface CsvGuestRowValidation {
   rawText: string;
 }
 
+/**
+ * Result payload containing imported guests and detailed row-by-row diagnostics.
+ */
 export interface CsvImportResult {
   validGuests: GuestItem[];
   rows: CsvGuestRowValidation[];
@@ -20,6 +34,14 @@ export interface CsvImportResult {
 /**
  * Parses a single CSV line into an array of string fields,
  * handling standard double-quoted fields with commas and escaped quotes ("").
+ *
+ * @param line - Raw line from CSV payload
+ * @returns Array of parsed column values
+ * @example
+ * ```ts
+ * parseCsvLine('"Smith, John",john@example.com,"VIP, Table 4"');
+ * // ['Smith, John', 'john@example.com', 'VIP, Table 4']
+ * ```
  */
 export function parseCsvLine(line: string): string[] {
   const fields: string[] = [];
@@ -98,6 +120,10 @@ function parseGuestGroup(value?: string): GuestItem['group'] {
 /**
  * Parses raw CSV string and validates each guest row against requirements.
  * Avoids duplicate entries matching existing guests by email or full name.
+ *
+ * @param csvText - Raw CSV file or text input
+ * @param existingGuests - Current guests in event to detect duplicates against
+ * @returns CsvImportResult with valid guests and row validations
  */
 export function parseCsvGuestList(
   csvText: string,

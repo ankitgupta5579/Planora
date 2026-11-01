@@ -1,14 +1,53 @@
-import { useState } from 'react';
-import { EventPlan, PersonalizedIdea } from '../../types/event';
+import { useState, useMemo } from 'react';
+import { EventPlan, PersonalizedIdea, IdeaCategory } from '../../types/event';
 import { generateHeuristicIdeas } from '../../utils/ideaGenerator';
 import { safeConfetti } from '../../utils/motion';
 
+/**
+ * Props for useIdeas domain hook.
+ */
 export interface UseIdeasProps {
   plan: EventPlan;
   onUpdatePlan: (updatedPlan: EventPlan) => void;
 }
 
-export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
+/**
+ * Return contract for useIdeas hook.
+ */
+export interface UseIdeasReturn {
+  selectedCategory: string;
+  setSelectedCategory: (c: string) => void;
+  showAddModal: boolean;
+  setShowAddModal: (open: boolean) => void;
+  isSparkingAi: boolean;
+  copiedHex: string | null;
+  expandedIdeas: Record<string, boolean>;
+  fallbackNotice: string | null;
+  aiStatusMessage: string;
+  formCategory: IdeaCategory;
+  setFormCategory: (c: IdeaCategory) => void;
+  formTitle: string;
+  setFormTitle: (t: string) => void;
+  formDescription: string;
+  setFormDescription: (d: string) => void;
+  formTags: string;
+  setFormTags: (t: string) => void;
+  filteredIdeas: PersonalizedIdea[];
+  handleToggleExpand: (id: string) => void;
+  handleCopyHex: (hex: string) => void;
+  handleSparkAiIdeas: () => Promise<void>;
+  openAddModal: () => void;
+  handleSaveCustomIdea: (e: React.FormEvent) => void;
+  handleDeleteIdea: (id: string) => void;
+}
+
+/**
+ * Domain hook managing creative ideation, curated blueprints, and AI inspiration generation.
+ *
+ * @param props - Event plan and persistence callback
+ * @returns Fully typed ideas state and actions
+ */
+export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps): UseIdeasReturn {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSparkingAi, setIsSparkingAi] = useState(false);
@@ -18,15 +57,17 @@ export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
   const [aiStatusMessage, setAiStatusMessage] = useState<string>('');
 
   // Form state
-  const [formCategory, setFormCategory] = useState<PersonalizedIdea['category']>('theme_decor');
+  const [formCategory, setFormCategory] = useState<IdeaCategory>('theme_decor');
   const [formTitle, setFormTitle] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formTags, setFormTags] = useState('');
 
-  const filteredIdeas = (plan.ideas || []).filter((idea) => {
-    if (selectedCategory === 'all') return true;
-    return idea.category === selectedCategory;
-  });
+  const filteredIdeas = useMemo(() => {
+    return (plan.ideas || []).filter((idea) => {
+      if (selectedCategory === 'all') return true;
+      return idea.category === selectedCategory;
+    });
+  }, [plan.ideas, selectedCategory]);
 
   const handleToggleExpand = (id: string) => {
     setExpandedIdeas((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -104,6 +145,14 @@ export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
     }
   };
 
+  const openAddModal = () => {
+    setFormCategory('theme_decor');
+    setFormTitle('');
+    setFormDescription('');
+    setFormTags('');
+    setShowAddModal(true);
+  };
+
   const handleSaveCustomIdea = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
@@ -111,25 +160,23 @@ export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
     const tags = formTags
       .split(',')
       .map((t) => t.trim())
-      .filter(Boolean);
+      .filter((t) => t.length > 0);
 
     const newIdea: PersonalizedIdea = {
       id: 'idea-' + Date.now(),
-      category: formCategory,
       title: formTitle.trim(),
-      description: formDescription.trim() || 'Custom celebration detail.',
-      tags: tags.length > 0 ? tags : ['Custom', 'Personal Touch'],
+      category: formCategory,
+      description: formDescription.trim(),
+      tags: tags.length > 0 ? tags : ['custom', formCategory],
     };
 
-    onUpdatePlan({ ...plan, ideas: [...(plan.ideas || []), newIdea] });
-    setFormTitle('');
-    setFormDescription('');
-    setFormTags('');
+    const updated = [...(plan.ideas || []), newIdea];
+    onUpdatePlan({ ...plan, ideas: updated });
     setShowAddModal(false);
   };
 
   const handleDeleteIdea = (id: string) => {
-    const updated = (plan.ideas || []).filter((idea) => idea.id !== id);
+    const updated = (plan.ideas || []).filter((i) => i.id !== id);
     onUpdatePlan({ ...plan, ideas: updated });
   };
 
@@ -155,6 +202,7 @@ export function useIdeas({ plan, onUpdatePlan }: UseIdeasProps) {
     handleToggleExpand,
     handleCopyHex,
     handleSparkAiIdeas,
+    openAddModal,
     handleSaveCustomIdea,
     handleDeleteIdea,
   };

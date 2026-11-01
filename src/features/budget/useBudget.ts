@@ -1,51 +1,115 @@
-import { useState } from 'react';
-import { EventPlan, BudgetItem } from '../../types/event';
+import { useState, useMemo } from 'react';
+import { EventPlan, BudgetItem, BudgetCategory } from '../../types/event';
 import {
   calculateBudgetMetrics,
   rebalanceBudgetItems,
   calculateUncommittedCash,
   calculateOutstandingVendorBalances,
+  BudgetMetrics,
 } from '../../utils/eventCalculators';
 import { safeConfetti } from '../../utils/motion';
 
+/**
+ * Props passed to the useBudget domain hook.
+ */
 export interface UseBudgetProps {
   plan: EventPlan;
   onUpdatePlan: (updatedPlan: EventPlan) => void;
 }
 
-export function useBudget({ plan, onUpdatePlan }: UseBudgetProps) {
+/**
+ * Return interface for the useBudget custom hook.
+ */
+export interface UseBudgetReturn {
+  searchTerm: string;
+  setSearchTerm: (s: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (c: string) => void;
+  showAddModal: boolean;
+  setShowAddModal: (open: boolean) => void;
+  editItem: BudgetItem | null;
+  formCategory: BudgetCategory;
+  setFormCategory: (c: BudgetCategory) => void;
+  formTitle: string;
+  setFormTitle: (t: string) => void;
+  formAllocated: string;
+  setFormAllocated: (a: string) => void;
+  formActual: string;
+  setFormActual: (a: string) => void;
+  formNotes: string;
+  setFormNotes: (n: string) => void;
+  formPaid: boolean;
+  setFormPaid: (p: boolean) => void;
+  metrics: BudgetMetrics;
+  uncommittedCash: number;
+  outstandingVendorBalances: number;
+  filteredItems: BudgetItem[];
+  categoryBreakdown: Record<string, number>;
+  openAddModal: () => void;
+  openEditModal: (item: BudgetItem) => void;
+  handleSaveItem: (e: React.FormEvent) => void;
+  handleDeleteItem: (id: string) => void;
+  handleTogglePaid: (item: BudgetItem) => void;
+  handleAutoRebalance: () => void;
+}
+
+/**
+ * Custom domain hook for comprehensive budget ledger management.
+ * Manages line item mutations, deterministic calculations, filtering, and auto-rebalancing.
+ *
+ * @param props - Event plan and persistence callback
+ * @returns Fully typed ledger state and actions
+ */
+export function useBudget({ plan, onUpdatePlan }: UseBudgetProps): UseBudgetReturn {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState<BudgetItem | null>(null);
 
   // Form state
-  const [formCategory, setFormCategory] = useState<BudgetItem['category']>('catering');
+  const [formCategory, setFormCategory] = useState<BudgetCategory>('catering');
   const [formTitle, setFormTitle] = useState('');
   const [formAllocated, setFormAllocated] = useState('');
   const [formActual, setFormActual] = useState('');
   const [formNotes, setFormNotes] = useState('');
   const [formPaid, setFormPaid] = useState(false);
 
-  const metrics = calculateBudgetMetrics(plan.budgetItems, plan.totalBudget);
-  const uncommittedCash = calculateUncommittedCash(plan);
-  const outstandingVendorBalances = calculateOutstandingVendorBalances(plan.vendors);
-
-  const filteredItems = plan.budgetItems.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categoryBreakdown = plan.budgetItems.reduce(
-    (acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + item.allocatedAmount;
-      return acc;
-    },
-    {} as Record<string, number>
+  const metrics = useMemo(
+    () => calculateBudgetMetrics(plan.budgetItems, plan.totalBudget),
+    [plan.budgetItems, plan.totalBudget]
   );
+
+  const uncommittedCash = useMemo(
+    () => calculateUncommittedCash(plan),
+    [plan]
+  );
+
+  const outstandingVendorBalances = useMemo(
+    () => calculateOutstandingVendorBalances(plan.vendors),
+    [plan.vendors]
+  );
+
+  const filteredItems = useMemo(() => {
+    const q = searchTerm.toLowerCase().trim();
+    return plan.budgetItems.filter((item) => {
+      const matchesSearch =
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        (item.notes && item.notes.toLowerCase().includes(q));
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [plan.budgetItems, searchTerm, selectedCategory]);
+
+  const categoryBreakdown = useMemo(() => {
+    return plan.budgetItems.reduce(
+      (acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + item.allocatedAmount;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
+  }, [plan.budgetItems]);
 
   const openAddModal = () => {
     setEditItem(null);

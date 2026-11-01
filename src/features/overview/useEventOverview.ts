@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { EventPlan } from '../../types/event';
 import {
   calculateBudgetMetrics,
@@ -7,21 +7,71 @@ import {
   calculateGuestStats,
   calculateDaysRemaining,
   formatLocalDate,
+  BudgetMetrics,
+  TimelineProgress,
+  VendorFinancials,
+  GuestStats,
 } from '../../utils/eventCalculators';
 
+/**
+ * Props for useEventOverview domain hook.
+ */
 export interface UseEventOverviewProps {
   plan: EventPlan;
 }
 
-export function useEventOverview({ plan }: UseEventOverviewProps) {
+/**
+ * Return contract for useEventOverview hook.
+ */
+export interface UseEventOverviewReturn {
+  copiedHex: string | null;
+  budgetMetrics: BudgetMetrics;
+  timelineProgress: TimelineProgress;
+  vendorFinancials: VendorFinancials;
+  guestStats: GuestStats;
+  daysRemaining: number;
+  formattedDate: string;
+  handleCopyHex: (hex: string) => void;
+}
+
+/**
+ * Domain hook providing aggregated mission control metrics and palette clipboard operations.
+ *
+ * @param props - Event plan record
+ * @returns Fully typed executive overview metrics and actions
+ */
+export function useEventOverview({ plan }: UseEventOverviewProps): UseEventOverviewReturn {
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
-  const budgetMetrics = calculateBudgetMetrics(plan.budgetItems, plan.totalBudget);
-  const timelineProgress = calculateTimelineProgress(plan.timelineItems);
-  const vendorFinancials = calculateVendorFinancials(plan.vendors);
-  const guestStats = calculateGuestStats(plan.guests);
-  const daysRemaining = calculateDaysRemaining(plan.date);
-  const formattedDate = formatLocalDate(plan.date);
+  const budgetMetrics = useMemo(
+    () => calculateBudgetMetrics(plan.budgetItems, plan.totalBudget),
+    [plan.budgetItems, plan.totalBudget]
+  );
+
+  const timelineProgress = useMemo(
+    () => calculateTimelineProgress(plan.timelineItems),
+    [plan.timelineItems]
+  );
+
+  const vendorFinancials = useMemo(
+    () => calculateVendorFinancials(plan.vendors),
+    [plan.vendors]
+  );
+
+  const guestStats = useMemo(
+    () => calculateGuestStats(plan.guests),
+    [plan.guests]
+  );
+
+  const daysRemaining = useMemo(
+    () => calculateDaysRemaining(plan.date),
+    [plan.date]
+  );
+
+  const formattedDate = useMemo(
+    () => formatLocalDate(plan.date),
+    [plan.date]
+  );
 
   const handleCopyHex = (hex: string) => {
     navigator.clipboard.writeText(hex);
