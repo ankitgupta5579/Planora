@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { EventPlan, EventType, EventVibe } from '../../types/event';
 import { generateHeuristicEventPlan } from '../../utils/fallbackGenerator';
 import { safeConfetti } from '../../utils/motion';
@@ -27,7 +27,7 @@ export function useEventWizard({ onClose, onPlanCreated }: UseEventWizardProps) 
   const [vibe, setVibe] = useState<EventVibe>('elegant');
   const [specialRequests, setSpecialRequests] = useState('');
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setStep(1);
     setIsGenerating(false);
     setGenerationStepMessage('');
@@ -40,12 +40,12 @@ export function useEventWizard({ onClose, onPlanCreated }: UseEventWizardProps) 
     setCurrency('$');
     setVibe('elegant');
     setSpecialRequests('');
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     resetForm();
     onClose();
-  };
+  }, [resetForm, onClose]);
 
   const handleSelectType = (type: EventType) => {
     setEventType(type);
@@ -102,31 +102,45 @@ export function useEventWizard({ onClose, onPlanCreated }: UseEventWizardProps) 
         body: JSON.stringify(planPayload),
       });
 
+      if (!res.ok) throw new Error('API Generation Failed');
       const data = await res.json();
-      clearInterval(interval);
 
-      const resolvedPlan: EventPlan = data?.plan || generateHeuristicEventPlan(planPayload);
-
-      safeConfetti({
-        particleCount: 60,
-        spread: 80,
-        origin: { y: 0.6 },
-      });
-      onPlanCreated(resolvedPlan);
-      handleClose();
+      if (data.plan) {
+        onPlanCreated(data.plan);
+        safeConfetti({
+          particleCount: 80,
+          spread: 80,
+          origin: { y: 0.5 },
+        });
+        handleClose();
+      } else {
+        throw new Error('Invalid plan data');
+      }
     } catch {
-      clearInterval(interval);
-
-      const fallbackPlan = generateHeuristicEventPlan(planPayload);
-      safeConfetti({
-        particleCount: 60,
-        spread: 80,
-        origin: { y: 0.6 },
+      // Offline fallback plan generator
+      const fallback = generateHeuristicEventPlan({
+        title: planPayload.title,
+        type: planPayload.type,
+        vibe: planPayload.vibe,
+        date: planPayload.date,
+        location: planPayload.location,
+        guestCount: planPayload.guestCount,
+        totalBudget: planPayload.totalBudget,
+        currency: planPayload.currency,
+        specialRequests: planPayload.specialRequests,
       });
-      onPlanCreated(fallbackPlan);
+
+      onPlanCreated(fallback);
+      safeConfetti({
+        particleCount: 80,
+        spread: 80,
+        origin: { y: 0.5 },
+      });
       handleClose();
     } finally {
+      clearInterval(interval);
       setIsGenerating(false);
+      setGenerationStepMessage('');
     }
   };
 

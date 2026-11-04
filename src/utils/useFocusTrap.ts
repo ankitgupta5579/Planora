@@ -3,10 +3,16 @@ import { useEffect, useRef } from 'react';
 /**
  * Traps focus inside an active dialog/drawer, closes on Escape,
  * and restores focus to the trigger element when the dialog closes.
+ * Uses an onClose ref and guards active focus so re-renders/typing do not steal focus.
  */
 export function useFocusTrap(isOpen: boolean, onClose: () => void) {
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -14,9 +20,12 @@ export function useFocusTrap(isOpen: boolean, onClose: () => void) {
     // Capture the trigger element that had focus when opening
     triggerRef.current = document.activeElement as HTMLElement | null;
 
-    // Focus the first focusable element inside the modal
+    // Focus the first focusable element inside the modal only upon initial open
     const timer = setTimeout(() => {
       if (!containerRef.current) return;
+      // If focus is already inside the modal (e.g. user already clicked/focused an input), do not steal focus
+      if (containerRef.current.contains(document.activeElement)) return;
+
       const focusable = containerRef.current.querySelectorAll<HTMLElement>(
         'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
@@ -30,7 +39,7 @@ export function useFocusTrap(isOpen: boolean, onClose: () => void) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -76,7 +85,7 @@ export function useFocusTrap(isOpen: boolean, onClose: () => void) {
         triggerRef.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return containerRef;
 }
